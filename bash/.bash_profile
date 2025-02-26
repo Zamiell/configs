@@ -3,7 +3,7 @@
 # ---------------------
 
 # Load secret environment variables that cannot be committed to Git.
-if [[ -f "~/.env" ]]; then
+if [[ -f ~/.env ]]; then
   source ~/.env
 fi
 
