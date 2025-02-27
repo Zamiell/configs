@@ -163,6 +163,37 @@ gbc() (
   git --no-pager branch
 )
 
+# "gbr" is short for "git branch delete", which will delete the branch both locally and remotely.
+gbr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Branch name is required. Usage: gbd <branch-name>"
+    return 1
+  fi
+  local branch_name="$1"
+
+  # Check if branch exists locally
+  if ! git show-ref --verify --quiet "refs/heads/$branch_name"; then
+    echo "Warning: Branch \"$branch_name\" does not exist locally."
+  else
+    git branch -D "$branch_name"
+    echo "Deleted branch \"$branch_name\" locally."
+  fi
+
+  if ! git ls-remote --heads origin "$branch_name" | grep -q .; then
+    echo "Warning: Branch \"$branch_name\" does not exist on remote origin."
+  else
+    git push origin ":$branch_name"
+    echo "Deleted branch \"$branch_name\" remotely."
+  end
+)
+
 # "gbr" is short for "git branch rename", which will rename the application portion of the branch
 # name.
 gbr() (
