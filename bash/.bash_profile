@@ -191,7 +191,7 @@ gbd() (
   else
     git push origin ":$branch_name"
     echo "Deleted branch \"$branch_name\" remotely."
-  end
+  fi
 )
 
 # "gbr" is short for "git branch rename", which will rename the application portion of the branch
