@@ -163,8 +163,8 @@ gbc() (
   git --no-pager branch
 )
 
-# "gbr" is short for "git branch delete", which will delete the branch both locally and remotely.
-gbr() (
+# "gbd" is short for "git branch delete", which will delete the branch both locally and remotely.
+gbd() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
@@ -204,8 +204,8 @@ gbr() (
     return 1
   fi
 
-  if [[ $# -eq 0 ]]; then
-    echo "Error: Must provide a new application name like \"misc\"."
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Application name is rqeuired. Usage: gbr <application-name>"
     return 1
   fi
   local app_name="$1"
