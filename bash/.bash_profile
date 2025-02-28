@@ -28,12 +28,8 @@ fi
 # A better "ll" alias that shows hidden files and human-readable file sizes.
 alias ll="ls -lah"
 
-# "r" is short for switching to the repositories directory.
-if [[ -d "/c/Users/$USERNAME/Repositories" ]]; then
-  alias r="cd /c/Users/$USERNAME/Repositories"
-elif [[ -d "/d/Repositories" ]]; then
-  alias r="cd /d/Repositories"
-fi
+# "n" is short for "nuke".
+alias n="npx complete-cli@latest nuke"
 
 # "o" is short for "open", to open a URL in a browser.
 o() (
@@ -55,6 +51,13 @@ o() (
     echo "Error: The BROWSER environment variable is not set to \"chrome\" or \"edge\"."
   fi
 )
+
+# "r" is short for switching to the repositories directory.
+if [[ -d "/c/Users/$USERNAME/Repositories" ]]; then
+  alias r="cd /c/Users/$USERNAME/Repositories"
+elif [[ -d "/d/Repositories" ]]; then
+  alias r="cd /d/Repositories"
+fi
 
 # ------------
 # npm Commands
