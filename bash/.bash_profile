@@ -238,6 +238,14 @@ gc() (
     return 1
   fi
 
+  local branch_name=$(git branch --show-current)
+  local remote_branch_info=$(git ls-remote --heads origin $branch_name)
+
+  if [[ -z "$remote_branch_info" ]]; then
+    echo "Error: The remote branch of \"$branch_name\" does not yet exist."
+    return 1
+  fi
+
   if [[ $# -eq 0 ]]; then
     local commit_msg="update"
   else
