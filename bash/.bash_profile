@@ -317,6 +317,45 @@ gsm() (
   gbc # git branch clean
 )
 
+# "gp" is short for "git pull".
+alias gp="git pull --rebase"
+
+# "gpr" is short for "git pull request", to start a new pull request based on the current branch.
+gpr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  local remote_url=$(git config --get remote.origin.url)
+  if echo "$remote_url" | grep -q "github.com"; then
+    echo "TODO: add GitHub logic"
+    return 1
+  elif echo "$remote_url" | grep -q "azuredevops.logixhealth.com"; then
+    local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
+    local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
+    local repo_name=$(git rev-parse --show-toplevel | xargs basename)
+    local branch_name=$(git branch --show-current)
+    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repo_name/pullrequestcreate?sourceRef=$branch_name"
+  else
+    echo "Failed to parse the remote URL for this repository."
+    return 1
+  fi
+
+  o "$pr_url"
+)
+
+# "gs" is short for "git status".
+alias gs="git status --porcelain"
+
+# "gst" is short for "git stash".
+alias gst="git stash"
+
+# "gstp" is short for "git stash pop"
+alias gstp="git stash pop"
+
 # "gsw" is short for "git switch". It requires an argument of the number corresponding to the
 # alphabetical local branch. ("gs" is already taken by another command.)
 gsw() (
@@ -360,45 +399,6 @@ gsw() (
     git switch "$@"
   fi
 )
-
-# "gp" is short for "git pull".
-alias gp="git pull --rebase"
-
-# "gpr" is short for "git pull request", to start a new pull request based on the current branch.
-gpr() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
-    return 1
-  fi
-
-  local remote_url=$(git config --get remote.origin.url)
-  if echo "$remote_url" | grep -q "github.com"; then
-    echo "TODO: add GitHub logic"
-    return 1
-  elif echo "$remote_url" | grep -q "azuredevops.logixhealth.com"; then
-    local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
-    local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
-    local repo_name=$(git rev-parse --show-toplevel | xargs basename)
-    local branch_name=$(git branch --show-current)
-    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repo_name/pullrequestcreate?sourceRef=$branch_name"
-  else
-    echo "Failed to parse the remote URL for this repository."
-    return 1
-  fi
-
-  o "$pr_url"
-)
-
-# "gs" is short for "git status".
-alias gs="git status --porcelain"
-
-# "gst" is short for "git stash".
-alias gst="git stash"
-
-# "gstp" is short for "git stash pop"
-alias gstp="git stash pop"
 
 # "gtc" is short for "git tags clean", which will remote all local tags that do not exist on the
 # remote repository.
