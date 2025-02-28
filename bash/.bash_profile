@@ -311,6 +311,10 @@ gsm() (
     return 1
   fi
 
+  if [[ ! -z "$(git status --porcelain)" ]]; then
+    git stash push -m "Auto-stash before switching to $main_branch_name"
+  fi
+
   if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
     git switch "$main_branch_name"
   fi
