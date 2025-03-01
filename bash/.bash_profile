@@ -42,7 +42,7 @@ o() (
   local url="$1"
 
   if [[ ${BROWSER:-} == "remote" ]]; then
-    local remote_ip_address="172.28.16.2"
+    local remote_ip_address="172.28.16.1"
     local remote_port="6969"
     local remote_path="browser"
     curl --header "Content-Type: application/json" --data "{\"url\":\"$url\"}" "http://$remote_ip_address:$remote_port/$remote_path" --silent
