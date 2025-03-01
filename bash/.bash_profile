@@ -8,7 +8,7 @@ is_git_bash() {
 }
 
 is_github_repository() {
-  if [ -n "$(git remote -v | grep github.com)" ]; then
+  if [ -n "$(git config --get remote.origin.url | grep github.com)" ]; then
     return 0  # True
   else
     return 1  # False
@@ -38,6 +38,10 @@ if [[ -f "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/cer
   export REQUESTS_CA_BUNDLE="/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
 fi
 
+if [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
+  alias chrome="/c/Program\ Files/Google/Chrome/Application/chrome.exe"
+fi
+
 # ----------------------
 # Miscellaneous Commands
 # ----------------------
@@ -58,11 +62,9 @@ o() (
   fi
   local url="$1"
 
-  if ! command -v start >/dev/null 2>&1; then
-    echo "$url"
-  elif [[ ${BROWSER:-} == "chrome" ]]; then
-    start chrome "$url"
-  elif [[ ${BROWSER:-} == "edge" ]]; then
+  if command -v chrome >/dev/null && [[ ${BROWSER:-} == "chrome" ]]; then
+    chrome "$url"
+  elif command -v start >/dev/null && [[ ${BROWSER:-} == "edge" ]]; then
     start microsoft-edge:"$url"
   else
     echo "Error: The BROWSER environment variable is not set to \"chrome\" or \"edge\"."
@@ -367,22 +369,16 @@ gpr() (
     return 1
   fi
 
-  local remote_url=$(git config --get remote.origin.url)
-  if echo "$remote_url" | grep -q "github.com"; then
-    echo "TODO: add GitHub logic"
-    return 1
-  elif echo "$remote_url" | grep -q "azuredevops.logixhealth.com"; then
+  if is_github_repository; then
+    gh pr create
+  else
     local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
     local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
     local repo_name=$(git rev-parse --show-toplevel | xargs basename)
     local branch_name=$(git branch --show-current)
     local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repo_name/pullrequestcreate?sourceRef=$branch_name"
-  else
-    echo "Failed to parse the remote URL for this repository."
-    return 1
+    o "$pr_url"
   fi
-
-  o "$pr_url"
 )
 
 # "gs" is short for "git status".
