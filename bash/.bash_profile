@@ -8,8 +8,8 @@ is_git_bash() {
 }
 
 is_github_repository() {
-  ORIGIN_URL=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
-  if [ -n "$($ORIGIN_URL | grep github.com)" ]; then
+  local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+  if [ -n "$(echo $remote_url | grep github.com)" ]; then
     return 0  # True
   else
     return 1  # False
