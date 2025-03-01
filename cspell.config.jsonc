@@ -31,9 +31,11 @@
     "azuredevops",
     "BEDROOTCA",
     "certifi",
+    "gstl",
     "gstp",
     "Logix",
     "logixhealth",
+    "MSYS",
     "pulumi",
     "tfstate",
     "toplevel"

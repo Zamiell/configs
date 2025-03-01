@@ -1,3 +1,20 @@
+# ----------------
+# Helper functions
+# ----------------
+
+is_git_bash() {
+  local kernel_name=$(uname --kernel-name)
+  [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
+}
+
+is_github_repository() {
+  if [ -n "$(git remote -v | grep github.com)" ]; then
+    return 0  # True
+  else
+    return 1  # False
+  fi
+}
+
 # ---------------------
 # Environment Variables
 # ---------------------
@@ -41,29 +58,24 @@ o() (
   fi
   local url="$1"
 
-  if [[ ${BROWSER:-} == "remote" ]]; then
-    local remote_ip_address="172.28.16.1"
-    local remote_port="6969"
-    local remote_path="browser"
-    curl --header "Content-Type: application/json" --data "{\"url\":\"$url\"}" "http://$remote_ip_address:$remote_port/$remote_path"
-  elif ! command -v start >/dev/null 2>&1; then
+  if ! command -v start >/dev/null 2>&1; then
     echo "$url"
   elif [[ ${BROWSER:-} == "chrome" ]]; then
     start chrome "$url"
   elif [[ ${BROWSER:-} == "edge" ]]; then
     start microsoft-edge:"$url"
   else
-    echo "Error: The BROWSER environment variable is not set to \"remote\" or \"chrome\" or \"edge\"."
+    echo "Error: The BROWSER environment variable is not set to \"chrome\" or \"edge\"."
   fi
 )
 
 # "r" is short for switching to the repositories directory.
-if [[ -d "/d/Repositories" ]]; then
-  alias r="cd /d/Repositories" # Home
-elif [[ -d "/c/Users/$USERNAME/Repositories" ]]; then
+if [[ -d "/c/Users/$USERNAME/Repositories" ]]; then
   alias r="cd /c/Users/$USERNAME/Repositories" # Generic Windows
 elif [[ -d "/home/$USER/repositories" ]]; then
   alias r="cd /home/$USER/repositories" # Generic Linux
+elif [[ -d "/d/Repositories" ]]; then
+  alias r="cd /d/Repositories" # Separate drive
 fi
 
 # ------------
@@ -85,8 +97,6 @@ alias u="npm run update"
 alias ga="git add --all"
 
 # - "gb" is short for creating a new git branch, which is a common coding task.
-# - For example, "gb fix-bug LogixCodify" would create a branch named
-#   "feature/LogixCodify/[username]/fix-bug".
 # - We cannot use a positional argument in an alias, so we create a function instead.
 # - Doing a push is important after creating a new branch because it prevents subsequent `git pull`
 #   calls from failing.
@@ -110,6 +120,12 @@ gb() (
     local application_name="$2"
   fi
 
+  if is_github_repository; then
+    local new_branch_name="$description"
+  else
+    local new_branch_name="feature/$application_name/$USERNAME/$description"
+  fi
+
   if [[ -z "$(git status --porcelain)" ]]; then
     local stashed_before_branch=false
   else
@@ -131,7 +147,7 @@ gb() (
   fi
 
   git pull --rebase
-  git switch --create "feature/$application_name/$USERNAME/$description"
+  git switch --create "$new_branch_name"
   git push
 
   if [[ "$stashed_before_branch" = true ]]; then
@@ -215,7 +231,7 @@ gbr() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Application name is rqeuired. Usage: gbr <application-name>"
+    echo "Error: Application name is required. Usage: gbr <application-name>"
     return 1
   fi
   local app_name="$1"
@@ -488,7 +504,7 @@ alias tv="terraform validate"
 
 # Emulate the nice shell from Git Bash for Windows in Ubuntu.
 # https://github.com/lyze/posh-git-sh
-if [[ ! "$(uname -s)" =~ ^MINGW ]]; then
+if ! is_git_bash; then
   mkdir ~/.config --parents
   GIT_PROMPT_PATH=~/.config/git-prompt.sh
   curl https://raw.githubusercontent.com/lyze/posh-git-sh/refs/heads/master/git-prompt.sh --silent --output "$GIT_PROMPT_PATH"
