@@ -63,12 +63,12 @@ o() (
   fi
   local url="$1"
 
-  if command -v chrome &> /dev/null && [[ ${BROWSER:-} == "chrome" ]]; then
-    chrome "$url"
-  elif command -v start &> /dev/null && [[ ${BROWSER:-} == "edge" ]]; then
+  if command -v start &> /dev/null && [[ ${BROWSER:-} == "edge" ]]; then
     start microsoft-edge:"$url"
+  elif command -v chrome; then
+    chrome "$url"
   else
-    echo "Error: The BROWSER environment variable is not set to \"chrome\" or \"edge\"."
+    echo "Error: "chrome" was not found in the path."
   fi
 )
 
