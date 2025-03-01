@@ -41,14 +41,19 @@ o() (
   fi
   local url="$1"
 
-  if ! command -v start >/dev/null 2>&1; then
+  if [[ ${BROWSER:-} == "remote" ]]; then
+    local remote_ip_address="172.28.16.2"
+    local remote_port="6969"
+    local remote_path="browser"
+    curl --header "Content-Type: application/json" --data "{\"url\":\"$url\"}" "http://$remote_ip_address:$remote_port/$remote_path" --silent
+  elif ! command -v start >/dev/null 2>&1; then
     echo "$url"
   elif [[ ${BROWSER:-} == "chrome" ]]; then
     start chrome "$url"
   elif [[ ${BROWSER:-} == "edge" ]]; then
     start microsoft-edge:"$url"
   else
-    echo "Error: The BROWSER environment variable is not set to \"chrome\" or \"edge\"."
+    echo "Error: The BROWSER environment variable is not set to \"remote\" or \"chrome\" or \"edge\"."
   fi
 )
 
