@@ -53,10 +53,12 @@ o() (
 )
 
 # "r" is short for switching to the repositories directory.
-if [[ -d "/c/Users/$USERNAME/Repositories" ]]; then
-  alias r="cd /c/Users/$USERNAME/Repositories"
-elif [[ -d "/d/Repositories" ]]; then
-  alias r="cd /d/Repositories"
+if [[ -d "/d/Repositories" ]]; then
+  alias r="cd /d/Repositories" # Home
+elif [[ -d "/c/Users/$USERNAME/Repositories" ]]; then
+  alias r="cd /c/Users/$USERNAME/Repositories" # Generic Windows
+elif [[ -d "/users/$USER/repositories" ]]; then
+  alias r="cd /users/$USER/repositories" # Generic Linux
 fi
 
 # ------------
