@@ -39,9 +39,12 @@ if [[ -f "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/cer
   export REQUESTS_CA_BUNDLE="/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
 fi
 
-# Add chrome to the path, which is necessary for the GitHub CLI.
+# Add browsers to the path, which is necessary for the GitHub CLI.
 if ! command -v chrome &> /dev/null && [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
   export PATH="$PATH:/c/Program Files/Google/Chrome/Application"
+fi
+if ! command -v msedge &> /dev/null && [[ -f "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ]]; then
+  export PATH="$PATH:/c/Program Files (x86)/Microsoft/Edge/Application"
 fi
 
 # ----------------------
@@ -65,17 +68,17 @@ o() (
   local url="$1"
 
   if [[ "$url" == *"logixhealth.com"* ]]; then
-    local browser="edge"
+    local browser="msedge"
   else
     local browser="chrome"
   fi
 
-  if [[ "$browser" == "edge" ]]; then
-    if ! command -v start &> /dev/null; then
-      echo "Error: The \"start\" command was not found."
+  if [[ "$browser" == "msedge" ]]; then
+    if ! command -v msedge &> /dev/null; then
+      echo "Error: The \"msedge\" command was not found."
       return 1
     fi
-    start microsoft-edge:"$url"
+    msedge "$url"
   elif [[ "$browser" == "chrome" ]]; then
     if ! command -v chrome &> /dev/null; then
       echo "Error: The \"chrome\" command was not found."
