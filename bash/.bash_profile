@@ -476,3 +476,17 @@ alias ti="terraform init"
 
 # "tv" is short for "terraform validate".
 alias tv="terraform validate"
+
+#--------------
+# posh-git-bash
+#--------------
+
+# Emulate the nice shell from Git Bash for Windows in Ubuntu.
+# https://github.com/lyze/posh-git-sh
+if [[ ! "$(uname -s)" =~ ^MINGW ]]; then
+  mkdir ~/.config --parents
+  GIT_PROMPT_PATH=~/.config/git-prompt.sh
+  curl https://raw.githubusercontent.com/lyze/posh-git-sh/refs/heads/master/git-prompt.sh --silent --output "$GIT_PROMPT_PATH"
+  source "$GIT_PROMPT_PATH"
+  PROMPT_COMMAND='__posh_git_ps1 "\u@\h:\w " "\\\$ ";'$PROMPT_COMMAND
+fi
