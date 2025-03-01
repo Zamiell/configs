@@ -38,8 +38,9 @@ if [[ -f "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/cer
   export REQUESTS_CA_BUNDLE="/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
 fi
 
-if [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
-  alias chrome="/c/Program\ Files/Google/Chrome/Application/chrome.exe"
+# Add chrome to the path, which is necessary for the GitHub CLI.
+if ! command -v chrome && [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
+  export PATH="$PATH:/c/Program Files/Google/Chrome/Application"
 fi
 
 # ----------------------
@@ -62,9 +63,9 @@ o() (
   fi
   local url="$1"
 
-  if command -v chrome >/dev/null && [[ ${BROWSER:-} == "chrome" ]]; then
+  if command -v chrome &> /dev/null && [[ ${BROWSER:-} == "chrome" ]]; then
     chrome "$url"
-  elif command -v start >/dev/null && [[ ${BROWSER:-} == "edge" ]]; then
+  elif command -v start &> /dev/null && [[ ${BROWSER:-} == "edge" ]]; then
     start microsoft-edge:"$url"
   else
     echo "Error: The BROWSER environment variable is not set to \"chrome\" or \"edge\"."
