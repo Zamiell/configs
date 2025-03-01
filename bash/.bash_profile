@@ -40,7 +40,7 @@ if [[ -f "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/cer
 fi
 
 # Add chrome to the path, which is necessary for the GitHub CLI.
-if ! command -v chrome && [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
+if ! command -v chrome &> /dev/null && [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
   export PATH="$PATH:/c/Program Files/Google/Chrome/Application"
 fi
 
@@ -64,12 +64,24 @@ o() (
   fi
   local url="$1"
 
-  if command -v start &> /dev/null && [[ ${BROWSER:-} == "edge" ]]; then
-    start microsoft-edge:"$url"
-  elif command -v chrome; then
-    chrome "$url"
+  if [[ "$url" == *"logixhealth.com"* ]]; then
+    local browser="edge"
   else
-    echo "Error: "chrome" was not found in the path."
+    local browser="chrome"
+  fi
+
+  if [[ "$browser" == "edge" ]]; then
+    if ! command -v start &> /dev/null; then
+      echo "Error: The \"start\" command was not found."
+      return 1
+    fi
+    start microsoft-edge:"$url"
+  elif [[ "$browser" == "chrome" ]]; then
+    if ! command -v chrome &> /dev/null; then
+      echo "Error: The \"chrome\" command was not found."
+      return 1
+    fi
+    chrome "$url"
   fi
 )
 
