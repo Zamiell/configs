@@ -8,7 +8,8 @@ is_git_bash() {
 }
 
 is_github_repository() {
-  if [ -n "$(git config --get remote.origin.url | grep github.com)" ]; then
+  ORIGIN_URL=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+  if [ -n "$($ORIGIN_URL | grep github.com)" ]; then
     return 0  # True
   else
     return 1  # False
@@ -373,6 +374,7 @@ gpr() (
   if is_github_repository; then
     gh pr create
   else
+    local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
     local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
     local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
     local repo_name=$(git rev-parse --show-toplevel | xargs basename)
