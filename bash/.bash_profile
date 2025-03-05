@@ -182,6 +182,13 @@ gb() (
 gbc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
+  local skip_fetch=false
+  for arg in "$@"; do
+    if [[ "$arg" == "--skip-fetch" ]]; then
+      skip_fetch=true
+    fi
+  done
+
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
     echo "Error: Not inside a Git repository."
     return 1
@@ -200,7 +207,10 @@ gbc() (
     git switch "$main_branch_name"
   fi
 
-  git fetch --prune --quiet
+  if [[ "$skip_fetch" == false ]]; then
+    git fetch --prune --quiet
+  end
+
   git branch -vv | awk "/: gone]/{print \$1}" | xargs --no-run-if-empty git branch --delete --force
 
   echo
@@ -371,7 +381,7 @@ gsm() (
 
   git pull --rebase
   echo # Make the cleaned branches easier to see.
-  gbc # git branch clean
+  gbc --skip-fetch # git branch clean
 )
 
 # "gp" is short for "git pull".
