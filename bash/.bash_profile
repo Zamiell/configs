@@ -75,14 +75,16 @@ o() (
 
   if [[ "$browser" == "msedge" ]]; then
     if ! command -v msedge &> /dev/null; then
-      echo "Error: The \"msedge\" command was not found."
-      return 1
+      echo "Git commit URL is at:"
+      echo "$url"
+      return 0
     fi
     msedge "$url"
   elif [[ "$browser" == "chrome" ]]; then
     if ! command -v chrome &> /dev/null; then
-      echo "Error: The \"chrome\" command was not found."
-      return 1
+      echo "Git commit URL is at:"
+      echo "$url"
+      return 0
     fi
     chrome "$url"
   fi
