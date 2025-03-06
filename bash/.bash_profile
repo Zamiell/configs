@@ -209,7 +209,7 @@ gbc() (
 
   if [[ "$skip_fetch" == false ]]; then
     git fetch --prune --quiet
-  end
+  fi
 
   git branch -vv | awk "/: gone]/{print \$1}" | xargs --no-run-if-empty git branch --delete --force
 
