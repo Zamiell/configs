@@ -442,7 +442,10 @@ alias gs="git status --porcelain"
 # "gst" is short for "git stash".
 alias gst="git stash"
 
-# "gstl" is short for "git stash list"
+# "gstd" is short for "git stash drop".
+alias gstd="git stash drop"
+
+# "gstl" is short for "git stash list".
 alias gstl="git stash list"
 
 # "gstp" is short for "git stash pop"
