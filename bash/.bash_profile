@@ -406,7 +406,6 @@ gsm() (
   fi
 
   git pull --rebase
-  echo # Make the cleaned branches easier to see.
   gbc --skip-fetch # git branch clean
   git stash list
 )
