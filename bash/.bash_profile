@@ -176,6 +176,7 @@ gb() (
   fi
 
   git --no-pager branch
+  git stash list
 )
 
 # "gbc" is short for "git branch clean", which will remove all local branches that do not exist on
