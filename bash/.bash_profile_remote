@@ -1,0 +1,563 @@
+# ----------------
+# Helper functions
+# ----------------
+
+is_git_bash() {
+  local kernel_name=$(uname --kernel-name)
+  [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
+}
+
+is_github_repository() {
+  local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+  if [[ -n "$(echo $remote_url | grep github.com)" ]]; then
+    return 0  # True
+  else
+    return 1  # False
+  fi
+}
+
+# ---------------------
+# Environment Variables
+# ---------------------
+
+# Load secret environment variables that cannot be committed to Git.
+if [[ -f ~/.env ]]; then
+  source ~/.env
+fi
+
+# Fix self-signed certs for LogixHealth.
+if [[ -f "/usr/local/share/ca-certificates/BEDROOTCA001.crt" ]]; then
+  export COMPANY_CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
+elif [[ -f "/c/tls/BEDROOTCA001.crt" ]]; then
+  export COMPANY_CERT_PATH="/c/tls/BEDROOTCA001.crt"
+fi
+if [[ ! -z "${COMPANY_CERT_PATH-}" ]]; then
+  export NODE_EXTRA_CA_CERTS="$COMPANY_CERT_PATH"
+  export CURL_CA_BUNDLE="$COMPANY_CERT_PATH"
+fi
+if [[ -f "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
+  export REQUESTS_CA_BUNDLE="/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
+fi
+
+# Add browsers to the path, which is necessary for the GitHub CLI.
+if ! command -v chrome &> /dev/null && [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
+  export PATH="$PATH:/c/Program Files/Google/Chrome/Application"
+fi
+if ! command -v msedge &> /dev/null && [[ -f "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ]]; then
+  export PATH="$PATH:/c/Program Files (x86)/Microsoft/Edge/Application"
+fi
+
+# ----------------------
+# Miscellaneous Commands
+# ----------------------
+
+# A better "ll" alias that shows hidden files and human-readable file sizes.
+alias ll="ls -lah"
+
+# "n" is short for "nuke".
+alias n="npx complete-cli@latest nuke"
+
+# "o" is short for "open", to open a URL in a browser.
+o() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: URL is required. Usage: o <url>"
+    return 1
+  fi
+  local url="$1"
+
+  if [[ "$url" == *"logixhealth.com"* ]]; then
+    local browser="msedge"
+  else
+    local browser="chrome"
+  fi
+
+  if [[ "$browser" == "msedge" ]]; then
+    if ! command -v msedge &> /dev/null; then
+      echo "Git commit URL is at:"
+      echo "$url"
+      return 0
+    fi
+    msedge "$url"
+  elif [[ "$browser" == "chrome" ]]; then
+    if ! command -v chrome &> /dev/null; then
+      echo "Git commit URL is at:"
+      echo "$url"
+      return 0
+    fi
+    chrome "$url"
+  fi
+)
+
+# "r" is short for switching to the repositories directory.
+if [[ -d "/c/Users/$USERNAME/Repositories" ]]; then
+  alias r="cd /c/Users/$USERNAME/Repositories" # Generic Windows
+elif [[ -d "/home/$USER/repositories" ]]; then
+  alias r="cd /home/$USER/repositories" # Generic Linux
+elif [[ -d "/d/Repositories" ]]; then
+  alias r="cd /d/Repositories" # Separate drive
+fi
+
+# ------------
+# npm Commands
+# ------------
+
+alias b="npm run build"
+alias l="npm run lint"
+alias p="npm run publish"
+alias s="npm run start"
+alias t="npm run test"
+alias u="npm run update"
+
+# ------------
+# Git Commands
+# ------------
+
+# "ga" is short for "git add --all".
+alias ga="git add --all"
+
+# - "gb" is short for creating a new git branch, which is a common coding task.
+# - We cannot use a positional argument in an alias, so we create a function instead.
+# - Doing a push is important after creating a new branch because it prevents subsequent `git pull`
+#   calls from failing.
+gb() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    local description="misc"
+  else
+    local description="$1"
+  fi
+
+  if [[ -z "${2:-}" ]]; then
+    local application_name="misc"
+  else
+    local application_name="$2"
+  fi
+
+  if is_github_repository; then
+    local new_branch_name="$description"
+  else
+    local new_branch_name="feature/$application_name/$USERNAME/$description"
+  fi
+
+  if [[ ! -z "$(git status --porcelain)" ]]; then
+    git stash push -m "Auto-stash before creating a new git branch"
+  fi
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    return 1
+  fi
+
+  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
+    git switch "$main_branch_name"
+  fi
+
+  git pull --rebase
+  git switch --create "$new_branch_name"
+  git push
+
+  if [[ $(git stash list | wc -l) -gt 0 ]]; then
+    git stash pop
+  fi
+
+  git --no-pager branch
+)
+
+# "gbc" is short for "git branch clean", which will remove all local branches that do not exist on
+# the remote repository.
+# https://stackoverflow.com/questions/7726949/remove-tracking-branches-no-longer-on-remote
+gbc() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local skip_fetch=false
+  for arg in "$@"; do
+    if [[ "$arg" == "--skip-fetch" ]]; then
+      skip_fetch=true
+    fi
+  done
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    return 1
+  fi
+
+  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
+    git switch "$main_branch_name"
+  fi
+
+  if [[ "$skip_fetch" == false ]]; then
+    git fetch --prune --quiet
+  fi
+
+  git branch -vv | awk "/: gone]/{print \$1}" | xargs --no-run-if-empty git branch --delete --force
+
+  echo
+  echo "Current git branches:"
+  git --no-pager branch
+)
+
+# "gbd" is short for "git branch delete", which will delete the branch both locally and remotely.
+gbd() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Branch name is required. Usage: gbd <branch-name>"
+    return 1
+  fi
+  local branch_name="$1"
+
+  # Check if branch exists locally
+  if ! git show-ref --verify --quiet "refs/heads/$branch_name"; then
+    echo "Warning: Branch \"$branch_name\" does not exist locally."
+  else
+    git branch -D "$branch_name"
+    echo "Deleted branch \"$branch_name\" locally."
+  fi
+
+  if ! git ls-remote --heads origin "$branch_name" | grep -q .; then
+    echo "Warning: Branch \"$branch_name\" does not exist on remote origin."
+  else
+    git push origin ":$branch_name"
+    echo "Deleted branch \"$branch_name\" remotely."
+  fi
+)
+
+# "gbdl" is short for "git branch delete local", which will delete the branch locally (and not
+# remotely).
+gbdl() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Branch name is required. Usage: gbdl <branch-name>"
+    return 1
+  fi
+  local branch_name="$1"
+
+  if ! git show-ref --verify --quiet "refs/heads/$branch_name"; then
+    echo "Warning: Branch \"$branch_name\" does not exist locally."
+  else
+    git branch -D "$branch_name"
+    echo "Deleted branch \"$branch_name\" locally."
+  fi
+)
+
+# "gbr" is short for "git branch rename", which will rename the application portion of the branch
+# name.
+gbr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+    if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Application name is required. Usage: gbr <application-name>"
+    return 1
+  fi
+  local app_name="$1"
+
+  local old_branch_name=$(git branch --show-current) # e.g. "feature/app1/alice/fix-bug"
+  echo "Old branch name: $old_branch_name"
+  local new_branch_name=$(echo "$old_branch_name" | sed -E "s~^([^/]+/)([^/]+)(/.*$)~\1${app_name}\3~") # e.g. "feature/app2/alice/fix-bug"
+  echo "New branch name: $new_branch_name"
+
+  git switch --create "$new_branch_name"
+  git push
+  git branch -D $old_branch_name # Delete the old branch locally.
+  git push origin :$old_branch_name # Delete the old branch on the remote.
+  gpr
+)
+
+# "gbl" is short for "git branch list". ("gb" is already taken by another command.)
+alias gbl="git --no-pager branch"
+
+# "gc" is short for "git commit", which will perform all the steps involved in making a new commit
+# with all unstaged changes.
+gc() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  local branch_name=$(git branch --show-current)
+  local remote_branch_info=$(git ls-remote --heads origin $branch_name)
+
+  if [[ -z "$remote_branch_info" ]]; then
+    echo "Error: The remote branch of \"$branch_name\" does not yet exist."
+    return 1
+  fi
+
+  if [[ $# -eq 0 ]]; then
+    local commit_msg="update"
+  else
+    local commit_msg="$*"
+  fi
+
+  git add --all
+  git commit -m "$commit_msg"
+  git pull --rebase
+  git push
+
+  gcs
+)
+
+# "gcs" is short for "git commit show", which will open a browser to view the last commit.
+gcs() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  local commit_sha1=$(git rev-parse HEAD) # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
+  local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+  if echo "$remote_url" | grep -q "github.com"; then
+    if [[ "$remote_url" == git@* ]]; then
+      # SSH URL format: git@github.com:alice/my-repo.git
+      local repository_owner=$(echo "$remote_url" | sed -E 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
+      local repository_name=$(echo "$remote_url" | sed -E 's/git@github\.com:[^\/]+\/(.*)\.git/\1/')
+    else
+      # HTTPS URL format: https://github.com/alice/my-repo.git
+      local repository_owner=$(echo "$remote_url" | sed -E 's|https://github\.com/([^/]+)/.*\.git|\1|')
+      local repository_name=$(echo "$remote_url" | sed -E 's|https://github\.com/[^/]+/(.*)\.git|\1|')
+    fi
+    local commit_url="https://github.com/$repository_owner/$repository_name/commit/$commit_sha1"
+  elif echo "$remote_url" | grep -q "azuredevops.logixhealth.com"; then
+    local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
+    local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
+    local repository_name=$(git rev-parse --show-toplevel | xargs basename)
+    local commit_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
+  else
+    echo "Failed to parse the remote URL for this repository."
+    return 1
+  fi
+
+  o "$commit_url"
+)
+
+# "gd" is short for "git diff".
+alias gd="git diff"
+
+# "gl" is short for "git log".
+alias gl="git log"
+
+# "gsm" is short for "git switch main".
+gsm() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    return 1
+  fi
+
+  if [[ ! -z "$(git status --porcelain)" ]]; then
+    git stash push -m "Auto-stash before switching to $main_branch_name"
+  fi
+
+  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
+    git switch "$main_branch_name"
+  fi
+
+  git pull --rebase
+  gbc --skip-fetch # git branch clean
+  git stash list
+)
+
+# "gp" is short for "git pull".
+alias gp="git pull --rebase"
+
+# "gpr" is short for "git pull request", to start a new pull request based on the current branch.
+gpr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if is_github_repository; then
+    gh pr create
+  else
+    local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+    local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
+    local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
+    local repo_name=$(git rev-parse --show-toplevel | xargs basename)
+    local branch_name=$(git branch --show-current)
+    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repo_name/pullrequestcreate?sourceRef=$branch_name"
+    o "$pr_url"
+  fi
+)
+
+# "gs" is short for "git status".
+alias gs="git status --porcelain"
+
+# "gst" is short for "git stash".
+alias gst="git stash"
+
+# "gstd" is short for "git stash drop".
+alias gstd="git stash drop"
+
+# "gstl" is short for "git stash list".
+alias gstl="git stash list"
+
+# "gstp" is short for "git stash pop"
+alias gstp="git stash pop"
+
+# "gsw" is short for "git switch". It requires an argument of the number corresponding to the
+# alphabetical local branch. ("gs" is already taken by another command.)
+gsw() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Branch name is required. Usage: gsw <branch-name>"
+    return 1
+  fi
+
+  if [[ "$1" =~ ^[0-9]+$ ]]; then
+    # First, switch to the main branch so that the below command will not have an asterisk next to
+    # the feature branches.
+    if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
+      git switch "$main_branch_name"
+    fi
+
+    local branch_number=$1
+    local selected_branch=$(git branch | grep -v '^*' | sort | sed -n "${branch_number}p" | tr -d ' ')
+    if [[ -n "$selected_branch" ]]; then
+      git switch "$selected_branch"
+    else
+      echo "Error: Branch number $branch_number does not exist."
+      return 1
+    fi
+  else
+    git switch "$@"
+  fi
+)
+
+# "gtc" is short for "git tags clean", which will remote all local tags that do not exist on the
+# remote repository.
+# https://stackoverflow.com/questions/1841341/remove-local-git-tags-that-are-no-longer-on-the-remote-repository
+gtc() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  git tag -l | xargs git tag -d
+  git fetch --tags
+
+  echo
+  echo "Current git tags:"
+  git tag
+)
+
+# "gu" is short for "git push".
+alias gu="git push"
+
+# ---------------
+# Pulumi Commands
+# ---------------
+
+# "pu" is short for "pulumi up".
+alias pu="pulumi up"
+
+# "pd" is short for "pulumi destroy".
+alias pd="pulumi destroy"
+
+# "pr" is short for "pulumi refresh".
+alias pr="pulumi refresh"
+
+# ------------------
+# Terraform Commands
+# ------------------
+
+# "ta" is short for "terraform apply".
+alias ta="terraform apply"
+
+# "tc" is short for "terraform clean".
+alias tc="rm -rf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfstate.backup"
+
+# "td" is short for "terraform destroy".
+alias td="terraform destroy"
+
+# "tf" is short for "terraform fmt".
+alias tf="terraform fmt"
+
+# "ti" is short for "terraform init".
+alias ti="terraform init"
+
+# "tv" is short for "terraform validate".
+alias tv="terraform validate"
+
+#--------------
+# posh-git-bash
+#--------------
+
+# Emulate the nice shell from Git Bash for Windows in Ubuntu.
+# https://github.com/lyze/posh-git-sh
+if ! is_git_bash; then
+  mkdir ~/.config --parents
+  GIT_PROMPT_PATH=~/.config/git-prompt.sh
+  curl https://raw.githubusercontent.com/lyze/posh-git-sh/refs/heads/master/git-prompt.sh --silent --output "$GIT_PROMPT_PATH"
+  source "$GIT_PROMPT_PATH"
+  PROMPT_COMMAND='__posh_git_ps1 "\u@\h:\w " "\\\$ ";'$PROMPT_COMMAND
+fi
