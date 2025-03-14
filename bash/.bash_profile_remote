@@ -30,7 +30,7 @@ if [[ -f "/usr/local/share/ca-certificates/BEDROOTCA001.crt" ]]; then
   export COMPANY_CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
 elif [[ -f "/c/tls/BEDROOTCA001.crt" ]]; then
   export COMPANY_CERT_PATH="/c/tls/BEDROOTCA001.crt"
-elif [[ -f "/c/tls/BEDROOTCA001.crt" ]]; then
+elif [[ -f "/c/_IT/tls/BEDROOTCA001.crt" ]]; then
   export COMPANY_CERT_PATH="/c/_IT/tls/BEDROOTCA001.crt"
 fi
 if [[ ! -z "${COMPANY_CERT_PATH-}" ]]; then
