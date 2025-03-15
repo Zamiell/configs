@@ -562,7 +562,7 @@ alias tv="terraform validate"
 
 # Emulate the nice shell from Git Bash for Windows in Ubuntu.
 # https://github.com/lyze/posh-git-sh
-if ! is_git_bash; then
+if ! is_git_bash && [[ -z "$ZSH_VERSION" ]]; then
   mkdir ~/.config --parents
   GIT_PROMPT_PATH=~/.config/git-prompt.sh
   curl https://raw.githubusercontent.com/lyze/posh-git-sh/refs/heads/master/git-prompt.sh --silent --output "$GIT_PROMPT_PATH"
