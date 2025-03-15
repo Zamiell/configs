@@ -3,7 +3,7 @@
 # ----------------
 
 is_git_bash() {
-  local kernel_name=$(uname --kernel-name)
+  local kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on MacOS.
   [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
 }
 
