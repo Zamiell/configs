@@ -434,6 +434,12 @@ gpr() (
   fi
 )
 
+# "gr" is short for "git reset".
+alias gr="git reset"
+
+# "grh" is short for "git reset --hard".
+alias grh="git reset --hard"
+
 # "gs" is short for "git status".
 alias gs="git status --porcelain"
 
