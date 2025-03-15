@@ -93,12 +93,14 @@ o() (
 )
 
 # "r" is short for switching to the repositories directory.
-if [[ -d "/c/Users/$USERNAME/Repositories" ]]; then
-  alias r="cd /c/Users/$USERNAME/Repositories" # Generic Windows
-elif [[ -d "/home/$USER/repositories" ]]; then
-  alias r="cd /home/$USER/repositories" # Generic Linux
-elif [[ -d "/d/Repositories" ]]; then
-  alias r="cd /d/Repositories" # Separate drive
+if [[ -d "/c/Users/$USERNAME/Repositories" ]]; then # Generic Windows
+  alias r="cd /c/Users/$USERNAME/Repositories"
+elif [[ -d "/Users/$USERNAME/Repositories" ]]; then # Generic MacOS
+  alias r="cd /Users/$USERNAME/Repositories"
+elif [[ -d "/home/$USER/repositories" ]]; then # Generic Linux
+  alias r="cd /home/$USER/repositories"
+elif [[ -d "/d/Repositories" ]]; then # Windows separate drive
+  alias r="cd /d/Repositories"
 fi
 
 # ------------
