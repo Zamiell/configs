@@ -53,9 +53,6 @@ fi
 # Miscellaneous Commands
 # ----------------------
 
-# "k" is short for "kubectl".
-alias k="kubectl"
-
 # A better "ll" alias that shows hidden files and human-readable file sizes.
 alias ll="ls -lah"
 
@@ -105,6 +102,15 @@ elif [[ -d "/home/$USER/repositories" ]]; then # Generic Linux
 elif [[ -d "/d/Repositories" ]]; then # Windows separate drive
   alias r="cd /d/Repositories"
 fi
+
+# ----------------
+# kubectl Commands
+# ----------------
+
+alias k="kubectl"
+alias kgd="kubectl get deployment"
+alias kgp="kubectl get pod"
+alias kdd="kubectl delete deployment"
 
 # ------------
 # npm Commands
