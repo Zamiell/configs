@@ -53,6 +53,9 @@ fi
 # Miscellaneous Commands
 # ----------------------
 
+# "k" is short for "kubectl".
+alias k="kubectl"
+
 # A better "ll" alias that shows hidden files and human-readable file sizes.
 alias ll="ls -lah"
 
