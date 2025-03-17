@@ -108,6 +108,7 @@ fi
 # ----------------
 
 alias k="kubectl"
+alias kdp="kubectl describe pod"
 alias kgd="kubectl get deployment"
 alias kgp="kubectl get pod"
 alias kdd="kubectl delete deployment"
