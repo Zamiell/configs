@@ -125,6 +125,47 @@ alias s="npm run start"
 alias t="npm run test"
 alias u="npm run update"
 
+# ----------
+# Git Config
+# ----------
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-coreautocrlf
+# Default value: input
+# Explicitly setting it to false prevents Git from changing line endings at any point, which can
+# prevent issues when Windows users collaborate with MacOS/Linus users.
+git config --global core.autocrlf false
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-coreignoreCase
+# Default value: false (on Linux machines) or true (on Windows machines)
+# Explicitly setting it to false can prevent problems with interop between Linux & Windows.
+git config --global core.ignorecase false
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-diffcolorMoved
+# Default value: false
+# Setting zebra can make git diffs easier to read by having a different color for moved lines.
+git config --global diff.colorMoved zebra
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-fetchprune
+# Default value: false
+# Automatically remove any remote-tracking references that no longer exist on the remote.
+git config --global fetch.prune true
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-fetchpruneTags
+# Default value: false
+# Automatically remove any tags that no longer exist on the remote.
+git config --global fetch.pruneTags true
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-pullrebase
+# Default value: false
+# Setting this prevents spurious merge commits.
+git config --global pull.rebase true
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-pushautoSetupRemote
+# Default value: false
+# Setting this automates having "git pull" and "git push" work properly after setting up a new
+# branch.
+git config --global push.autoSetupRemote true
+
 # ------------
 # Git Commands
 # ------------
