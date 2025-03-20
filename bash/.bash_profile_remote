@@ -53,8 +53,8 @@ fi
 # Miscellaneous Commands
 # ----------------------
 
-# A better "ll" alias that shows hidden files and human-readable file sizes.
-alias ll="ls -lah"
+# A better "ll" alias that shows human-readable file sizes.
+alias ll="ls -alFh"
 
 # "n" is short for "nuke".
 alias n="npx complete-cli@latest nuke"
