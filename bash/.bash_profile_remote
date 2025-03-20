@@ -324,7 +324,6 @@ gbdl() (
     echo "Warning: Branch \"$branch_name\" does not exist locally."
   else
     git branch -D "$branch_name"
-    echo "Deleted branch \"$branch_name\" locally."
   fi
 )
 
