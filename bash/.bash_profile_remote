@@ -462,6 +462,24 @@ gsm() (
   git stash list
 )
 
+gsq() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: You must provide the number of commits to squash."
+    return 1
+  fi
+  local number_of_commits="$1"
+
+  git reset --soft HEAD~$number_of_commits
+  git commit -m "chore: squash $number_of_commits commits"
+)
+
 # "gp" is short for "git pull".
 alias gp="git pull --rebase"
 
