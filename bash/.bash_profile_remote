@@ -94,13 +94,17 @@ o() (
 
 # "r" is short for switching to the repositories directory.
 if [[ -d "/c/Users/$USERNAME/Repositories" ]]; then # Generic Windows
-  alias r="cd /c/Users/$USERNAME/Repositories"
+  REPOSITORIES_DIRECTORY="/c/Users/$USERNAME/Repositories"
 elif [[ -d "/Users/$USERNAME/Repositories" ]]; then # Generic MacOS
-  alias r="cd /Users/$USERNAME/Repositories"
+  REPOSITORIES_DIRECTORY="/Users/$USERNAME/Repositories"
 elif [[ -d "/home/$USER/repositories" ]]; then # Generic Linux
-  alias r="cd /home/$USER/repositories"
+  REPOSITORIES_DIRECTORY="/home/$USER/repositories"
 elif [[ -d "/d/Repositories" ]]; then # Windows separate drive
-  alias r="cd /d/Repositories"
+  REPOSITORIES_DIRECTORY="/d/Repositories"
+fi
+if [[ ! -z "$REPOSITORIES_DIRECTORY" ]]; then
+  alias r="cd $REPOSITORIES_DIRECTORY"
+  r
 fi
 
 # ----------------
