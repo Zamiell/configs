@@ -596,7 +596,7 @@ gtc() (
 # "gu" is short for "git push".
 alias gu="git push"
 
-# "guf" is short for "git push force".
+# "guf" is short for "git push --force".
 alias guf="git push --force"
 
 # ---------------
