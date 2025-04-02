@@ -102,6 +102,8 @@ elif [[ -d "/Users/$USERNAME/Repositories" ]]; then # Generic MacOS
   REPOSITORIES_DIRECTORY="/Users/$USERNAME/Repositories"
 elif [[ -d "/home/$USER/repositories" ]]; then # Generic Linux
   REPOSITORIES_DIRECTORY="/home/$USER/repositories"
+elif [[ -d "/c/Repositories" ]]; then # Windows separate drive
+  REPOSITORIES_DIRECTORY="/c/Repositories"
 elif [[ -d "/d/Repositories" ]]; then # Windows separate drive
   REPOSITORIES_DIRECTORY="/d/Repositories"
 fi
