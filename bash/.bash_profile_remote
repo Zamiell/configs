@@ -40,6 +40,9 @@ fi
 if [[ -f "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
 fi
+if [[ -f "/c/Program Files/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
+  export REQUESTS_CA_BUNDLE="/c/Program Files/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
+fi
 
 # Add browsers to the path, which is necessary for the GitHub CLI.
 if ! command -v chrome &> /dev/null && [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
