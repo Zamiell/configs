@@ -465,6 +465,7 @@ grm() (
 
   git fetch origin $main_branch_name:$main_branch_name
   git rebase $main_branch_name
+  git push --force
 )
 
 # "gsm" is short for "git switch main".
