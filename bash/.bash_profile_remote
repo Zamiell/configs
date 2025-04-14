@@ -468,6 +468,11 @@ grm() (
   git push --force
 )
 
+# "gsd" is short for "git stash drop".
+gsd() (
+  alias gsd='git stash drop'
+)
+
 # "gsm" is short for "git switch main".
 gsm() (
   set -euo pipefail # Exit on errors and undefined variables.
