@@ -292,24 +292,36 @@ gbd() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name is required. Usage: gbd <branch-name>"
+    echo "Error: Branch name or number is required. Usage: gbd <branch-name-or-number>"
     return 1
   fi
-  local branch_name="$1"
 
-  # Check if branch exists locally
-  if ! git show-ref --verify --quiet "refs/heads/$branch_name"; then
-    echo "Warning: Branch \"$branch_name\" does not exist locally."
+  if [[ "$1" =~ ^[0-9]+$ ]]; then
+    local branch_number="$1"
+    local all_branches=$(git for-each-ref --format="%(refname:short)" refs/heads/)
+    local feature_branches=$(echo $all_branches_unsorted | sort | grep -v '^master$')
+    local branch_name=$(echo $feature_branches | sed -n "${branch_number}p")
+
+    if [[ -z "$branch_name" ]]; then
+      echo "Error: Branch number $branch_number does not exist."
+      return 1
+    fi
   else
-    git branch -D "$branch_name"
-    echo "Deleted branch \"$branch_name\" locally."
+    local branch_name="$1"
   fi
 
-  if ! git ls-remote --heads origin "$branch_name" | grep -q .; then
-    echo "Warning: Branch \"$branch_name\" does not exist on remote origin."
+  if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+    git branch --delete --force "$branch_name"
+    echo "Deleted branch \"$branch_name\" locally."
   else
+    echo "Warning: Branch \"$branch_name\" does not exist locally."
+  fi
+
+  if git ls-remote --heads origin "$branch_name" | grep -q .; then
     git push origin ":$branch_name"
     echo "Deleted branch \"$branch_name\" remotely."
+  else
+    echo "Warning: Branch \"$branch_name\" does not exist on remote origin."
   fi
 )
 
@@ -324,15 +336,29 @@ gbdl() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name is required. Usage: gbdl <branch-name>"
+    echo "Error: Branch name or number is required. Usage: gbdl <branch-name-or-number>"
     return 1
   fi
-  local branch_name="$1"
 
-  if ! git show-ref --verify --quiet "refs/heads/$branch_name"; then
-    echo "Warning: Branch \"$branch_name\" does not exist locally."
+  if [[ "$1" =~ ^[0-9]+$ ]]; then
+    local branch_number="$1"
+    local all_branches=$(git for-each-ref --format="%(refname:short)" refs/heads/)
+    local feature_branches=$(echo $all_branches_unsorted | sort | grep -v '^master$')
+    local branch_name=$(echo $feature_branches | sed -n "${branch_number}p")
+
+    if [[ -z "$branch_name" ]]; then
+      echo "Error: Branch number $branch_number does not exist."
+      return 1
+    fi
   else
-    git branch -D "$branch_name"
+    local branch_name="$1"
+  fi
+
+  if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+    git branch --delete --force "$branch_name"
+    echo "Deleted branch \"$branch_name\" locally."
+  else
+    echo "Warning: Branch \"$branch_name\" does not exist locally."
   fi
 )
 
@@ -588,28 +614,25 @@ gsw() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name is required. Usage: gsw <branch-name>"
+    echo "Error: Branch name or number is required. Usage: gsw <branch-name-or-number>"
     return 1
   fi
 
   if [[ "$1" =~ ^[0-9]+$ ]]; then
-    # First, switch to the main branch so that the below command will not have an asterisk next to
-    # the feature branches.
-    if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
-      git switch "$main_branch_name"
-    fi
+    local branch_number="$1"
+    local all_branches=$(git for-each-ref --format="%(refname:short)" refs/heads/)
+    local feature_branches=$(echo $all_branches_unsorted | sort | grep -v '^master$')
+    local branch_name=$(echo $feature_branches | sed -n "${branch_number}p")
 
-    local branch_number=$1
-    local selected_branch=$(git branch | grep -v '^*' | sort | sed -n "${branch_number}p" | tr -d ' ')
-    if [[ -n "$selected_branch" ]]; then
-      git switch "$selected_branch"
-    else
+    if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist."
       return 1
     fi
   else
-    git switch "$@"
+    local branch_name="$1"
   fi
+
+  git switch "$branch_name"
 )
 
 # "gtc" is short for "git tags clean", which will remote all local tags that do not exist on the
