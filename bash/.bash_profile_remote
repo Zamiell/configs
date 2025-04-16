@@ -299,7 +299,7 @@ gbd() (
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
     local all_branches=$(git for-each-ref --format="%(refname:short)" refs/heads/)
-    local feature_branches=$(echo $all_branches_unsorted | sort | grep -v '^master$')
+    local feature_branches=$(echo $all_branches | sort | grep -v '^master$')
     local branch_name=$(echo $feature_branches | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
@@ -343,7 +343,7 @@ gbdl() (
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
     local all_branches=$(git for-each-ref --format="%(refname:short)" refs/heads/)
-    local feature_branches=$(echo $all_branches_unsorted | sort | grep -v '^master$')
+    local feature_branches=$(echo $all_branches | sort | grep -v '^master$')
     local branch_name=$(echo $feature_branches | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
