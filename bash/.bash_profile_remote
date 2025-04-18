@@ -299,7 +299,7 @@ gbd() (
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
     local branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
-    local branch_name=$(echo $branches | sed -n "${branch_number}p")
+    local branch_name=$(echo "$branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist."
@@ -342,7 +342,7 @@ gbdl() (
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
     local branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
-    local branch_name=$(echo $branches | sed -n "${branch_number}p")
+    local branch_name=$(echo "$branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist."
@@ -619,7 +619,7 @@ gsw() (
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
     local branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
-    local branch_name=$(echo $branches | sed -n "${branch_number}p")
+    local branch_name=$(echo "$branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist."
