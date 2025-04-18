@@ -33,7 +33,7 @@ elif [[ -f "/c/tls/BEDROOTCA001.crt" ]]; then
 elif [[ -f "/c/_IT/tls/BEDROOTCA001.crt" ]]; then
   export COMPANY_CERT_PATH="/c/_IT/tls/BEDROOTCA001.crt"
 fi
-if [[ ! -z "${COMPANY_CERT_PATH-}" ]]; then
+if [[ -n "${COMPANY_CERT_PATH-}" ]]; then
   export NODE_EXTRA_CA_CERTS="$COMPANY_CERT_PATH"
   export CURL_CA_BUNDLE="$COMPANY_CERT_PATH"
 fi
@@ -107,7 +107,7 @@ elif [[ -d "/c/Repositories" ]]; then # Windows separate drive
 elif [[ -d "/d/Repositories" ]]; then # Windows separate drive
   REPOSITORIES_DIRECTORY="/d/Repositories"
 fi
-if [[ ! -z "$REPOSITORIES_DIRECTORY" ]]; then
+if [[ -n "$REPOSITORIES_DIRECTORY" ]]; then
   alias r="cd $REPOSITORIES_DIRECTORY"
   cd $REPOSITORIES_DIRECTORY
 fi
@@ -212,7 +212,7 @@ gb() (
     local new_branch_name="feature/$application_name/$USERNAME/$description"
   fi
 
-  if [[ ! -z "$(git status --porcelain)" ]]; then
+  if [[ -n "$(git status --porcelain)" ]]; then
     git stash push -m "Auto-stash before creating a new git branch"
   fi
 
@@ -515,7 +515,7 @@ gsm() (
     return 1
   fi
 
-  if [[ ! -z "$(git status --porcelain)" ]]; then
+  if [[ -n "$(git status --porcelain)" ]]; then
     git stash push -m "Auto-stash before switching to $main_branch_name"
   fi
 
