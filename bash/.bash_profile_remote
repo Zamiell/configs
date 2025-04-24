@@ -127,12 +127,28 @@ alias kgp="kubectl get pod"
 # npm Commands
 # ------------
 
-alias b="npm run build"
-alias l="npm run lint"
-alias p="npm run publish"
-alias s="npm run start"
-alias t="npm run test"
-alias u="npm run update"
+run_package_script() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [ -z "${1-}" ]; then
+    echo "Error: Script name is required."
+    return 1
+  fi
+
+  local command="npm"
+  if [ -f "bun.lock" ]; then
+    command="bun"
+  fi
+
+  $command run "$1"
+)
+
+alias b="run_package_script build"
+alias l="run_package_script lint"
+alias p="run_package_script publish"
+alias s="run_package_script start"
+alias t="run_package_script test"
+alias u="run_package_script update"
 
 # ----------
 # Git Config
