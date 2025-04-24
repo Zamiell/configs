@@ -480,6 +480,12 @@ alias gd="git diff"
 # "gl" is short for "git log".
 alias gl="git log"
 
+# "gra" is short for "git rebase --abort".
+alias gra="git rebase --abort"
+
+# "grc" is short for "git rebase --continue".
+alias grc="git rebase --continue"
+
 # "grm" is short for "git rebase main".
 grm() (
   set -euo pipefail # Exit on errors and undefined variables.
@@ -509,9 +515,7 @@ grm() (
 )
 
 # "gsd" is short for "git stash drop".
-gsd() (
-  alias gsd='git stash drop'
-)
+alias gsd="git stash drop"
 
 # "gsm" is short for "git switch main".
 gsm() (
