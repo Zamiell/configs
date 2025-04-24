@@ -2,19 +2,55 @@
 # Helper functions
 # ----------------
 
-is_git_bash() {
+is_git_bash() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
   local kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on MacOS.
   [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
-}
+)
 
-is_github_repository() {
+is_github_repository() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
   local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
   if [[ -n "$(echo $remote_url | grep github.com)" ]]; then
-    return 0  # True
+    return 0 # True
   else
-    return 1  # False
+    return 1 # False
   fi
-}
+)
+
+get_num_github_repository_commits() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Repository owner is required. Usage: get_num_github_repository_commits <repository_owner> <repository_name>"
+    return 1
+  fi
+  local repository_owner="$1"
+
+  if [[ -z "${2:-}" ]]; then
+    echo "Error: Repository name is required. Usage: get_num_github_repository_commits <repository_owner> <repository_name>"
+    return 1
+  fi
+  local repository_name="$2"
+
+  local response=$(curl -s -I "https://api.github.com/repos/$repository_owner/$repository_name/commits?per_page=1")
+
+  if echo "$response" | grep --quiet "404 Not Found"; then
+    echo "Error: Repository \"$repository_owner/$repository_name\" was not found."
+    return 1
+  fi
+
+  local commit_count=$(echo "$response" | grep -i 'link:' | grep -o 'page=[0-9]*' | tail -1 | cut -d= -f2)
+
+  if [ -n "$commit_count" ]; then
+    echo "$commit_count"
+  else
+    # No pagination implies one page of commits.
+    echo "1"
+  fi
+)
 
 # ---------------------
 # Environment Variables
@@ -140,7 +176,7 @@ run_package_script() (
     command="bun"
   fi
 
-  $command run "$1"
+  "$command" run "$1"
 )
 
 alias b="run_package_script build"
@@ -725,3 +761,6 @@ if ! is_git_bash && [[ -z "$ZSH_VERSION" ]]; then
   source "$GIT_PROMPT_PATH"
   PROMPT_COMMAND='__posh_git_ps1 "\u@\h:\w " "\\\$ ";'$PROMPT_COMMAND
 fi
+
+BASH_PROFILE_VERSION=$(get_num_github_repository_commits Zamiell configs)
+echo "Remote Bash profile version: $BASH_PROFILE_VERSION"
