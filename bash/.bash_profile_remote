@@ -9,6 +9,26 @@ is_git_bash() (
   [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
 )
 
+is_git_rebasing() {
+  local git_directory=$(git rev-parse --git-dir)
+
+  if [ -d "$git_directory/rebase-merge" ] || [ -d "$git_directory/rebase-apply" ]; then
+    return 0  # True
+  fi
+
+  return 1  # False
+}
+
+is_git_reverting() {
+  local git_directory=$(git rev-parse --git-dir)
+
+  if [ -f "$git_directory/REVERT_HEAD" ]; then
+    return 0  # True
+  fi
+
+  return 1  # False
+}
+
 is_github_repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -519,8 +539,26 @@ alias gl="git log"
 # "gra" is short for "git rebase --abort".
 alias gra="git rebase --abort"
 
-# "grc" is short for "git rebase --continue".
-alias grc="git rebase --continue"
+# "grc" is short for "git rebase --continue" or "git revert --continue".
+grc() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if is_git_rebasing; then
+    git rebase --continue
+  fi
+
+  if is_git_reverting; then
+    git revert --continue
+  fi
+
+  echo "Error: Not currently rebasing or reverting."
+  return 1
+)
 
 # "grm" is short for "git rebase main".
 grm() (
