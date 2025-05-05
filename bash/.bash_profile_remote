@@ -553,6 +553,9 @@ grm() (
 # "gsd" is short for "git stash drop".
 alias gsd="git stash drop"
 
+# "gsl" is short for "git stash list".
+alias gsl="git stash list"
+
 # "gsm" is short for "git switch main".
 gsm() (
   set -euo pipefail # Exit on errors and undefined variables.
