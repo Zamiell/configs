@@ -674,6 +674,9 @@ alias gr="git reset"
 # "grh" is short for "git reset --hard".
 alias grh="git reset --hard"
 
+# "grl" is short for "git revert last". ("grh" is already taken by another command.)
+alias grl="git revert HEAD"
+
 # "gs" is short for "git status".
 alias gs="git status --porcelain"
 
