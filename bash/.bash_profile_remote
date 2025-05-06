@@ -806,5 +806,9 @@ alias tv="terraform validate"
 #  PROMPT_COMMAND='__posh_git_ps1 "\u@\h:\w " "\\\$ ";'$PROMPT_COMMAND
 #fi
 
+# -------
+# Version
+# -------
+
 BASH_PROFILE_VERSION=$(get_num_github_repository_commits Zamiell configs)
 echo "Remote Bash profile version: $BASH_PROFILE_VERSION"
