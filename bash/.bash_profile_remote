@@ -683,7 +683,8 @@ grl() (
     return 1
   fi
 
-  git revert HEAD
+  # "--no-edit" avoids prompting for a commit message and uses the default commit message.
+  git revert HEAD --no-edit
   git push
 )
 
