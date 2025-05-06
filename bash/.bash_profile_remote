@@ -675,7 +675,17 @@ alias gr="git reset"
 alias grh="git reset --hard"
 
 # "grl" is short for "git revert last". ("grh" is already taken by another command.)
-alias grl="git revert HEAD"
+grl() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  git revert HEAD
+  git push
+)
 
 # "gs" is short for "git status".
 alias gs="git status --porcelain"
