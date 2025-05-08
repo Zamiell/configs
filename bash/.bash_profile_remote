@@ -13,20 +13,20 @@ is_git_rebasing() {
   local git_directory=$(git rev-parse --git-dir)
 
   if [ -d "$git_directory/rebase-merge" ] || [ -d "$git_directory/rebase-apply" ]; then
-    return 0  # True
+    return 0 # True
   fi
 
-  return 1  # False
+  return 1 # False
 }
 
 is_git_reverting() {
   local git_directory=$(git rev-parse --git-dir)
 
   if [ -f "$git_directory/REVERT_HEAD" ]; then
-    return 0  # True
+    return 0 # True
   fi
 
-  return 1  # False
+  return 1 # False
 }
 
 is_github_repository() (
