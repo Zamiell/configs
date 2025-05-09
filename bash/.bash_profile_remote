@@ -475,6 +475,7 @@ gbs() (
   local branch_name=$(git branch --show-current)
   local merge_base=$(git merge-base master "$branch_name")
   local num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
+
   git reset --soft "HEAD~$num_branch_commits"
   git commit -m "chore: squashed $num_branch_commits commits"
   git push --force
