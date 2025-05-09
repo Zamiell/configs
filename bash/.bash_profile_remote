@@ -432,6 +432,9 @@ gbdl() (
   fi
 )
 
+# "gbl" is short for "git branch list". ("gb" is already taken by another command.)
+alias gbl="git --no-pager branch"
+
 # "gbr" is short for "git branch rename", which will rename the application portion of the branch
 # name.
 gbr() (
@@ -460,8 +463,22 @@ gbr() (
   gpr
 )
 
-# "gbl" is short for "git branch list". ("gb" is already taken by another command.)
-alias gbl="git --no-pager branch"
+# "gbs" is short for "git branch squash", which squash all commits on the branch.
+gbs() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+    if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  local branch_name=$(git branch --show-current)
+  local merge_base=$(git merge-base master "$branch_name")
+  local num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
+  git reset --soft "HEAD~$num_branch_commits"
+  git commit -m "chore: squashed $num_branch_commits commits"
+  git push --force
+)
 
 # "gc" is short for "git commit", which will perform all the steps involved in making a new commit
 # with all unstaged changes.
