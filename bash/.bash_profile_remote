@@ -467,7 +467,7 @@ gbr() (
 gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-    if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
     echo "Error: Not inside a Git repository."
     return 1
   fi
