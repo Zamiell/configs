@@ -472,7 +472,22 @@ gbs() (
     return 1
   fi
 
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    return 1
+  fi
+
   local branch_name=$(git branch --show-current)
+
+  if [[ "$branch_name" == "$main_branch_name" ]]; then
+    echo "Error: This function is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch."
+    return 1
+  fi
+
   local merge_base=$(git merge-base master "$branch_name")
   local num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
 
