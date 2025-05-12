@@ -489,7 +489,6 @@ gbrr() (
   gpr
 )
 
-
 # "gbs" is short for "git branch squash", which squash all commits on the branch.
 gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
