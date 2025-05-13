@@ -683,6 +683,7 @@ gsm() (
   git stash list
 )
 
+# "gsq" stands for "git squash", to squash N commits together.
 gsq() (
   set -euo pipefail # Exit on errors and undefined variables.
 
