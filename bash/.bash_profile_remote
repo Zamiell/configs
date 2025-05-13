@@ -255,6 +255,8 @@ git config --global push.autoSetupRemote true
 alias ga="git add --all"
 
 # - "gb" is short for creating a new git branch, which is a common coding task.
+# - If the remote repository is not GitHub, this will make the branch according to the LogixHealth
+#   branch naming convention.
 # - Doing a push is important after creating a new branch because it prevents subsequent `git pull`
 #   calls from failing.
 gb() (
@@ -645,6 +647,9 @@ grm() (
   git rebase $main_branch_name
   git push --force
 )
+
+# "gsc" is short for "git switch -c". (However, the "gb" command should be used in most contexts.)
+alias gsc="git switch -c"
 
 # "gsd" is short for "git stash drop".
 alias gsd="git stash drop"
