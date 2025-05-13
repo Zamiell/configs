@@ -313,6 +313,50 @@ gb() (
   git --no-pager branch
 )
 
+# "gb_" is the same thing as "gb", but if the remote repository is not GitHub, it will omit the
+# branch naming logic.
+gb_() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    local new_branch_name="misc"
+  else
+    local new_branch_name="$1"
+  fi
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    git stash push -m "Auto-stash before creating a new git branch"
+  fi
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    return 1
+  fi
+
+  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
+    git switch "$main_branch_name"
+  fi
+
+  git pull --rebase
+  git switch --create "$new_branch_name"
+  git push
+
+  if [[ $(git stash list | wc -l) -gt 0 ]]; then
+    git stash pop
+  fi
+
+  git --no-pager branch
+)
+
 # "gbc" is short for "git branch clean", which will remove all local branches that do not exist on
 # the remote repository.
 # https://stackoverflow.com/questions/7726949/remove-tracking-branches-no-longer-on-remote
