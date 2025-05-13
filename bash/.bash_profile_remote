@@ -679,14 +679,12 @@ gra() (
 
   if is_git_rebasing; then
     git rebase --abort
-  fi
-
-  if is_git_reverting; then
+  elif is_git_reverting; then
     git revert --abort
+  else
+    echo "Error: Not currently rebasing or reverting."
+    return 1
   fi
-
-  echo "Error: Not currently rebasing or reverting."
-  return 1
 )
 
 # "grc" is short for "git rebase --continue" or "git revert --continue".
@@ -700,14 +698,12 @@ grc() (
 
   if is_git_rebasing; then
     git rebase --continue
-  fi
-
-  if is_git_reverting; then
+  elif is_git_reverting; then
     git revert --continue
+  else
+    echo "Error: Not currently rebasing or reverting."
+    return 1
   fi
-
-  echo "Error: Not currently rebasing or reverting."
-  return 1
 )
 
 # "grm" is short for "git rebase main".
