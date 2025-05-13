@@ -251,8 +251,11 @@ git config --global push.autoSetupRemote true
 # Git Commands
 # ------------
 
-# "ga" is short for "git add --all".
-alias ga="git add --all"
+# "ga" is short for "git add".
+alias ga="git add"
+
+# "gaa" is short for "git add --all".
+alias gaa="git add --all"
 
 # - "gb" is short for creating a new git branch, which is a common coding task.
 # - If the remote repository is not GitHub, this will make the branch according to the LogixHealth
@@ -508,8 +511,8 @@ gbr() (
   gpr
 )
 
-# "gbrr" is short for "git branch rename raw", which will rename a branch using no logic.
-gbrr() (
+# "gbr_" is the same as "gbr", but it will omit the branch naming logic.
+gbr_() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
@@ -640,8 +643,51 @@ alias gd="git diff"
 # "gl" is short for "git log".
 alias gl="git log"
 
-# "gra" is short for "git rebase --abort".
-alias gra="git rebase --abort"
+# "gp" is short for "git pull".
+alias gp="git pull --rebase"
+
+# "gpr" is short for "git pull request", to start a new pull request based on the current branch.
+gpr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if is_github_repository; then
+    gh pr create
+  else
+    local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+    local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
+    local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
+    local repo_name=$(git rev-parse --show-toplevel | xargs basename)
+    local branch_name=$(git branch --show-current)
+    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repo_name/pullrequestcreate?sourceRef=$branch_name"
+    o "$pr_url"
+  fi
+)
+
+# "gra" is short for "git rebase --abort" or "git revert --abort".
+gra() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if is_git_rebasing; then
+    git rebase --abort
+  fi
+
+  if is_git_reverting; then
+    git revert --abort
+  fi
+
+  echo "Error: Not currently rebasing or reverting."
+  return 1
+)
 
 # "grc" is short for "git rebase --continue" or "git revert --continue".
 grc() (
@@ -692,17 +738,14 @@ grm() (
   git push --force
 )
 
-# "gsc" is short for "git switch -c". (However, the "gb" command should be used in most contexts.)
-alias gsc="git switch -c"
+# "grs" is short for "git reset".
+alias grs="git reset"
 
-# "gsd" is short for "git stash drop".
-alias gsd="git stash drop"
+# "grsh" is short for "git reset --hard".
+alias grsh="git reset --hard"
 
-# "gsl" is short for "git stash list".
-alias gsl="git stash list"
-
-# "gsm" is short for "git switch main".
-gsm() (
+# "grvl" is short for "git revert last". ("grh" is already taken by another command.)
+grvl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
@@ -710,27 +753,13 @@ gsm() (
     return 1
   fi
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
-    return 1
-  fi
-
-  if [[ -n "$(git status --porcelain)" ]]; then
-    git stash push -m "Auto-stash before switching to $main_branch_name"
-  fi
-
-  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
-    git switch "$main_branch_name"
-  fi
-
-  git pull --rebase
-  gbc --skip-fetch # git branch clean
-  git stash list
+  # "--no-edit" avoids prompting for a commit message and uses the default commit message.
+  git revert HEAD --no-edit
+  git push
 )
+
+# "gs" is short for "git status".
+alias gs="git status --porcelain"
 
 # "gsq" stands for "git squash", to squash N commits together.
 gsq() (
@@ -750,54 +779,6 @@ gsq() (
   git reset --soft HEAD~$number_of_commits
   git commit -m "chore: squash $number_of_commits commits"
 )
-
-# "gp" is short for "git pull".
-alias gp="git pull --rebase"
-
-# "gpr" is short for "git pull request", to start a new pull request based on the current branch.
-gpr() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
-    return 1
-  fi
-
-  if is_github_repository; then
-    gh pr create
-  else
-    local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
-    local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
-    local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
-    local repo_name=$(git rev-parse --show-toplevel | xargs basename)
-    local branch_name=$(git branch --show-current)
-    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repo_name/pullrequestcreate?sourceRef=$branch_name"
-    o "$pr_url"
-  fi
-)
-
-# "gr" is short for "git reset".
-alias gr="git reset"
-
-# "grh" is short for "git reset --hard".
-alias grh="git reset --hard"
-
-# "grl" is short for "git revert last". ("grh" is already taken by another command.)
-grl() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
-    return 1
-  fi
-
-  # "--no-edit" avoids prompting for a commit message and uses the default commit message.
-  git revert HEAD --no-edit
-  git push
-)
-
-# "gs" is short for "git status".
-alias gs="git status --porcelain"
 
 # "gst" is short for "git stash".
 alias gst="git stash"
@@ -849,6 +830,40 @@ gsw() (
   fi
 
   git switch "$branch_name"
+)
+
+# "gswc" is short for "git switch -c". (However, the "gb" command should be used in most contexts.)
+alias gswc="git switch -c"
+
+# "gswm" is short for "git switch main".
+gswm() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    return 1
+  fi
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    git stash push -m "Auto-stash before switching to $main_branch_name"
+  fi
+
+  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
+    git switch "$main_branch_name"
+  fi
+
+  git pull --rebase
+  gbc --skip-fetch # git branch clean
+  git stash list
 )
 
 # "gtc" is short for "git tags clean", which will remote all local tags that do not exist on the
