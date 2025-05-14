@@ -774,6 +774,7 @@ gsq() (
 
   git reset --soft HEAD~$number_of_commits
   git commit -m "chore: squash $number_of_commits commits"
+  git push --force
 )
 
 # "gst" is short for "git stash".
