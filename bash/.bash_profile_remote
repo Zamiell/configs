@@ -196,7 +196,7 @@ run_package_script() (
     command="bun"
   fi
 
-  "$command" run "$1"
+  "$command" run $@
 )
 
 alias b="run_package_script build"
