@@ -442,6 +442,10 @@ gbd() (
   else
     echo "Warning: Branch \"$branch_name\" does not exist on remote origin."
   fi
+
+  echo
+  echo "Current git branches:"
+  git --no-pager branch
 )
 
 # "gbdl" is short for "git branch delete local", which will delete the branch locally (and not
@@ -478,6 +482,10 @@ gbdl() (
   else
     echo "Warning: Branch \"$branch_name\" does not exist locally."
   fi
+
+  echo
+  echo "Current git branches:"
+  git --no-pager branch
 )
 
 # "gbl" is short for "git branch list". ("gb" is already taken by another command.)
