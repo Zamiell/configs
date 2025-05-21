@@ -497,7 +497,6 @@ gbl() (
     return 1
   fi
 
- 
   local branches=$(git --no-pager branch | sed 's/^[ *]*//')
   local current_branch=$(git branch --show-current)
   
