@@ -313,7 +313,8 @@ gb() (
     git stash pop
   fi
 
-  git --no-pager branch
+  echo
+  gbl
 )
 
 # "gb_" is the same thing as "gb", but if the remote repository is not GitHub, it will omit the
@@ -357,7 +358,8 @@ gb_() (
     git stash pop
   fi
 
-  git --no-pager branch
+  echo
+  gbl
 )
 
 # "gbc" is short for "git branch clean", which will remove all local branches that do not exist on
@@ -398,8 +400,7 @@ gbc() (
   git branch -vv | awk "/: gone]/{print \$1}" | xargs --no-run-if-empty git branch --delete --force
 
   echo
-  echo "Current git branches:"
-  git --no-pager branch
+  gbl
 )
 
 # "gbd" is short for "git branch delete", which will delete the branch both locally and remotely.
@@ -444,8 +445,7 @@ gbd() (
   fi
 
   echo
-  echo "Current git branches:"
-  git --no-pager branch
+  gbl
 )
 
 # "gbdl" is short for "git branch delete local", which will delete the branch locally (and not
@@ -484,8 +484,7 @@ gbdl() (
   fi
 
   echo
-  echo "Current git branches:"
-  git --no-pager branch
+  gbl
 )
 
 # "gbl" is short for "git branch list". ("gb" is already taken by another command.)
@@ -503,6 +502,8 @@ gbl() (
   local GREEN_CODE='\033[32m'
   local RESET_CODE='\033[0m'
   local count=1
+
+  echo "Current git branches:"
 
   while IFS= read -r branch; do
     if [[ "$branch" == "$current_branch" ]]; then
