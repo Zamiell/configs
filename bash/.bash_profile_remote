@@ -487,8 +487,10 @@ gbl() (
     return 1
   fi
 
-  local branches=$(git --no-pager branch | sed 's/^[ *]*//')
-  local current_branch=$(git branch --show-current)
+  local branches
+  branches=$(git --no-pager branch | sed 's/^[ *]*//')
+  local current_branch
+  current_branch=$(git branch --show-current)
 
   local GREEN_CODE='\033[32m'
   local RESET_CODE='\033[0m'
@@ -683,7 +685,7 @@ alias gd="git diff"
 # "gl" is short for "git log".
 alias gl="git log"
 
-# "glg" is short for "git log --graph --pretty=format:'%C(yellow)%h%Creset %C(cyan)%d%Creset %C(white)%s%Creset %C(green)(%an)%Creset%n%w(0,8,8)%b%Creset' --all --decorate".
+# "glg" is short for "git log --graph" with specific formatting.
 alias glg="git log --graph --pretty=format:'%C(yellow)%h%Creset %C(cyan)%d%Creset %C(white)%s%Creset %C(green)(%an)%Creset%n%w(0,8,8)%b%Creset' --all --decorate"
 
 # "gp" is short for "git pull".
