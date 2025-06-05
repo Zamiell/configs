@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 # ----------------
 # Helper functions
 # ----------------
@@ -5,35 +7,17 @@
 is_git_bash() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on MacOS.
+  local kernel_name
+  kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on MacOS.
   [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
 )
-
-is_git_rebasing() {
-  local git_directory=$(git rev-parse --git-dir)
-
-  if [ -d "$git_directory/rebase-merge" ] || [ -d "$git_directory/rebase-apply" ]; then
-    return 0 # True
-  fi
-
-  return 1 # False
-}
-
-is_git_reverting() {
-  local git_directory=$(git rev-parse --git-dir)
-
-  if [ -f "$git_directory/REVERT_HEAD" ]; then
-    return 0 # True
-  fi
-
-  return 1 # False
-}
 
 is_github_repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
-  if [[ -n "$(echo $remote_url | grep github.com)" ]]; then
+  local remote_url
+  remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+  if echo "$remote_url" | grep -q "github.com"; then
     return 0 # True
   else
     return 1 # False
@@ -55,14 +39,16 @@ get_num_github_repository_commits() (
   fi
   local repository_name="$2"
 
-  local response=$(curl -s -I "https://api.github.com/repos/$repository_owner/$repository_name/commits?per_page=1")
+  local response
+  response=$(curl -s -I "https://api.github.com/repos/$repository_owner/$repository_name/commits?per_page=1")
 
   if echo "$response" | grep --quiet "404 Not Found"; then
     echo "Error: Repository \"$repository_owner/$repository_name\" was not found."
     return 1
   fi
 
-  local commit_count=$(echo "$response" | grep -i 'link:' | grep -o 'page=[0-9]*' | tail -1 | cut -d= -f2)
+  local commit_count
+  commit_count=$(echo "$response" | grep -i 'link:' | grep -o 'page=[0-9]*' | tail -1 | cut -d= -f2)
 
   if [ -n "$commit_count" ]; then
     echo "$commit_count"
@@ -77,8 +63,9 @@ get_num_github_repository_commits() (
 # ---------------------
 
 # Load secret environment variables that cannot be committed to Git.
-if [[ -f ~/.env ]]; then
-  source ~/.env
+if [[ -f "$HOME/.env" ]]; then
+  # shellcheck source=/dev/null
+  source "$HOME/.env"
 fi
 
 # Fix self-signed certs for LogixHealth.
@@ -164,8 +151,8 @@ elif [[ -d "/d/Repositories" ]]; then # Windows separate drive
   REPOSITORIES_DIRECTORY="/d/Repositories"
 fi
 if [[ -n "$REPOSITORIES_DIRECTORY" ]]; then
-  alias r="cd $REPOSITORIES_DIRECTORY"
-  cd $REPOSITORIES_DIRECTORY
+  alias r='cd $REPOSITORIES_DIRECTORY'
+  cd "$REPOSITORIES_DIRECTORY"
 fi
 
 # ----------------
@@ -196,7 +183,7 @@ run_package_script() (
     command="bun"
   fi
 
-  "$command" run $@
+  "$command" run "$@"
 )
 
 alias b="run_package_script build"
@@ -419,8 +406,10 @@ gbd() (
 
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
-    local branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
-    local branch_name=$(echo "$branches" | sed -n "${branch_number}p")
+    local branches
+    branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
+    local branch_name
+    branch_name=$(echo "$branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist."
@@ -465,8 +454,10 @@ gbdl() (
 
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
-    local branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
-    local branch_name=$(echo "$branches" | sed -n "${branch_number}p")
+    local branches
+    branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
+    local branch_name
+    branch_name=$(echo "$branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist."
@@ -532,16 +523,17 @@ gbr() (
   fi
   local app_name="$1"
 
-  local old_branch_name=$(git branch --show-current) # e.g. "feature/app1/alice/fix-bug"
+  local old_branch_name
+  old_branch_name=$(git branch --show-current) # e.g. "feature/app1/alice/fix-bug"
   echo "Old branch name: $old_branch_name"
-  local new_branch_name=$(echo "$old_branch_name" | sed -E "s~^([^/]+/)([^/]+)(/.*$)~\1${app_name}\3~") # e.g. "feature/app2/alice/fix-bug"
+  local new_branch_name
+  new_branch_name=$(echo "$old_branch_name" | sed -E "s~^([^/]+/)([^/]+)(/.*$)~\1${app_name}\3~") # e.g. "feature/app2/alice/fix-bug"
   echo "New branch name: $new_branch_name"
 
   git switch --create "$new_branch_name"
   git push
-  git branch -D $old_branch_name # Delete the old branch locally.
-  git push origin :$old_branch_name # Delete the old branch on the remote.
-  gpr
+  git branch -D "$old_branch_name" # Delete the old branch locally.
+  git push origin ":$old_branch_name" # Delete the old branch on the remote.
 )
 
 # "gbr_" is the same as "gbr", but it will omit the branch naming logic.
@@ -559,14 +551,15 @@ gbr_() (
   fi
   local new_branch_name="$1"
 
-  local old_branch_name=$(git branch --show-current) # e.g. "feature/app1/alice/fix-bug"
+  local old_branch_name
+  old_branch_name=$(git branch --show-current) # e.g. "feature/app1/alice/fix-bug"
   echo "Old branch name: $old_branch_name"
   echo "New branch name: $new_branch_name"
 
   git switch --create "$new_branch_name"
   git push
-  git branch -D $old_branch_name # Delete the old branch locally.
-  git push origin :$old_branch_name # Delete the old branch on the remote.
+  git branch -D "$old_branch_name" # Delete the old branch locally.
+  git push origin ":$old_branch_name" # Delete the old branch on the remote.
   gpr
 )
 
@@ -588,15 +581,18 @@ gbs() (
     return 1
   fi
 
-  local branch_name=$(git branch --show-current)
+  local branch_name
+  branch_name=$(git branch --show-current)
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
     echo "Error: This function is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch."
     return 1
   fi
 
-  local merge_base=$(git merge-base master "$branch_name")
-  local num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
+  local merge_base
+  merge_base=$(git merge-base master "$branch_name")
+  local num_branch_commits
+  num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
 
   git reset --soft "HEAD~$num_branch_commits"
   git commit -m "chore: squashed $num_branch_commits commits"
@@ -613,8 +609,10 @@ gc() (
     return 1
   fi
 
-  local branch_name=$(git branch --show-current)
-  local remote_branch_info=$(git ls-remote --heads origin $branch_name)
+  local branch_name
+  branch_name=$(git branch --show-current)
+  local remote_branch_info
+  remote_branch_info=$(git ls-remote --heads origin "$branch_name")
 
   if [[ -z "$remote_branch_info" ]]; then
     echo "Error: The remote branch of \"$branch_name\" does not yet exist."
@@ -644,23 +642,32 @@ gcs() (
     return 1
   fi
 
-  local commit_sha1=$(git rev-parse HEAD) # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
-  local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+  local commit_sha1
+  commit_sha1=$(git rev-parse HEAD) # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
+  local remote_url
+  remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
   if echo "$remote_url" | grep -q "github.com"; then
     if [[ "$remote_url" == git@* ]]; then
       # SSH URL format: git@github.com:alice/my-repo.git
-      local repository_owner=$(echo "$remote_url" | sed -E 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
-      local repository_name=$(echo "$remote_url" | sed -E 's/git@github\.com:[^\/]+\/(.*)\.git/\1/')
+      local repository_owner
+      repository_owner=$(echo "$remote_url" | sed -E 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
+      local repository_name
+      repository_name=$(echo "$remote_url" | sed -E 's/git@github\.com:[^\/]+\/(.*)\.git/\1/')
     else
       # HTTPS URL format: https://github.com/alice/my-repo.git
-      local repository_owner=$(echo "$remote_url" | sed -E 's|https://github\.com/([^/]+)/.*\.git|\1|')
-      local repository_name=$(echo "$remote_url" | sed -E 's|https://github\.com/[^/]+/(.*)\.git|\1|')
+      local repository_owner
+      repository_owner=$(echo "$remote_url" | sed -E 's|https://github\.com/([^/]+)/.*\.git|\1|')
+      local repository_name
+      repository_name=$(echo "$remote_url" | sed -E 's|https://github\.com/[^/]+/(.*)\.git|\1|')
     fi
     local commit_url="https://github.com/$repository_owner/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep -q "azuredevops.logixhealth.com"; then
-    local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
-    local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
-    local repository_name=$(git rev-parse --show-toplevel | xargs basename)
+    local organization_name
+    organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
+    local project_name
+    project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
+    local repository_name
+    repository_name=$(git rev-parse --show-toplevel | xargs basename)
     local commit_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
   else
     echo "Failed to parse the remote URL for this repository."
@@ -694,56 +701,32 @@ gpr() (
   if is_github_repository; then
     gh pr create
   else
-    local remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
-    local organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
-    local project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
-    local repo_name=$(git rev-parse --show-toplevel | xargs basename)
-    local branch_name=$(git branch --show-current)
-    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repo_name/pullrequestcreate?sourceRef=$branch_name"
+    local remote_url
+    remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+    local organization_name
+    organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
+    local project_name
+    project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
+    local repository_name
+    repository_name=$(git rev-parse --show-toplevel | xargs basename)
+    local branch_name
+    branch_name=$(git branch --show-current)
+    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/pullrequestcreate?sourceRef=$branch_name"
     o "$pr_url"
   fi
 )
 
-# "gra" is short for "git rebase --abort" or "git revert --abort".
-gra() (
-  set -euo pipefail # Exit on errors and undefined variables.
+# "grb" is short for "git rebase".
+alias grb="git rebase"
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
-    return 1
-  fi
+# "grba" is short for "git rebase --abort".
+alias grba="git rebase --abort"
 
-  if is_git_rebasing; then
-    git rebase --abort
-  elif is_git_reverting; then
-    git revert --abort
-  else
-    echo "Error: Not currently rebasing or reverting."
-    return 1
-  fi
-)
+# "grbc" is short for "git rebase --continue".
+alias grbc="git rebase --continue"
 
-# "grc" is short for "git rebase --continue" or "git revert --continue".
-grc() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
-    return 1
-  fi
-
-  if is_git_rebasing; then
-    git rebase --continue
-  elif is_git_reverting; then
-    git revert --continue
-  else
-    echo "Error: Not currently rebasing or reverting."
-    return 1
-  fi
-)
-
-# "grm" is short for "git rebase main".
-grm() (
+# "grbm" is short for "git rebase main".
+grbm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
@@ -761,12 +744,12 @@ grm() (
   fi
 
   if [[ "$(git branch --show-current)" == "$main_branch_name" ]]; then
-    echo "You are on the \"$main_branch_name\" branch, so you cannot rebase."
+    echo "You are on the \"$main_branch_name\" branch, so you cannot rebase this branch on itself."
     return 1
   fi
 
-  git fetch origin $main_branch_name:$main_branch_name
-  git rebase $main_branch_name
+  git fetch origin $main_branch_name
+  git rebase origin/$main_branch_name
   git push --force
 )
 
@@ -775,6 +758,31 @@ alias grs="git reset"
 
 # "grsh" is short for "git reset --hard".
 alias grsh="git reset --hard"
+
+# "grv" is short for "git revert".
+grv() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Commit SHA1 is required. Usage: grv <commit_sha1>"
+    return 1
+  fi
+  local commit_sha1="$1"
+
+  git revert "$commit_sha1"
+  git push
+)
+
+# "grva" is short for "git revert --abort".
+alias grva="git revert --abort"
+
+# "grvc" is short for "git revert --continue".
+alias grvc="git revert --continue"
 
 # "grvl" is short for "git revert last". ("grh" is already taken by another command.)
 grvl() (
@@ -790,7 +798,8 @@ grvl() (
   git push
 )
 
-# "gs" is short for "git status".
+# "gs" is short for "git status --porcelain". (The "--porcelain" flag is preferred since the output
+# is more terse.)
 alias gs="git status --porcelain"
 
 # "gsq" stands for "git squash", to squash N commits together.
@@ -808,7 +817,7 @@ gsq() (
   fi
   local number_of_commits="$1"
 
-  git reset --soft HEAD~$number_of_commits
+  git reset --soft "HEAD~$number_of_commits"
   git commit -m "chore: squash $number_of_commits commits"
   git push --force
 )
@@ -851,8 +860,10 @@ gsw() (
 
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
-    local branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
-    local branch_name=$(echo "$branches" | sed -n "${branch_number}p")
+    local branches
+    branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
+    local branch_name
+    branch_name=$(echo "$branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist."
@@ -963,7 +974,8 @@ alias tv="terraform validate"
 # Version
 # -------
 
-export BASH_PROFILE_VERSION=$(get_num_github_repository_commits Zamiell configs)
+BASH_PROFILE_VERSION=$(get_num_github_repository_commits Zamiell configs)
+export BASH_PROFILE_VERSION
 version() (
   echo "Remote Bash profile version: $BASH_PROFILE_VERSION"
 )
