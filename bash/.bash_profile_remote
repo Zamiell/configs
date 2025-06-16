@@ -679,7 +679,7 @@ gcs() (
   o "$commit_url"
 )
 
-# "gcu" is short for "git commit undo", which will undo the last commit.
+# "gcu" is short for "git commit undo", which will undo the last commit locally (but not on the remote).
 alias gcu="git reset HEAD~1 --soft"
 
 # "gd" is short for "git diff".
