@@ -671,6 +671,8 @@ gcs() (
     local repository_name
     repository_name=$(git rev-parse --show-toplevel | xargs basename)
     local commit_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
+  elif echo "$remote_url" | grep -q "dev.azure.com"; then
+    local commit_url="https://dev.azure.com/logixhealth/Main/_git/$repository_name/commit/$commit_sha1"
   else
     echo "Failed to parse the remote URL for this repository."
     return 1
