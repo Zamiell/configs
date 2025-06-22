@@ -197,6 +197,26 @@ alias s="run_package_script start"
 alias t="run_package_script test"
 alias u="run_package_script update"
 
+# "ua" is short for "update all", which will recursively update all "package.json" files from the
+# current working directory.
+ua() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local package_json_files
+  package_json_files="$(find . -name node_modules -prune -o -name package.json -print)"
+
+  while IFS= read -r package_json; do
+    if [[ -n "$package_json" ]]; then
+      local package_json_dir
+      package_json_dir="$(dirname "$package_json")"
+      echo
+      echo "Updating packages in: $package_json_dir"
+      echo
+      (cd "$package_json_dir" && u)
+    fi
+  done <<< "$package_json_files"
+)
+
 # ----------
 # Git Config
 # ----------
