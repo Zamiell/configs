@@ -179,7 +179,11 @@ run_package_script() (
   fi
 
   local command="npm"
-  if [ -f "bun.lock" ]; then
+  if [ -f "yarn.lock" ]; then
+    command="yarn"
+  elif [ -f "pnpm-lock.yaml" ]; then
+    command="pnpm"
+  elif [ -f "bun.lock" ]; then
     command="bun"
   fi
 
