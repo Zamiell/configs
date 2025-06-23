@@ -170,6 +170,34 @@ alias kgp="kubectl get pod"
 # npm Commands
 # ------------
 
+get_package_manager() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local current_dir="$PWD"
+
+  # Search upward through directories, looking for package lock files.
+  while [ "$current_dir" != "/" ]; do
+    if [ -f "$current_dir/package-lock.json" ]; then
+      echo "npm"
+      return 0
+    elif [ -f "$current_dir/yarn.lock" ]; then
+      echo "yarn"
+      return 0
+    elif [ -f "$current_dir/pnpm-lock.yaml" ]; then
+      echo "pnpm"
+      return 0
+    elif [ -f "$current_dir/bun.lock" ]; then
+      echo "bun"
+      return 0
+    fi
+
+    current_dir="$(dirname "$current_dir")"
+  done
+
+  echo "Error: Not able to determine the package manager for the current project."
+  return 1
+)
+
 run_package_script() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -178,16 +206,13 @@ run_package_script() (
     return 1
   fi
 
-  local command="npm"
-  if [ -f "yarn.lock" ]; then
-    command="yarn"
-  elif [ -f "pnpm-lock.yaml" ]; then
-    command="pnpm"
-  elif [ -f "bun.lock" ]; then
-    command="bun"
+  local package_manager
+  package_manager="$(get_package_manager)"
+  if [ -z "$package_manager" ]; then
+    return 1
   fi
 
-  "$command" run "$@"
+  "$package_manager" run "$@"
 )
 
 alias b="run_package_script build"
@@ -558,7 +583,7 @@ gbr() (
 
   git switch --create "$new_branch_name"
   git push
-  git branch -D "$old_branch_name" # Delete the old branch locally.
+  git branch -D "$old_branch_name"    # Delete the old branch locally.
   git push origin ":$old_branch_name" # Delete the old branch on the remote.
 )
 
@@ -584,7 +609,7 @@ gbr_() (
 
   git switch --create "$new_branch_name"
   git push
-  git branch -D "$old_branch_name" # Delete the old branch locally.
+  git branch -D "$old_branch_name"    # Delete the old branch locally.
   git push origin ":$old_branch_name" # Delete the old branch on the remote.
   gpr
 )

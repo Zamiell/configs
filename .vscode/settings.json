@@ -1,0 +1,53 @@
+// These are Visual Studio Code settings that should apply to this particular repository.
+{
+  // ----------------
+  // Vanilla settings
+  // ----------------
+
+  // This matches the Airbnb JavaScript style guide.
+  "editor.rulers": [100],
+  "editor.tabSize": 2,
+
+  "files.associations": {
+    ".env*": "shellscript", // e.g. ".env.example" is the same as ".env".
+  },
+
+  // We want to always use "lf" to be consistent with all platforms.
+  "files.eol": "\n",
+
+  // Automatically remove all trailing whitespace when saving a file.
+  "files.trimTrailingWhitespace": true,
+
+  // Configure glob patterns for excluding files and folders in full text searches and quick open.
+  "search.exclude": {
+    "**/*.mp3": true,
+    "**/*.png": true,
+    "**/*.svg": true,
+    "**/*.wav": true,
+    "**/.yarn/": true,
+    "**/dist/": true,
+    "**/node_modules/": true,
+    "bun.lock": true,
+    "LICENSE": true,
+    "package-lock.json": true,
+    "pnpm-lock.yaml": true,
+    "yarn.lock": true,
+  },
+
+  // ------------------
+  // Extension settings
+  // ------------------
+
+  // Use Prettier to format "cspell.config.jsonc".
+  "cSpell.autoFormatConfigFile": true,
+
+  // -----------------
+  // Language settings
+  // -----------------
+
+  // Automatically run the formatter when certain files are saved.
+  "[shellscript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+  },
+}
