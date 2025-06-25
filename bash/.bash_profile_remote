@@ -778,8 +778,18 @@ alias grb="git rebase"
 # "grba" is short for "git rebase --abort".
 alias grba="git rebase --abort"
 
-# "grbc" is short for "git rebase --continue".
-alias grbc="git rebase --continue"
+# "grbc" is short for "git rebase --continue". (It will automatically add all files for you.)
+grbc() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  git add --all
+  git rebase --continue
+)
 
 # "grbm" is short for "git rebase main".
 grbm() (
@@ -837,8 +847,18 @@ grv() (
 # "grva" is short for "git revert --abort".
 alias grva="git revert --abort"
 
-# "grvc" is short for "git revert --continue".
-alias grvc="git revert --continue"
+# "grvc" is short for "git revert --continue". (It will automatically add all files for you.)
+grvc() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository."
+    return 1
+  fi
+
+  git add --all
+  git revert --continue
+)
 
 # "grvl" is short for "git revert last". ("grh" is already taken by another command.)
 grvl() (
