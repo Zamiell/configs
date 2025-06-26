@@ -99,6 +99,9 @@ fi
 # Miscellaneous Commands
 # ----------------------
 
+# https://github.com/oven-sh/bun/issues/5283
+alias bunci="bun install --frozen-lockfile"
+
 # A better "ll" alias that shows human-readable file sizes.
 alias ll="ls -alFh"
 
