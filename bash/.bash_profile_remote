@@ -664,6 +664,11 @@ gbs() (
   local num_branch_commits
   num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
 
+  if [[ "$num_branch_commits" -eq 1 ]]; then
+    echo "There is only 1 commit on this branch, so no squashing is needed."
+    return 0
+  fi
+
   git reset --soft "HEAD~$num_branch_commits"
   git commit -m "chore: squashed $num_branch_commits commits"
   git push --force
