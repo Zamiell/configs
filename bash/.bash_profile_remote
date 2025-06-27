@@ -660,7 +660,7 @@ gbs() (
   fi
 
   local merge_base
-  merge_base=$(git merge-base master "$branch_name")
+  merge_base=$(git merge-base "$main_branch_name" "$branch_name")
   local num_branch_commits
   num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
 
