@@ -561,8 +561,8 @@ gbl() (
   done <<< "$branches"
 )
 
-# "gbr" is short for "git branch rename", which will rename the application portion of a LogixHealth
-# branch name.
+# "gbr" is short for "git branch rename", which will rename the application and/or description
+# portion of a LogixHealth branch name.
 gbr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -572,16 +572,32 @@ gbr() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Application name is required. Usage: gbr <application-name>"
+    echo "Error: Application name is required. Usage: gbr <application-name> [description]"
     return 1
   fi
-  local app_name="$1"
+  local new_app_name="$1"
 
   local old_branch_name
   old_branch_name=$(git branch --show-current) # e.g. "feature/misc/alice/fix-bug-1"
   echo "Old branch name: $old_branch_name"
-  local new_branch_name
-  new_branch_name=$(echo "$old_branch_name" | sed -E "s~^([^/]+/)([^/]+)(/.*$)~\1${app_name}\3~") # e.g. "feature/misc/alice/fix-bug-2"
+
+  IFS='/' read -ra branch_parts <<< "$old_branch_name"
+  if [[ ${#branch_parts[@]} -ne 4 ]]; then
+    echo "Error: Branch name must have exactly 4 parts separated by a forward slash. The current branch name is: $old_branch_name"
+    return 1
+  fi
+
+  local branch_type="${branch_parts[0]}"     # e.g. "feature"
+  local branch_username="${branch_parts[2]}" # e.g. "alice"
+  local old_description="${branch_parts[3]}" # e.g. "fix-bug-1"
+
+  if [[ -z "${2:-}" ]]; then
+    local new_description="$old_description"
+  else
+    local new_description="$2"
+  fi
+
+  local new_branch_name="$branch_type/$new_app_name/$branch_username/$new_description"
   echo "New branch name: $new_branch_name"
 
   git switch --create "$new_branch_name"

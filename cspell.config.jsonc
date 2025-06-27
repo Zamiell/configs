@@ -19,11 +19,12 @@
     "node_modules/**",
     "package-lock.json",
     "pnpm-lock.yaml",
-    "yarn.lock"
+    "yarn.lock",
   ],
   "words": [
     "azuredevops",
     "BEDROOTCA",
+    "bunci",
     "certifi",
     "Creset",
     "gbdl",
@@ -47,6 +48,6 @@
     "pulumi",
     "tfstate",
     "toplevel",
-    "Zamiell"
-  ]
+    "Zamiell",
+  ],
 }
