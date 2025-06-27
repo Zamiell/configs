@@ -225,6 +225,8 @@ alias s="run_package_script start"
 alias t="run_package_script test"
 alias u="run_package_script update"
 
+alias cu="bunx cspell-check-unused-words --fix"
+
 # "ua" is short for "update all", which will recursively update all "package.json" files from the
 # current working directory.
 ua() (
