@@ -118,7 +118,7 @@ o() (
   fi
   local url="$1"
 
-  if [[ "$url" == *"logixhealth.com"* ]]; then
+  if [[ "$url" == *"logixhealth"* ]]; then
     local browser="msedge"
   else
     local browser="chrome"
@@ -738,6 +738,14 @@ gcs() (
       repository_name=$(echo "$remote_url" | sed -E 's|https://github\.com/[^/]+/(.*)\.git|\1|')
     fi
     local commit_url="https://github.com/$repository_owner/$repository_name/commit/$commit_sha1"
+  elif echo "$remote_url" | grep -q "dev.azure.com"; then
+    local organization_name
+    organization_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
+    local project_name
+    project_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
+    local repository_name
+    repository_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/[^/]+/||')
+    local commit_url="https://dev.azure.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep -q "azuredevops.logixhealth.com"; then
     local organization_name
     organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
