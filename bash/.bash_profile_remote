@@ -1049,14 +1049,17 @@ alias guf="git push --force"
 # Pulumi Commands
 # ---------------
 
-# "pu" is short for "pulumi up".
-alias pu="pulumi up"
-
 # "pd" is short for "pulumi destroy".
 alias pd="pulumi destroy"
 
+# "pp" is short for "pulumi preview".
+alias pr="pulumi preview"
+
 # "pr" is short for "pulumi refresh".
 alias pr="pulumi refresh"
+
+# "pu" is short for "pulumi up".
+alias pu="pulumi up"
 
 # ------------------
 # Terraform Commands
