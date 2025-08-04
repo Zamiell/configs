@@ -632,7 +632,6 @@ gbr_() (
   git push
   git branch -D "$old_branch_name"    # Delete the old branch locally.
   git push origin ":$old_branch_name" # Delete the old branch on the remote.
-  gpr
 )
 
 # "gbs" is short for "git branch squash", which squash all commits on the branch.
