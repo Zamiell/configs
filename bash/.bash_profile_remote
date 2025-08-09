@@ -1052,10 +1052,7 @@ alias guf="git push --force"
 alias pd="pulumi destroy"
 
 # "pp" is short for "pulumi preview".
-alias pr="pulumi preview"
-
-# "pr" is short for "pulumi refresh".
-alias pr="pulumi refresh"
+alias pp="pulumi preview"
 
 # "pu" is short for "pulumi up".
 alias pu="pulumi up"
