@@ -96,10 +96,10 @@ if ! command -v msedge &> /dev/null && [[ -f "/c/Program Files (x86)/Microsoft/E
 fi
 
 # Get the username is a platform-agnostic way.
-if [[ -n "$USER "]]; then
-  export $OS_USERNAME="$USER"
-elif [[ -n "$USERNAME "]]; then
-  export $OS_USERNAME="$USERNAME"
+if [[ -n "$USER" ]]; then
+  export OS_USERNAME="$USER"
+elif [[ -n "$USERNAME" ]]; then
+  export OS_USERNAME="$USERNAME"
 else
   echo "Failed to derive the operating system username." >&2
 fi
