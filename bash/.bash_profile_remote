@@ -28,13 +28,13 @@ get_num_github_repository_commits() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Repository owner is required. Usage: get_num_github_repository_commits <repository_owner> <repository_name>"
+    echo "Error: Repository owner is required. Usage: get_num_github_repository_commits <repository_owner> <repository_name>" >&2
     return 1
   fi
   local repository_owner="$1"
 
   if [[ -z "${2:-}" ]]; then
-    echo "Error: Repository name is required. Usage: get_num_github_repository_commits <repository_owner> <repository_name>"
+    echo "Error: Repository name is required. Usage: get_num_github_repository_commits <repository_owner> <repository_name>" >&2
     return 1
   fi
   local repository_name="$2"
@@ -43,7 +43,7 @@ get_num_github_repository_commits() (
   response=$(curl -s -I "https://api.github.com/repos/$repository_owner/$repository_name/commits?per_page=1")
 
   if echo "$response" | grep --quiet "404 Not Found"; then
-    echo "Error: Repository \"$repository_owner/$repository_name\" was not found."
+    echo "Error: Repository \"$repository_owner/$repository_name\" was not found." >&2
     return 1
   fi
 
@@ -95,6 +95,15 @@ if ! command -v msedge &> /dev/null && [[ -f "/c/Program Files (x86)/Microsoft/E
   export PATH="$PATH:/c/Program Files (x86)/Microsoft/Edge/Application"
 fi
 
+# Get the username is a platform-agnostic way.
+if [[ -n "$USER "]]; then
+  export $OS_USERNAME="$USER"
+elif [[ -n "$USERNAME "]]; then
+  export $OS_USERNAME="$USERNAME"
+else
+  echo "Failed to derive the operating system username." >&2
+fi
+
 # ----------------------
 # Miscellaneous Commands
 # ----------------------
@@ -113,7 +122,7 @@ o() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: URL is required. Usage: o <url>"
+    echo "Error: URL is required. Usage: o <url>" >&2
     return 1
   fi
   local url="$1"
@@ -142,12 +151,12 @@ o() (
 )
 
 # "r" is short for switching to the repositories directory.
-if [[ -d "/c/Users/$USERNAME/Repositories" ]]; then # Generic Windows
-  REPOSITORIES_DIRECTORY="/c/Users/$USERNAME/Repositories"
+if [[ -d "/c/Users/$OS_USERNAME/Repositories" ]]; then # Generic Windows
+  REPOSITORIES_DIRECTORY="/c/Users/$OS_USERNAME/Repositories"
 elif [[ -d "/Users/$USERNAME/Repositories" ]]; then # Generic MacOS
-  REPOSITORIES_DIRECTORY="/Users/$USERNAME/Repositories"
+  REPOSITORIES_DIRECTORY="/Users/$OS_USERNAME/Repositories"
 elif [[ -d "/home/$USER/repositories" ]]; then # Generic Linux
-  REPOSITORIES_DIRECTORY="/home/$USER/repositories"
+  REPOSITORIES_DIRECTORY="/home/$OS_USERNAME/repositories"
 elif [[ -d "/c/Repositories" ]]; then # Windows separate drive
   REPOSITORIES_DIRECTORY="/c/Repositories"
 elif [[ -d "/d/Repositories" ]]; then # Windows separate drive
@@ -197,7 +206,7 @@ get_package_manager() (
     current_dir="$(dirname "$current_dir")"
   done
 
-  echo "Error: Not able to determine the package manager for the current project."
+  echo "Error: Not able to determine the package manager for the current project." >&2
   return 1
 )
 
@@ -205,13 +214,14 @@ run_package_script() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [ -z "${1-}" ]; then
-    echo "Error: Script name is required."
+    echo "Error: Script name is required." >&2
     return 1
   fi
 
   local package_manager
   package_manager="$(get_package_manager)"
   if [ -z "$package_manager" ]; then
+    echo "Error: Failed to find the package manager." >&2
     return 1
   fi
 
@@ -307,7 +317,7 @@ gb() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -326,7 +336,7 @@ gb() (
   if is_github_repository; then
     local new_branch_name="$description"
   else
-    local new_branch_name="feature/$application_name/$USERNAME/$description"
+    local new_branch_name="feature/$application_name/$OS_USERNAME/$description"
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -338,7 +348,7 @@ gb() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -364,7 +374,7 @@ gb_() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -383,7 +393,7 @@ gb_() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -417,7 +427,7 @@ gbc() (
   done
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -426,7 +436,7 @@ gbc() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -449,12 +459,12 @@ gbd() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name or number is required. Usage: gbd <branch-name-or-number>"
+    echo "Error: Branch name or number is required. Usage: gbd <branch-name-or-number>" >&2
     return 1
   fi
 
@@ -466,7 +476,7 @@ gbd() (
     branch_name=$(echo "$branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
-      echo "Error: Branch number $branch_number does not exist."
+      echo "Error: Branch number $branch_number does not exist." >&2
       return 1
     fi
   else
@@ -497,12 +507,12 @@ gbdl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name or number is required. Usage: gbdl <branch-name-or-number>"
+    echo "Error: Branch name or number is required. Usage: gbdl <branch-name-or-number>" >&2
     return 1
   fi
 
@@ -514,7 +524,7 @@ gbdl() (
     branch_name=$(echo "$branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
-      echo "Error: Branch number $branch_number does not exist."
+      echo "Error: Branch number $branch_number does not exist." >&2
       return 1
     fi
   else
@@ -537,7 +547,7 @@ gbl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -569,12 +579,12 @@ gbr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Application name is required. Usage: gbr <application-name> [description]"
+    echo "Error: Application name is required. Usage: gbr <application-name> [description]" >&2
     return 1
   fi
   local new_app_name="$1"
@@ -585,7 +595,7 @@ gbr() (
 
   IFS='/' read -ra branch_parts <<< "$old_branch_name"
   if [[ ${#branch_parts[@]} -ne 4 ]]; then
-    echo "Error: Branch name must have exactly 4 parts separated by a forward slash. The current branch name is: $old_branch_name"
+    echo "Error: Branch name must have exactly 4 parts separated by a forward slash. The current branch name is: $old_branch_name" >&2
     return 1
   fi
 
@@ -613,12 +623,12 @@ gbr_() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name is required. Usage: gbrr <branch-name>"
+    echo "Error: Branch name is required. Usage: gbrr <branch-name>" >&2
     return 1
   fi
   local new_branch_name="$1"
@@ -639,7 +649,7 @@ gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -648,7 +658,7 @@ gbs() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -656,7 +666,7 @@ gbs() (
   branch_name=$(git branch --show-current)
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
-    echo "Error: This function is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch."
+    echo "Error: This function is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
     return 1
   fi
 
@@ -681,7 +691,7 @@ gc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -691,7 +701,7 @@ gc() (
   remote_branch_info=$(git ls-remote --heads origin "$branch_name")
 
   if [[ -z "$remote_branch_info" ]]; then
-    echo "Error: The remote branch of \"$branch_name\" does not yet exist."
+    echo "Error: The remote branch of \"$branch_name\" does not yet exist." >&2
     return 1
   fi
 
@@ -714,7 +724,7 @@ gcs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -756,7 +766,7 @@ gcs() (
   elif echo "$remote_url" | grep -q "dev.azure.com"; then
     local commit_url="https://dev.azure.com/logixhealth/Main/_git/$repository_name/commit/$commit_sha1"
   else
-    echo "Failed to parse the remote URL for this repository."
+    echo "Failed to parse the remote URL for this repository." >&2
     return 1
   fi
 
@@ -783,7 +793,7 @@ gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -816,7 +826,7 @@ grbc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -829,7 +839,7 @@ grbm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -838,12 +848,12 @@ grbm() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
   if [[ "$(git branch --show-current)" == "$main_branch_name" ]]; then
-    echo "You are on the \"$main_branch_name\" branch, so you cannot rebase this branch on itself."
+    echo "You are on the \"$main_branch_name\" branch, so you cannot rebase this branch on itself." >&2
     return 1
   fi
 
@@ -863,12 +873,12 @@ grv() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Commit SHA1 is required. Usage: grv <commit_sha1>"
+    echo "Error: Commit SHA1 is required. Usage: grv <commit_sha1>" >&2
     return 1
   fi
   local commit_sha1="$1"
@@ -885,7 +895,7 @@ grvc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -898,7 +908,7 @@ grvl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -916,12 +926,12 @@ gsq() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: You must provide the number of commits to squash."
+    echo "Error: You must provide the number of commits to squash." >&2
     return 1
   fi
   local number_of_commits="$1"
@@ -949,7 +959,7 @@ gsw() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -958,12 +968,12 @@ gsw() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name or number is required. Usage: gsw <branch-name-or-number>"
+    echo "Error: Branch name or number is required. Usage: gsw <branch-name-or-number>" >&2
     return 1
   fi
 
@@ -975,7 +985,7 @@ gsw() (
     branch_name=$(echo "$branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
-      echo "Error: Branch number $branch_number does not exist."
+      echo "Error: Branch number $branch_number does not exist." >&2
       return 1
     fi
   else
@@ -993,7 +1003,7 @@ gswm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
@@ -1002,7 +1012,7 @@ gswm() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository."
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -1026,7 +1036,7 @@ gtc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository."
+    echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
