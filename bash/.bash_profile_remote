@@ -80,11 +80,12 @@ if [[ -n "${COMPANY_CERT_PATH-}" ]]; then
   export NODE_EXTRA_CA_CERTS="$COMPANY_CERT_PATH"
   export CURL_CA_BUNDLE="$COMPANY_CERT_PATH"
 fi
-if [[ -f "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
-  export REQUESTS_CA_BUNDLE="/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
-fi
 if [[ -f "/c/Program Files/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/c/Program Files/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
+elif [[ -f "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
+  export REQUESTS_CA_BUNDLE="/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
+elif [[ -f "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
+  export REQUESTS_CA_BUNDLE="/opt/az/lib/python3.13/site-packages/certifi/cacert.pem"
 fi
 
 # Add browsers to the path, which is necessary for the GitHub CLI.
