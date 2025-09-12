@@ -109,8 +109,21 @@ fi
 # Miscellaneous Commands
 # ----------------------
 
-# https://github.com/oven-sh/bun/issues/5283
-alias bunci="bun install --frozen-lockfile"
+# Alias "explorer" to "open" on macOS and "xdg-open" on Linux.
+explorer() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if command -v explorer &> /dev/null; then
+    # We must use "command" to invoke "explorer" to prevent an infinite loop.
+    command explorer "$@"
+  else
+    if [[ "$(uname)" == "Darwin" ]]; then
+      open "$@"
+    else
+      xdg-open "$@"
+    fi
+  fi
+)
 
 # A better "ll" alias that shows human-readable file sizes.
 alias ll="ls -alFh"
