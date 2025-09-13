@@ -141,24 +141,20 @@ o() (
   fi
   local url="$1"
 
-  # MacOS comes with the "open" command:
-  # https://ss64.com/mac/open.html
-  if command -v open &> /dev/null; then
-    open "$url"
-    return 0
-  fi
-
-  if [[ "$url" == *"logixhealth"* ]]; then
-    local specific_browser="msedge"
-  fi
-
-  if [[ "$specific_browser" == "msedge" ]] && command -v msedge &> /dev/null; then
+  if [[ "$url" == *"logixhealth"* ]] && command -v msedge &> /dev/null; then
     msedge "$url"
     return 0
   fi
 
   if command -v chrome &> /dev/null; then
     chrome "$url"
+    return 0
+  fi
+
+  # macOS has the "open" command:
+  # https://ss64.com/mac/open.html
+  if command -v open &> /dev/null; then
+    open "$url"
     return 0
   fi
 
