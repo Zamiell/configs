@@ -141,27 +141,29 @@ o() (
   fi
   local url="$1"
 
-  if [[ "$url" == *"logixhealth"* ]]; then
-    local browser="msedge"
-  else
-    local browser="chrome"
+  # MacOS comes with the "open" command:
+  # https://ss64.com/mac/open.html
+  if command -v open &> /dev/null; then
+    open "$url"
+    return 0
   fi
 
-  if [[ "$browser" == "msedge" ]]; then
-    if ! command -v msedge &> /dev/null; then
-      echo "Git commit URL is at:"
-      echo "$url"
-      return 0
-    fi
-    msedge "$url"
-  elif [[ "$browser" == "chrome" ]]; then
-    if ! command -v chrome &> /dev/null; then
-      echo "Git commit URL is at:"
-      echo "$url"
-      return 0
-    fi
-    chrome "$url"
+  if [[ "$url" == *"logixhealth"* ]]; then
+    local specific_browser="msedge"
   fi
+
+  if [[ "$specific_browser" == "msedge" ]] && command -v msedge &> /dev/null; then
+    msedge "$url"
+    return 0
+  fi
+
+  if command -v chrome &> /dev/null; then
+    chrome "$url"
+    return 0
+  fi
+
+  echo "Git commit URL is at:"
+  echo "$url"
 )
 
 # "r" is short for switching to the repositories directory.
@@ -600,10 +602,10 @@ gblr() (
 
   local remote_branches
   remote_branches=$(git --no-pager branch -r | grep -v '\->' | sed 's/^[ *]*//' | sed 's/^origin\///' | sort)
-  
+
   local current_branch
   current_branch=$(git branch --show-current)
-  
+
   local GREEN_CODE='\033[32m'
   local RESET_CODE='\033[0m'
   local count=1
@@ -984,8 +986,14 @@ gsq() (
   fi
   local number_of_commits="$1"
 
+  if [[ -z "${2:-}" ]]; then
+    local commit_message="chore: squash $number_of_commits commits"
+  else
+    local commit_message="$2"
+  fi
+
   git reset --soft "HEAD~$number_of_commits"
-  git commit -m "chore: squash $number_of_commits commits"
+  git commit -m "$commit_message"
   git push --force
 )
 
