@@ -163,9 +163,7 @@ o() (
 )
 
 # "r" is short for switching to the repositories directory.
-if [[ -d "/c/Users/$OS_USERNAME/repositories" ]]; then # Generic Windows (1/2)
-  REPOSITORIES_DIRECTORY="/c/Users/$OS_USERNAME/repositories"
-elif [[ -d "/c/Users/$OS_USERNAME/Repositories" ]]; then # Generic Windows (2/2)
+if [[ -d "/c/Users/$OS_USERNAME/Repositories" ]]; then # Generic Windows
   REPOSITORIES_DIRECTORY="/c/Users/$OS_USERNAME/Repositories"
 elif [[ -d "/Users/$OS_USERNAME/repositories" ]]; then # Generic MacOS (1/2)
   REPOSITORIES_DIRECTORY="/Users/$OS_USERNAME/repositories"
@@ -175,13 +173,9 @@ elif [[ -d "/home/$OS_USERNAME/repositories" ]]; then # Generic Linux (1/2)
   REPOSITORIES_DIRECTORY="/home/$OS_USERNAME/repositories"
 elif [[ -d "/home/$OS_USERNAME/Repositories" ]]; then # Generic Linux (2/2)
   REPOSITORIES_DIRECTORY="/home/$OS_USERNAME/Repositories"
-elif [[ -d "/c/repositories" ]]; then # Windows C drive (1/2)
-  REPOSITORIES_DIRECTORY="/c/repositories"
-elif [[ -d "/c/Repositories" ]]; then # Windows C drive (2/2)
+elif [[ -d "/c/Repositories" ]]; then # Windows C drive
   REPOSITORIES_DIRECTORY="/c/Repositories"
-elif [[ -d "/d/repositories" ]]; then # Windows D drive (1/2)
-  REPOSITORIES_DIRECTORY="/d/repositories"
-elif [[ -d "/d/Repositories" ]]; then # Windows D drive (1/2)
+elif [[ -d "/d/Repositories" ]]; then # Windows D drive
   REPOSITORIES_DIRECTORY="/d/Repositories"
 fi
 if [[ -n "$REPOSITORIES_DIRECTORY" ]]; then
