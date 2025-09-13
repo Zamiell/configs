@@ -587,6 +587,40 @@ gbl() (
   done <<< "$branches"
 )
 
+# "gblr" is short for "git branch list remote".
+gblr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository." >&2
+    return 1
+  fi
+
+  git fetch --prune --quiet
+
+  local remote_branches
+  remote_branches=$(git --no-pager branch -r | grep -v '\->' | sed 's/^[ *]*//' | sed 's/^origin\///' | sort)
+  
+  local current_branch
+  current_branch=$(git branch --show-current)
+  
+  local GREEN_CODE='\033[32m'
+  local RESET_CODE='\033[0m'
+  local count=1
+
+  echo "Remote git branches:"
+
+  while IFS= read -r branch; do
+    if [[ "$branch" == "$current_branch" ]]; then
+      echo -e "${GREEN_CODE}* ${count} - ${branch}${RESET_CODE}"
+    else
+      echo "  ${count} - ${branch}"
+    fi
+
+    ((count++))
+  done <<< "$remote_branches"
+)
+
 # "gbr" is short for "git branch rename", which will rename the application and/or description
 # portion of a LogixHealth branch name.
 gbr() (
