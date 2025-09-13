@@ -163,20 +163,34 @@ o() (
 )
 
 # "r" is short for switching to the repositories directory.
-if [[ -d "/c/Users/$OS_USERNAME/Repositories" ]]; then # Generic Windows
+if [[ -d "/c/Users/$OS_USERNAME/repositories" ]]; then # Generic Windows (1/2)
+  REPOSITORIES_DIRECTORY="/c/Users/$OS_USERNAME/repositories"
+elif [[ -d "/c/Users/$OS_USERNAME/Repositories" ]]; then # Generic Windows (2/2)
   REPOSITORIES_DIRECTORY="/c/Users/$OS_USERNAME/Repositories"
-elif [[ -d "/Users/$USERNAME/Repositories" ]]; then # Generic MacOS
+elif [[ -d "/Users/$OS_USERNAME/repositories" ]]; then # Generic MacOS (1/2)
+  REPOSITORIES_DIRECTORY="/Users/$OS_USERNAME/repositories"
+elif [[ -d "/Users/$OS_USERNAME/Repositories" ]]; then # Generic MacOS (2/2)
   REPOSITORIES_DIRECTORY="/Users/$OS_USERNAME/Repositories"
-elif [[ -d "/home/$USER/repositories" ]]; then # Generic Linux
+elif [[ -d "/home/$OS_USERNAME/repositories" ]]; then # Generic Linux (1/2)
   REPOSITORIES_DIRECTORY="/home/$OS_USERNAME/repositories"
-elif [[ -d "/c/Repositories" ]]; then # Windows separate drive
+elif [[ -d "/home/$OS_USERNAME/Repositories" ]]; then # Generic Linux (2/2)
+  REPOSITORIES_DIRECTORY="/home/$OS_USERNAME/Repositories"
+elif [[ -d "/c/repositories" ]]; then # Windows C drive (1/2)
+  REPOSITORIES_DIRECTORY="/c/repositories"
+elif [[ -d "/c/Repositories" ]]; then # Windows C drive (2/2)
   REPOSITORIES_DIRECTORY="/c/Repositories"
-elif [[ -d "/d/Repositories" ]]; then # Windows separate drive
+elif [[ -d "/d/repositories" ]]; then # Windows D drive (1/2)
+  REPOSITORIES_DIRECTORY="/d/repositories"
+elif [[ -d "/d/Repositories" ]]; then # Windows D drive (1/2)
   REPOSITORIES_DIRECTORY="/d/Repositories"
 fi
 if [[ -n "$REPOSITORIES_DIRECTORY" ]]; then
   alias r='cd $REPOSITORIES_DIRECTORY'
-  cd "$REPOSITORIES_DIRECTORY"
+
+  # Only automatically change directories if the shell is interactive.
+  if [[ $- == *i* ]]; then
+    cd "$REPOSITORIES_DIRECTORY"
+  fi
 fi
 
 # ----------------
