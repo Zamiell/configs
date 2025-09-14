@@ -250,6 +250,7 @@ run_package_script() (
 
 alias b="run_package_script build"
 alias l="run_package_script lint"
+alias la="run_package_script lint-all"
 alias p="run_package_script publish"
 alias s="run_package_script start"
 alias t="run_package_script test"
