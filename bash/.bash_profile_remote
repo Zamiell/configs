@@ -1159,4 +1159,8 @@ export BASH_PROFILE_VERSION
 version() (
   echo "Remote Bash profile version: $BASH_PROFILE_VERSION"
 )
-version
+
+# Only print the version if the shell is interactive.
+if [[ $- == *i* ]]; then
+  version
+fi
