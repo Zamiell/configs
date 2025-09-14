@@ -970,6 +970,7 @@ grvl() (
   # "--no-edit" avoids prompting for a commit message and uses the default commit message.
   git revert HEAD --no-edit
   git push
+  gcs
 )
 
 # "gs" is short for "git status --porcelain". (The "--porcelain" flag is preferred since the output
