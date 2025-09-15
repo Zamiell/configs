@@ -361,7 +361,7 @@ gb() (
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
-    git stash push -m "Auto-stash before creating a new git branch"
+    git stash push --message "Auto-stash before creating a new git branch"
   fi
 
   if git show-ref --verify --quiet refs/heads/main; then
@@ -406,7 +406,7 @@ gb_() (
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
-    git stash push -m "Auto-stash before creating a new git branch"
+    git stash push --message "Auto-stash before creating a new git branch"
   fi
 
   if git show-ref --verify --quiet refs/heads/main; then
@@ -736,12 +736,13 @@ gbs() (
   fi
 
   git reset --soft "HEAD~$num_branch_commits"
-  git commit -m "chore: squashed $num_branch_commits commits"
+  git commit --message "chore: squashed $num_branch_commits commits"
   git push --force
 )
 
 # "gc" is short for "git commit", which will perform all the steps involved in making a new commit
-# with all unstaged changes.
+# with all unstaged changes. The arguments that are provided will be the commit message. If no
+# arguments are provided, then a default commit message will be used.
 gc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -761,15 +762,56 @@ gc() (
   fi
 
   if [[ $# -eq 0 ]]; then
-    local commit_msg="update"
+    local commit_message="update"
   else
-    local commit_msg="$*"
+    local commit_message="$*"
   fi
 
   git add --all
-  git commit -m "$commit_msg"
+  git commit --message "$commit_message"
   git pull --rebase
   git push
+
+  gcs
+)
+
+# "gca" is similar to "gc", but it will amend the previous commit and add all unstaged files. Use
+# this sparingly, since it will force push.
+gca() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository." >&2
+    return 1
+  fi
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+  local remote_branch_info
+  remote_branch_info=$(git ls-remote --heads origin "$branch_name")
+
+  if [[ -z "$remote_branch_info" ]]; then
+    echo "Error: The remote branch of \"$branch_name\" does not yet exist." >&2
+    return 1
+  fi
+
+  # Validate that we are at the remote tip so that we do not accidentally blow away commits.
+  git fetch origin "$branch_name" --quiet
+  local latest_commit_local
+  latest_commit_local=$(git rev-parse HEAD)
+  local latest_commit_remote
+  latest_commit_remote=$(git rev-parse "origin/$branch_name")
+
+  if [[ "$latest_commit_local" != "$latest_commit_remote" ]] && ! git merge-base --is-ancestor "$latest_commit_remote" HEAD; then
+    echo "Error: Remote branch has commits are not present locally. Do a \"git pull\" first or use a different approach." >&2
+    return 1
+  fi
+
+  git add --all
+  # "--amend" amends the previous commit instead of making a new commit.
+  # "--no-edit" avoids prompting for a commit message and uses the default commit message.
+  git commit --amend --no-edit
+  git push --force
 
   gcs
 )
@@ -999,7 +1041,7 @@ gsq() (
   fi
 
   git reset --soft "HEAD~$number_of_commits"
-  git commit -m "$commit_message"
+  git commit --message "$commit_message"
   git push --force
 )
 
@@ -1079,7 +1121,7 @@ gswm() (
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
-    git stash push -m "Auto-stash before switching to $main_branch_name"
+    git stash push --message "Auto-stash before switching to $main_branch_name"
   fi
 
   if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
