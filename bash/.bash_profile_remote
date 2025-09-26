@@ -1178,17 +1178,26 @@ alias pu="pulumi up"
 # "ta" is short for "terraform apply".
 alias ta="terraform apply"
 
+# "taa" is short for "terraform apply -auto-approve".
+alias taa="terraform apply -auto-approve"
+
 # "tc" is short for "terraform clean".
 alias tc="rm -rf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfstate.backup"
 
 # "td" is short for "terraform destroy".
 alias td="terraform destroy"
 
+# "tda" is short for "terraform destroy -auto-approve".
+alias tda="terraform destroy -auto-approve"
+
 # "tf" is short for "terraform fmt".
 alias tf="terraform fmt"
 
 # "ti" is short for "terraform init".
 alias ti="terraform init"
+
+# "tp" is short for "terraform plan".
+alias tp="terraform plan"
 
 # "tv" is short for "terraform validate".
 alias tv="terraform validate"
