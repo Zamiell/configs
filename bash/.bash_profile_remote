@@ -1171,6 +1171,9 @@ alias pp="pulumi preview"
 # "pu" is short for "pulumi up".
 alias pu="pulumi up"
 
+# "puy" is short for "pulumi up --yes".
+alias puy="pulumi up --yes"
+
 # ------------------
 # Terraform Commands
 # ------------------
