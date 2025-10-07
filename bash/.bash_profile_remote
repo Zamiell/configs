@@ -378,8 +378,7 @@ gb() (
   fi
 
   if git remote get-url upstream > /dev/null 2>&1; then
-    git fetch upstream
-    git rebase "upstream/$main_branch_name"
+    github-sync
   else
     git pull --rebase
   fi
@@ -429,8 +428,7 @@ gb_() (
   fi
 
   if git remote get-url upstream > /dev/null 2>&1; then
-    git fetch upstream
-    git rebase "upstream/$main_branch_name"
+    github-sync
   else
     git pull --rebase
   fi
@@ -882,11 +880,38 @@ gcs() (
   o "$commit_url"
 )
 
-# "gcu" is short for "git commit undo", which will undo the last commit locally (but not on the remote).
+# "gcu" is short for "git commit undo", which will undo the last commit locally (but not on the
+# remote).
 alias gcu="git reset HEAD~1 --soft"
 
 # "gd" is short for "git diff".
 alias gd="git diff"
+
+# This will sync a forked repositories main branch with the upstream. (This is a common operation
+# when working on GitHub.)
+github-sync() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository." >&2
+    return 1
+  fi
+
+  if ! git remote get-url upstream > /dev/null 2>&1; then
+    echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
+    return 1
+  fi
+
+  git fetch upstream
+
+  local local_head=$(git rev-parse HEAD)
+  local remote_head=$(git rev-parse "upstream/$main_branch_name")
+
+  if [[ "$local_head" != "$remote_head" ]]; then
+    git rebase "upstream/$main_branch_name"
+    git push origin "$main_branch_name" --force-with-lease
+  fi
+)
 
 # "gl" is short for "git log".
 alias gl="git log"
@@ -1141,8 +1166,7 @@ gswm() (
   fi
 
   if git remote get-url upstream > /dev/null 2>&1; then
-    git fetch upstream
-    git rebase "upstream/$main_branch_name"
+    github-sync
   else
     git pull --rebase
   fi
