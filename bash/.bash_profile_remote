@@ -378,7 +378,7 @@ gb() (
   fi
 
   if git remote get-url upstream > /dev/null 2>&1; then
-    github-sync
+    gh-sync
   else
     git pull --rebase
   fi
@@ -428,7 +428,7 @@ gb_() (
   fi
 
   if git remote get-url upstream > /dev/null 2>&1; then
-    github-sync
+    gh-sync
   else
     git pull --rebase
   fi
@@ -889,7 +889,7 @@ alias gd="git diff"
 
 # This will sync a forked repositories main branch with the upstream. (This is a common operation
 # when working on GitHub.)
-github-sync() (
+gh-sync() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
@@ -908,6 +908,12 @@ github-sync() (
     local main_branch_name="master"
   else
     echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    return 1
+  fi
+
+  local current_branch=$(git branch --show-current)
+  if [[ "$current_branch" != "$main_branch_name" ]]; then
+    echo "You can only sync the \"$main_branch_name\" branch. Right now, you currently on branch: $current_branch" >&2
     return 1
   fi
 
@@ -1175,7 +1181,7 @@ gswm() (
   fi
 
   if git remote get-url upstream > /dev/null 2>&1; then
-    github-sync
+    gh-sync
   else
     git pull --rebase
   fi
