@@ -902,6 +902,15 @@ github-sync() (
     return 1
   fi
 
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    return 1
+  fi
+
   git fetch upstream
 
   local local_head=$(git rev-parse HEAD)
