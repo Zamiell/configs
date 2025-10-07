@@ -377,7 +377,13 @@ gb() (
     git switch "$main_branch_name"
   fi
 
-  git pull --rebase
+  if git remote get-url upstream > /dev/null 2>&1; then
+    git fetch upstream
+    git rebase "upstream/$main_branch_name"
+  else
+    git pull --rebase
+  fi
+
   git switch --create "$new_branch_name"
   git push
 
@@ -422,7 +428,13 @@ gb_() (
     git switch "$main_branch_name"
   fi
 
-  git pull --rebase
+  if git remote get-url upstream > /dev/null 2>&1; then
+    git fetch upstream
+    git rebase "upstream/$main_branch_name"
+  else
+    git pull --rebase
+  fi
+
   git switch --create "$new_branch_name"
   git push
 
@@ -882,7 +894,7 @@ alias gl="git log"
 # "glg" is short for "git log --graph" with specific formatting.
 alias glg="git log --graph --pretty=format:'%C(yellow)%h%Creset %C(cyan)%d%Creset %C(white)%s%Creset %C(green)(%an)%Creset%n%w(0,8,8)%b%Creset' --all --decorate"
 
-# "gp" is short for "git pull".
+# "gp" is short for "git pull --rebase".
 alias gp="git pull --rebase"
 
 # "gpr" is short for "git pull request", to start a new pull request based on the current branch.
@@ -1128,7 +1140,13 @@ gswm() (
     git switch "$main_branch_name"
   fi
 
-  git pull --rebase
+  if git remote get-url upstream > /dev/null 2>&1; then
+    git fetch upstream
+    git rebase "upstream/$main_branch_name"
+  else
+    git pull --rebase
+  fi
+
   gbc --skip-fetch # git branch clean
   git stash list
 )
