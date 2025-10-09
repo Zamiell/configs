@@ -932,6 +932,47 @@ gh-sync() (
   fi
 )
 
+# This will delete local branches that have been merged via pull requests on GitHub.
+gh-cleanup() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository." >&2
+    return 1
+  fi
+
+  if ! command -v gh > /dev/null 2>&1; then
+    echo "Error: GitHub CLI (gh) is not installed or not in PATH." >&2
+    return 1
+  fi
+
+  if ! gh auth status > /dev/null 2>&1; then
+    echo "Error: Not authenticated with GitHub. Run 'gh auth login' first." >&2
+    return 1
+  fi
+
+  local merged_branches
+  merged_branches=$(gh pr list --author @me --state merged --json headRefName --jq ".[].headRefName" 2> /dev/null)
+
+  if [[ -z "$merged_branches" ]]; then
+    return
+  fi
+
+  while IFS= read -r branch; do
+    if [[ "$branch" == "main" ]] || [[ "$branch" == "master" ]]; then
+      continue
+    fi
+
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      if git branch -d "$branch" 2> /dev/null; then
+        echo "Deleted branch: $branch"
+      else
+        echo "Failed to delete branch: $branch"
+      fi
+    fi
+  done <<< "$merged_branches"
+)
+
 # "gl" is short for "git log".
 alias gl="git log"
 
