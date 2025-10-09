@@ -918,6 +918,7 @@ gh-sync() (
     return 1
   fi
 
+  git fetch origin
   git fetch upstream
 
   local local_head
