@@ -970,10 +970,14 @@ gh-cleanup() (
 
     if git show-ref --verify --quiet "refs/heads/$branch"; then
       if git branch -d "$branch" 2> /dev/null; then
-        echo "Deleted branch: $branch"
+        echo "Deleted local branch: $branch"
       else
-        echo "Failed to delete branch: $branch"
+        echo "Failed to delete local branch: $branch"
       fi
+    fi
+
+    if git push origin --delete "$branch" 2> /dev/null; then
+      echo "Deleted remote branch: $branch"
     fi
   done <<< "$merged_branches"
 )
