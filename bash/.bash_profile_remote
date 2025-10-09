@@ -911,7 +911,8 @@ gh-sync() (
     return 1
   fi
 
-  local current_branch=$(git branch --show-current)
+  local current_branch
+  current_branch=$(git branch --show-current)
   if [[ "$current_branch" != "$main_branch_name" ]]; then
     echo "You can only sync the \"$main_branch_name\" branch. Right now, you currently on branch: $current_branch" >&2
     return 1
@@ -919,8 +920,10 @@ gh-sync() (
 
   git fetch upstream
 
-  local local_head=$(git rev-parse HEAD)
-  local remote_head=$(git rev-parse "upstream/$main_branch_name")
+  local local_head
+  local_head=$(git rev-parse HEAD)
+  local remote_head
+  remote_head=$(git rev-parse "upstream/$main_branch_name")
 
   if [[ "$local_head" != "$remote_head" ]]; then
     git rebase "upstream/$main_branch_name"
