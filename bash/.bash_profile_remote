@@ -481,6 +481,11 @@ gbc() (
 
   git branch -vv | awk "/: gone]/{print \$1}" | xargs --no-run-if-empty git branch --delete --force
 
+  # Additionally, we want to delete branches from merged pull requests.
+  if git remote get-url upstream > /dev/null 2>&1; then
+    gh-cleanup
+  fi
+
   echo
   gbl
 )
