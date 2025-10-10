@@ -714,7 +714,7 @@ gbr_() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name is required. Usage: gbrr <branch-name>" >&2
+    echo "Error: Branch name is required. Usage: gbr_ <branch-name>" >&2
     return 1
   fi
   local new_branch_name="$1"
