@@ -109,6 +109,22 @@ fi
 # Miscellaneous Commands
 # ----------------------
 
+# "csf" is short for "bunx cspell-check-unused-words --fix".
+csf() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository." >&2
+    return 1
+  fi
+
+  bunx cspell-check-unused-words --fix
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    gc "chore: removing unused words from the CSpell configuration file"
+  fi
+)
+
 # Alias "explorer" to "open" on macOS and "xdg-open" on Linux.
 explorer() (
   set -euo pipefail # Exit on errors and undefined variables.
