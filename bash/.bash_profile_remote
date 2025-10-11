@@ -270,7 +270,7 @@ alias la="run_package_script lint-all"
 alias p="run_package_script publish"
 alias s="run_package_script start"
 alias t="run_package_script test"
-alias u="run_package_script update"
+alias u="run_package_script update || bunx complete-cli@latest update"
 
 alias cu="bunx cspell-check-unused-words --fix"
 
