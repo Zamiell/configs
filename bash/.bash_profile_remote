@@ -110,7 +110,7 @@ fi
 # ----------------------
 
 # It is annoying that Claude Code requires permission to edit files on every invocation.
-alias claude="claude --acceptEdits"
+alias claude="claude --permission-mode acceptEdits"
 
 # "csf" is short for "bunx cspell-check-unused-words --fix".
 csf() (
