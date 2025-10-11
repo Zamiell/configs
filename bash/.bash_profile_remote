@@ -109,6 +109,9 @@ fi
 # Miscellaneous Commands
 # ----------------------
 
+# It is annoying that Claude Code requires permission to edit files on every invocation.
+alias claude="claude --acceptEdits"
+
 # "csf" is short for "bunx cspell-check-unused-words --fix".
 csf() (
   set -euo pipefail # Exit on errors and undefined variables.
