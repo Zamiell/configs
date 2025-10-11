@@ -500,11 +500,6 @@ gbc() (
 
   git branch -vv | awk "/: gone]/{print \$1}" | xargs --no-run-if-empty git branch --delete --force
 
-  # Additionally, we want to delete branches from merged pull requests.
-  if git remote get-url upstream > /dev/null 2>&1; then
-    gh-cleanup
-  fi
-
   echo
   gbl
 )
@@ -703,8 +698,8 @@ gbr() (
 
   git switch --create "$new_branch_name"
   git push
-  git push origin ":$old_branch_name" # Delete the old branch on the remote.
-  git branch -D "$old_branch_name"    # Delete the old branch locally.
+  git push origin ":$old_branch_name"            # Delete the old branch on the remote.
+  git branch --delete --force "$old_branch_name" # Delete the old branch locally.
 )
 
 # "gbr_" is the same as "gbr", but it will omit the branch naming logic.
@@ -729,8 +724,8 @@ gbr_() (
 
   git switch --create "$new_branch_name"
   git push
-  git branch -D "$old_branch_name"    # Delete the old branch locally.
-  git push origin ":$old_branch_name" # Delete the old branch on the remote.
+  git branch --delete --force "$old_branch_name" # Delete the old branch locally.
+  git push origin ":$old_branch_name"            # Delete the old branch on the remote.
 )
 
 # "gbs" is short for "git branch squash", which squash all commits on the branch.
@@ -954,51 +949,6 @@ gh-sync() (
     git rebase "upstream/$main_branch_name"
     git push origin "$main_branch_name" --force-with-lease
   fi
-)
-
-# This will delete local branches that have been merged via pull requests on GitHub.
-gh-cleanup() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
-
-  if ! command -v gh > /dev/null 2>&1; then
-    echo "Error: GitHub CLI (gh) is not installed or not in PATH." >&2
-    return 1
-  fi
-
-  if ! gh auth status > /dev/null 2>&1; then
-    echo "Error: Not authenticated with GitHub. Run 'gh auth login' first." >&2
-    return 1
-  fi
-
-  local merged_branches
-  merged_branches=$(gh pr list --author @me --state merged --json headRefName --jq ".[].headRefName" 2> /dev/null)
-
-  if [[ -z "$merged_branches" ]]; then
-    return
-  fi
-
-  while IFS= read -r branch; do
-    if [[ "$branch" == "main" ]] || [[ "$branch" == "master" ]]; then
-      continue
-    fi
-
-    if git show-ref --verify --quiet "refs/heads/$branch"; then
-      if git branch -d "$branch" 2> /dev/null; then
-        echo "Deleted local branch: $branch"
-      else
-        echo "Failed to delete local branch: $branch"
-      fi
-    fi
-
-    if git push origin --delete "$branch" 2> /dev/null; then
-      echo "Deleted remote branch: $branch"
-    fi
-  done <<< "$merged_branches"
 )
 
 # "gl" is short for "git log".
