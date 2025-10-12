@@ -500,6 +500,11 @@ gbc() (
 
   git branch -vv | awk "/: gone]/{print \$1}" | xargs --no-run-if-empty git branch --delete --force
 
+  # Additionally, we want to delete branches from merged pull requests.
+  if git remote get-url upstream > /dev/null 2>&1; then
+    gh-clean
+  fi
+
   echo
   gbl
 )
@@ -520,10 +525,10 @@ gbd() (
 
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
-    local branches
-    branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
+    local local_branches
+    local_branches=$(git branch --format="%(refname:short)" | sort)
     local branch_name
-    branch_name=$(echo "$branches" | sed -n "${branch_number}p")
+    branch_name=$(echo "$local_branches" | sed --quiet "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist." >&2
@@ -568,10 +573,10 @@ gbdl() (
 
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
-    local branches
-    branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
+    local local_branches
+    local_branches=$(git branch --format="%(refname:short)" | sort)
     local branch_name
-    branch_name=$(echo "$branches" | sed -n "${branch_number}p")
+    branch_name=$(echo "$local_branches" | sed --quiet "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist." >&2
@@ -601,17 +606,17 @@ gbl() (
     return 1
   fi
 
-  local branches
-  branches=$(git --no-pager branch | sed 's/^[ *]*//')
+  local local_branches
+  local_branches=$(git branch --format="%(refname:short)" | sort)
   local current_branch
   current_branch=$(git branch --show-current)
 
   local GREEN_CODE='\033[32m'
   local RESET_CODE='\033[0m'
-  local count=1
 
   echo "Current git branches:"
 
+  local count=1
   while IFS= read -r branch; do
     if [[ "$branch" == "$current_branch" ]]; then
       echo -e "${GREEN_CODE}* ${count} - ${branch}${RESET_CODE}"
@@ -620,7 +625,7 @@ gbl() (
     fi
 
     ((count++))
-  done <<< "$branches"
+  done <<< "$local_branches"
 )
 
 # "gblr" is short for "git branch list remote".
@@ -635,24 +640,13 @@ gblr() (
   git fetch --prune --quiet
 
   local remote_branches
-  remote_branches=$(git --no-pager branch -r | grep -v '\->' | sed 's/^[ *]*//' | sed 's/^origin\///' | sort)
-
-  local current_branch
-  current_branch=$(git branch --show-current)
-
-  local GREEN_CODE='\033[32m'
-  local RESET_CODE='\033[0m'
-  local count=1
+  remote_branches=$(git branch --format="%(refname:short)" --remotes | grep --invert-match --line-regexp "origin" | grep --invert-match "^origin/" | sort)
 
   echo "Remote git branches:"
 
+  local count=1
   while IFS= read -r branch; do
-    if [[ "$branch" == "$current_branch" ]]; then
-      echo -e "${GREEN_CODE}* ${count} - ${branch}${RESET_CODE}"
-    else
-      echo "  ${count} - ${branch}"
-    fi
-
+    echo "  ${count} - ${branch}"
     ((count++))
   done <<< "$remote_branches"
 )
@@ -951,6 +945,76 @@ gh-sync() (
   fi
 )
 
+# This will delete local branches that have been merged via pull requests on GitHub.
+gh-clean() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository." >&2
+    return 1
+  fi
+
+  if ! git remote get-url upstream > /dev/null 2>&1; then
+    echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
+    return 1
+  fi
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    return 1
+  fi
+
+  local current_branch
+  current_branch=$(git branch --show-current)
+  if [[ "$current_branch" != "$main_branch_name" ]]; then
+    echo "You can only clean up branches up from the \"$main_branch_name\" branch. Right now, you currently on branch: $current_branch" >&2
+    return 1
+  fi
+
+  if ! command -v gh > /dev/null 2>&1; then
+    echo "Error: GitHub CLI (gh) is not installed or not in PATH." >&2
+    return 1
+  fi
+
+  if ! gh auth status > /dev/null 2>&1; then
+    echo "Error: Not authenticated with GitHub. Run 'gh auth login' first." >&2
+    return 1
+  fi
+
+  local my_merged_object_ids
+  my_merged_object_ids=$(gh pr list --author @me --state merged --json headRefOid --jq ".[].headRefOid")
+
+  if [[ -z "$my_merged_object_ids" ]]; then
+    return
+  fi
+
+  local local_branches
+  local_branches=$(git branch --format="%(refname:short)" | sort)
+
+  while IFS= read -r branch; do
+    if [[ "$branch" == "main" ]] || [[ "$branch" == "master" ]]; then
+      continue
+    fi
+
+    local branch_object_id
+    branch_object_id=$(git rev-parse "$branch")
+
+    if echo "$my_merged_object_ids" | grep --line-regexp --quiet "$branch_object_id"; then
+      echo "GitHub pull request branch has been merged on the upstream: $branch"
+
+      git branch --delete --force "$branch"
+      echo "Deleted local branch: $branch"
+      git push origin ":$branch"
+      echo "Deleted remote branch: $branch"
+    fi
+
+  done <<< "$local_branches"
+)
+
 # "gl" is short for "git log".
 alias gl="git log"
 
@@ -1158,10 +1222,10 @@ gsw() (
 
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
-    local branches
-    branches=$(git for-each-ref --format="%(refname:short)" refs/heads/ | sort)
+    local local_branches
+    local_branches=$(git branch --format="%(refname:short)" | sort)
     local branch_name
-    branch_name=$(echo "$branches" | sed -n "${branch_number}p")
+    branch_name=$(echo "$local_branches" | sed --quiet "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist." >&2
