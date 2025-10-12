@@ -996,7 +996,7 @@ gh-clean() (
   local_branches=$(git branch --format="%(refname:short)" | sort)
 
   while IFS= read -r branch; do
-    if [[ "$branch" == "main" ]] || [[ "$branch" == "master" ]]; then
+    if [[ "$branch" == "$main_branch_name" ]]; then
       continue
     fi
 
