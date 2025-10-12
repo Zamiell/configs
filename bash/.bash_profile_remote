@@ -981,7 +981,7 @@ gh-clean() (
   fi
 
   if ! gh auth status > /dev/null 2>&1; then
-    echo "Error: Not authenticated with GitHub. Run 'gh auth login' first." >&2
+    echo "Error: Not authenticated with GitHub. Run: gh auth login" >&2
     return 1
   fi
 
