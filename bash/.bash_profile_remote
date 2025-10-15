@@ -161,12 +161,12 @@ o() (
   local url="$1"
 
   if [[ "$url" == *"logixhealth"* ]] && command -v msedge &> /dev/null; then
-    msedge "$url" &> /dev/null & # Prevent the "Opening in existing browser session." text from appearing on Linux.
+    msedge "$url" &> /dev/null & disown # Prevent the "Opening in existing browser session." text from appearing on Linux.
     return 0
   fi
 
   if command -v chrome &> /dev/null; then
-    chrome "$url" &> /dev/null & # Prevent the "Opening in existing browser session." text from appearing on Linux.
+    chrome "$url" &> /dev/null & disown # Prevent the "Opening in existing browser session." text from appearing on Linux.
     return 0
   fi
 
