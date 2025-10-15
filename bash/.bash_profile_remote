@@ -161,19 +161,21 @@ o() (
   local url="$1"
 
   if [[ "$url" == *"logixhealth"* ]] && command -v msedge &> /dev/null; then
-    msedge "$url" &> /dev/null & disown # Prevent the "Opening in existing browser session." text from appearing on Linux.
+    msedge "$url"
     return 0
   fi
 
   if command -v chrome &> /dev/null; then
-    chrome "$url" &> /dev/null & disown # Prevent the "Opening in existing browser session." text from appearing on Linux.
+    chrome "$url"
     return 0
   fi
 
-  # macOS has the "open" command:
+  # macOS and Linux have the "open" command:
   # https://ss64.com/mac/open.html
   if command -v open &> /dev/null; then
-    open "$url"
+    # We remove the output to prevent the "Opening in existing browser session." text from appearing
+    # on Linux.
+    open "$url" > /dev/null
     return 0
   fi
 
