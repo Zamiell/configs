@@ -53,6 +53,7 @@
     "shellcheck",
     "tfstate",
     "toplevel",
+    "wmctrl",
     "Zamiell",
   ],
 }
