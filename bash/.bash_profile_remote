@@ -92,8 +92,14 @@ fi
 if ! command -v chrome &> /dev/null && [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
   export PATH="$PATH:/c/Program Files/Google/Chrome/Application"
 fi
+if ! command -v chrome &> /dev/null && command -v google-chrome &> /dev/null; then
+  alias chrome="google-chrome"
+fi
 if ! command -v msedge &> /dev/null && [[ -f "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ]]; then
   export PATH="$PATH:/c/Program Files (x86)/Microsoft/Edge/Application"
+fi
+if ! command -v msedge &> /dev/null && command -v microsoft-edge-stable &> /dev/null; then
+  alias msedge="microsoft-edge-stable"
 fi
 
 # Get the username is a platform-agnostic way.
