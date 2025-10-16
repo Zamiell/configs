@@ -1,6 +1,9 @@
 # This is the vanilla prompt settings in Git Bash for Windows.
 # From: https://github.com/git-for-windows/build-extra/blob/main/git-extra/git-prompt.sh
 
+# shellcheck shell=bash
+# cspell:disable
+
 PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]' # set window title
 PS1="$PS1"'\n'                         # new line
 PS1="$PS1"'\[\033[32m\]'               # change to green
@@ -15,7 +18,9 @@ if test -z "$WINELOADERNOEXEC"; then
   COMPLETION_PATH="${COMPLETION_PATH%/lib/git-core}"
   COMPLETION_PATH="$COMPLETION_PATH/share/git/completion"
   if test -f "$COMPLETION_PATH/git-prompt.sh"; then
+    # shellcheck source=/dev/null
     . "$COMPLETION_PATH/git-completion.bash"
+    # shellcheck source=/dev/null
     . "$COMPLETION_PATH/git-prompt.sh"
     PS1="$PS1"'\[\033[36m\]' # change color to cyan
     PS1="$PS1"'`__git_ps1`'  # bash function
