@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# -----------------------------
+# Bindings for existing hotkeys
+# -----------------------------
+
+# Flag + L --> Lock screen
+gsettings set org.cinnamon.desktop.keybindings.media-keys screensaver "['<Super>l']"
+
+# --------------
+# Custom hotkeys
+# --------------
+
 # Remove all existing hotkeys.
 dconf reset -f /org/cinnamon/desktop/keybindings/custom-keybindings/
 
