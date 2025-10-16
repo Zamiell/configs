@@ -87,6 +87,19 @@ if ! dpkg -s intune-portal &> /dev/null; then
   sudo apt install intune-portal -y
 fi
 
+# -----------
+# Install Bun
+# -----------
+
+if ! command -v unzip &> /dev/null; then
+  sudo apt update
+  sudo apt install unzip -y
+fi
+
+if ! command -v bun &> /dev/null; then
+  curl --silent --fail --show-error --location "https://bun.com/install" | bash
+fi
+
 # -----------------------------
 # Bindings for existing hotkeys
 # -----------------------------
