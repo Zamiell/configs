@@ -33,7 +33,10 @@ fi
 # Configure Linux
 # ---------------
 
-# TODO: Show hidden files
+# Show hidden files in Nemo (explorer).
+gsettings set org.nemo.preferences show-hidden-files true
+
+# TODO: Flag up to maximize
 
 # -----------------------------
 # Bindings for existing hotkeys
@@ -94,17 +97,17 @@ create_hotkey \
 create_hotkey \
   "Launch/Focus Microsoft Edge" \
   'bash -c "wmctrl -x -a Edge || msedge"' \
-  "['<Control>asciitilde']"
+  "['<Control>grave']"
 
 create_hotkey \
   "Launch/Focus Obsidian" \
   'bash -c "wmctrl -x -a obsidian || obsidian"' \
-  "['<Control><Shift>asciitilde']"
+  "['<Control><Shift>grave']"
 
 create_hotkey \
   "Launch/Focus Firefox" \
   'bash -c "wmctrl -x -a firefox || firefox"' \
-  "['<Control><Shift><Alt>asciitilde']"
+  "['<Control><Shift><Alt>grave']"
 
 # Activate the hotkeys.
 formatted_list=$(printf "'%s'," "${HOTKEY_LIST[@]}")
@@ -181,3 +184,10 @@ fi
 if ! command -v bun &> /dev/null; then
   curl --silent --fail --show-error --location "https://bun.com/install" | bash
 fi
+
+# ----------------
+# Install Obsidian
+# ----------------
+
+# curl --silent --fail --show-error --location "https://github.com/obsidianmd/obsidian-releases/releases/download/v1.9.14/Obsidian-1.9.14.AppImage" --remote-name
+# TODO
