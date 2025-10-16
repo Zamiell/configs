@@ -1351,6 +1351,39 @@ alias tp="terraform plan"
 # "tv" is short for "terraform validate".
 alias tv="terraform validate"
 
+# ------
+# Prompt
+# ------
+
+# Only change the prompt if the shell is interactive.
+if [[ $- == *i* ]]; then
+  if [ -f /etc/os-release ]; then
+    # shellcheck source=/dev/null
+    source /etc/os-release
+  fi
+
+  if [[ "$ID" == "linuxmint" ]]; then
+    # We copy the prompt from Git Bash for Windows:
+    # https://github.com/git-for-windows/build-extra/blob/main/git-extra/git-prompt.sh
+    PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]' # set window title
+    PS1="$PS1"'\n'                         # new line
+    PS1="$PS1"'\[\033[32m\]'               # change to green
+    PS1="$PS1"'\u@\h '                     # user@host<space>
+    # We don't need to show the system, so the next two lines are omitted.
+    PS1="$PS1"'\[\033[33m\]' # change to brownish yellow
+    PS1="$PS1"'\w'           # current working directory
+    GIT_EXEC_PATH="$(git --exec-path 2> /dev/null)"
+    COMPLETION_PATH="${GIT_EXEC_PATH%/libexec/git-core}"
+    COMPLETION_PATH="${COMPLETION_PATH%/lib/git-core}"
+    COMPLETION_PATH="$COMPLETION_PATH/share/git/completion"
+    PS1="$PS1"'\[\033[36m\]' # change color to cyan
+    PS1="$PS1"'`__git_ps1`'  # bash function
+    PS1="$PS1"'\[\033[0m\]'  # change color
+    PS1="$PS1"'\n'           # new line
+    PS1="$PS1"'$ '           # prompt: always $
+  fi
+fi
+
 # -------
 # Version
 # -------
