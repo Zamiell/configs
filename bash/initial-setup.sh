@@ -197,11 +197,12 @@ if [[ ! -d "/home/$HOME/Applications"]]; then
 fi
 
 if [[ ! -f "/home/$HOME/Applications/Obsidian.AppImage" ]]; then
+  LATEST_OBSIDIAN_VERSION=$(curl -s "https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest" | jq -r '.tag_name | sub("^v"; "")')
   curl \
     --silent \
     --fail \
     --show-error \
     --location \
     --output "/home/$HOME/Applications/Obsidian.AppImage" \
-    "https://github.com/obsidianmd/obsidian-releases/releases/download/v1.9.14/Obsidian-1.9.14.AppImage"
+    "https://github.com/obsidianmd/obsidian-releases/releases/download/v$LATEST_OBSIDIAN_VERSION/Obsidian-$LATEST_OBSIDIAN_VERSION.AppImage"
 fi
