@@ -24,6 +24,43 @@ is_github_repository() (
   fi
 )
 
+get_first_branch_commit_description() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    return 1
+  fi
+
+  if [[ "$branch_name" == "$main_branch_name" ]]; then
+    echo "Error: This function is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  local merge_base
+  merge_base=$(git merge-base "$main_branch_name" "$branch_name")
+  if [[ -z "$merge_base" ]]; then
+    echo "Error: Could not find a common ancestor with the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  local first_commit_hash
+  first_commit_hash=$(git rev-list --reverse "$merge_base..$branch_name" | head -n 1)
+  if [[ -z "$first_commit_hash" ]]; then
+    echo "Error: There are no commits on this branch when compared to the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  printf "%s" "$(git show -s --format="%B" "$first_commit_hash")"
+)
+
 get_num_github_repository_commits() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -762,6 +799,11 @@ gbs() (
 
   local merge_base
   merge_base=$(git merge-base "$main_branch_name" "$branch_name")
+  if [[ -z "$merge_base" ]]; then
+    echo "Error: Could not find a common ancestor with the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
   local num_branch_commits
   num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
 
