@@ -8,6 +8,7 @@ set -euo pipefail # Exit on errors and undefined variables.
 
 # Ensure OS compatibility.
 # (Otherwise, some of the installation URLs below will have to be changed.)
+# shellcheck source=/dev/null
 source /etc/os-release
 if [[ "$UBUNTU_CODENAME" != "noble" ]]; then
   echo "Error: This script is meant to be run on Linux Mint that is based on Ubuntu noble (24)." >&2
@@ -24,9 +25,11 @@ if ! command -v curl &> /dev/null; then
 fi
 
 if ! grep --quiet "# https://github.com/Zamiell/configs/blob/main/bash/.bash_profile" ~/.bashrc; then
-  echo >> ~/.bashrc
-  echo "# https://github.com/Zamiell/configs/blob/main/bash/.bash_profile" >> ~/.bashrc
-  curl --silent "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile" >> ~/.bashrc
+  {
+    echo
+    echo "# https://github.com/Zamiell/configs/blob/main/bash/.bash_profile"
+    curl --silent "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile"
+  } >> ~/.bashrc
 fi
 
 # ---------------
@@ -140,7 +143,7 @@ if [[ ! -d "$HOME/.mozilla" ]]; then
   echo "Error: The \".mozilla\" directory does not exist. Open Firefox at least one time and then run this script again." >&2
   exit
 fi
-FIREFOX_CERTIFICATE_DATABASE_PATH=$(find "$HOME/.mozilla/firefox/" -maxdepth 2 -name "cert9.db" -print -quit | xargs dirname 2> /dev/null)
+FIREFOX_CERTIFICATE_DATABASE_PATH=$(find "$HOME/.mozilla/firefox/" -maxdepth 2 -name "cert9.db" -print0 -quit | xargs --null dirname 2> /dev/null)
 if [[ -z "$FIREFOX_CERTIFICATE_DATABASE_PATH" ]]; then
   echo "Error: Failed to find the Firefox certificate store inside of the \".mozilla\" directory." >&2
   exit
