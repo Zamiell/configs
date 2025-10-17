@@ -160,7 +160,7 @@ certutil -d "sql:$FIREFOX_CERTIFICATE_DATABASE_PATH" -L -n "$LOGIXHEALTH_CERT_NA
 # From:
 # https://github.com/MicrosoftDocs/memdocs/blob/main/intune/intune-service/user-help/microsoft-intune-app-linux.md
 
-if [ ! -f "/usr/share/keyrings/microsoft.gpg" ]; then
+if [[ ! -f "/usr/share/keyrings/microsoft.gpg" ]]; then
   curl --silent "https://packages.microsoft.com/keys/microsoft.asc" | gpg --dearmor > microsoft.gpg
   sudo install -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/
   rm microsoft.gpg
@@ -192,11 +192,9 @@ fi
 # Install Obsidian
 # ----------------
 
-if [[ ! -d "/home/$HOME/Applications"]]; then
-  mkdir "/home/$HOME/Applications"
-fi
-
 if [[ ! -f "/home/$HOME/Applications/Obsidian.AppImage" ]]; then
+  mkdir -p "/home/$HOME/Applications"
+
   LATEST_OBSIDIAN_VERSION=$(curl -s "https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest" | jq -r '.tag_name | sub("^v"; "")')
   curl \
     --silent \
