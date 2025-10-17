@@ -218,6 +218,21 @@ if [[ -n "$REPOSITORIES_DIRECTORY" ]]; then
   fi
 fi
 
+# Establishes a connection to the LogixHealth VPN in the background. (This is intended to be used on
+# Linux devices.)
+vpn() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  MICROSOFT_EDGE_PATH="/opt/microsoft/msedge/msedge"
+  if [[ ! -f "$MICROSOFT_EDGE_PATH" ]]; then
+    echo "Error: Microsoft Edge must be installed at: $MICROSOFT_EDGE_PATH" >&2
+    return 1
+  fi
+
+  sudo killall gpclient
+  sudo nohup gpclient connect lhvpn.logixhealth.com --browser "$MICROSOFT_EDGE_PATH" &
+)
+
 # ----------------
 # kubectl Commands
 # ----------------
