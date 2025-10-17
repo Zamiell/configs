@@ -37,5 +37,5 @@ pnpm-lock.yaml linguist-generated=true
 bun.lock linguist-generated=true
 
 # @template-customization-start
-.bash_profile_remote linguist-language=Shell
+bash/.bash_profile_remote linguist-language=Shell
 # @template-customization-end
