@@ -796,6 +796,15 @@ gc() (
     return 1
   fi
 
+  if is_github_repository; then
+    local user_email
+    user_email=$(git config user.email)
+    if [[ "$user_email" == *@logixhealth.com ]]; then
+      echo "Error: You are trying to commit to a GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
+      return 1
+    fi
+  fi
+
   if [[ $# -eq 0 ]]; then
     local commit_message="update"
   else
