@@ -192,5 +192,16 @@ fi
 # Install Obsidian
 # ----------------
 
-# curl --silent --fail --show-error --location "https://github.com/obsidianmd/obsidian-releases/releases/download/v1.9.14/Obsidian-1.9.14.AppImage" --remote-name
-# TODO
+if [[ ! -d "/home/$HOME/Applications"]]; then
+  mkdir "/home/$HOME/Applications"
+fi
+
+if [[ ! -f "/home/$HOME/Applications/Obsidian.AppImage" ]]; then
+  curl \
+    --silent \
+    --fail \
+    --show-error \
+    --location \
+    --output "/home/$HOME/Applications/Obsidian.AppImage" \
+    "https://github.com/obsidianmd/obsidian-releases/releases/download/v1.9.14/Obsidian-1.9.14.AppImage"
+fi
