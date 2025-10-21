@@ -1411,7 +1411,7 @@ if [[ $- == *i* ]]; then
     source /etc/os-release
   fi
 
-  if [[ "$ID" == "linuxmint" ]]; then
+  if [[ "$(uname)" == "Darwin" ]] || [[ "$ID" == "linuxmint" ]]; then
     # We copy the prompt from Git Bash for Windows:
     # https://github.com/git-for-windows/build-extra/blob/main/git-extra/git-prompt.sh
     PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]' # set window title
