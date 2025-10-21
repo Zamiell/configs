@@ -555,7 +555,7 @@ gbd() (
     local local_branches
     local_branches=$(git branch --format="%(refname:short)" | sort)
     local branch_name
-    branch_name=$(echo "$local_branches" | sed --quiet "${branch_number}p")
+    branch_name=$(echo "$local_branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist." >&2
@@ -603,7 +603,7 @@ gbdl() (
     local local_branches
     local_branches=$(git branch --format="%(refname:short)" | sort)
     local branch_name
-    branch_name=$(echo "$local_branches" | sed --quiet "${branch_number}p")
+    branch_name=$(echo "$local_branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist." >&2
@@ -1266,7 +1266,7 @@ gsw() (
     local local_branches
     local_branches=$(git branch --format="%(refname:short)" | sort)
     local branch_name
-    branch_name=$(echo "$local_branches" | sed --quiet "${branch_number}p")
+    branch_name=$(echo "$local_branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
       echo "Error: Branch number $branch_number does not exist." >&2
