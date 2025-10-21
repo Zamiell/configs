@@ -1,5 +1,9 @@
 # shellcheck shell=bash
 
+# Compatibility notes:
+# - `mkdir` does not support `--parents` on macOS.
+# - `sed` does not support `--quiet` on macOS.
+
 # ----------------
 # Helper functions
 # ----------------
