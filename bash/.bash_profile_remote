@@ -1396,6 +1396,16 @@ alias tv="terraform validate"
 
 # Only change the prompt if the shell is interactive.
 if [[ $- == *i* ]]; then
+  if [[ "$(type -t __git_ps1 2> /dev/null)" == "function" ]]; then
+    if [[ -f "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh" ]]; then
+      # shellcheck source=/dev/null
+      source "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh"
+    else
+      echo "Error: Cannot find the \"__git_ps1\" function declared." >&2
+      exit
+    fi
+  fi
+
   if [ -f /etc/os-release ]; then
     # shellcheck source=/dev/null
     source /etc/os-release
