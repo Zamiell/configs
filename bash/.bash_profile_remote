@@ -810,6 +810,16 @@ gc() (
     return 1
   fi
 
+  if [[ -z "$(git config user.name)" ]]; then
+    echo "Error: Git user name not set. Run: git config --global user.name \"Your Name\"" >&2
+    return 1
+  fi
+
+  if [[ -z "$(git config user.email)" ]]; then
+    echo "Error: Git user email not set. Run: git config --global user.email you@example.com" >&2
+    return 1
+  fi
+
   local branch_name
   branch_name=$(git branch --show-current)
   local remote_branch_info
