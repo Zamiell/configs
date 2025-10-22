@@ -192,8 +192,8 @@ fi
 # Install Obsidian
 # ----------------
 
-if [[ ! -f "/home/$HOME/Applications/Obsidian.AppImage" ]]; then
-  mkdir -p "/home/$HOME/Applications"
+if [[ ! -f "$HOME/Applications/Obsidian.AppImage" ]]; then
+  mkdir -p "$HOME/Applications"
 
   LATEST_OBSIDIAN_VERSION=$(curl -s "https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest" | jq -r '.tag_name | sub("^v"; "")')
   curl \
