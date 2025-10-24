@@ -1240,7 +1240,7 @@ gpr() (
     repository_name=$(git rev-parse --show-toplevel | xargs basename)
     local branch_name
     branch_name=$(git branch --show-current)
-    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/pullrequestcreate?sourceRef=$branch_name&title=foo&description=bar"
+    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/pullrequestcreate?sourceRef=$branch_name"
     o "$pr_url"
   fi
 )
