@@ -19,13 +19,57 @@ is_git_bash() (
 is_github_repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
+  # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
   local remote_url
-  remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+  remote_url=$(git remote get-url origin)
+
   if echo "$remote_url" | grep -q "github.com"; then
     return 0 # True
   else
     return 1 # False
   fi
+)
+
+get_first_branch_commit_description() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository." >&2
+    return 1
+  fi
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    return 1
+  fi
+
+  if [[ "$branch_name" == "$main_branch_name" ]]; then
+    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  local merge_base
+  merge_base=$(git merge-base "$main_branch_name" "$branch_name")
+  if [[ -z "$merge_base" ]]; then
+    echo "Error: Could not find a common ancestor with the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  local first_commit_hash
+  first_commit_hash=$(git rev-list --reverse "$merge_base..$branch_name" | head -n 1)
+  if [[ -z "$first_commit_hash" ]]; then
+    echo "Error: There are no commits on this branch when compared to the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  printf "%s" "$(git show --no-patch --format="%B" "$first_commit_hash")"
 )
 
 # This will return a descriptive commit message based on the currently staged files.
@@ -54,9 +98,10 @@ get_llm_commit_message() (
   get_llm_output "$git_diff" "commit message"
 )
 
-# This will return a descriptive pull request message based on differences between the current
-# branch and the main branch.
-get_llm_pull_request_message() (
+# This will return a pull request description based on differences between the current branch and
+# the main branch. (Similar to a commit message, the title will be on the first line and the
+# description will be on the second line, if any.)
+get_llm_pull_request_text() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
@@ -69,7 +114,7 @@ get_llm_pull_request_message() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -77,7 +122,7 @@ get_llm_pull_request_message() (
   branch_name=$(git branch --show-current)
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
-    echo "Error: This function is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
+    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
     return 1
   fi
 
@@ -133,12 +178,17 @@ get_llm_output() (
       }
      }')
 
+  # We have to use the "--ssl-no-revoke" flag with Google URLs when using curl inside Git Bash for
+  # Windows, since the LogixHealth Palo Alto blocks the revocation check for some reason.
   local api_response
   api_response=$(curl \
     --silent \
+    --fail \
+    --show-error \
     --request POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
     --header "content-type: application/json" \
-    --data "$json_payload")
+    --data "$json_payload" \
+    --ssl-no-revoke)
 
   if ! echo "$api_response" | jq --exit-status '.candidates' > /dev/null; then
     echo "Error: The LLM API returned an error:" >&2
@@ -173,9 +223,14 @@ get_num_github_repository_commits() (
   local repository_name="$2"
 
   local response
-  response=$(curl -s -I "https://api.github.com/repos/$repository_owner/$repository_name/commits?per_page=1")
+  response=$(curl \
+    --silent \
+    --fail \
+    --show-error \
+    --head \
+    "https://api.github.com/repos/$repository_owner/$repository_name/commits?per_page=1")
 
-  if echo "$response" | grep --quiet "404 Not Found"; then
+  if echo "$response" | grep --quiet "404"; then
     echo "Error: Repository \"$repository_owner/$repository_name\" was not found." >&2
     return 1
   fi
@@ -548,7 +603,7 @@ gb() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -598,7 +653,7 @@ gb_() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -646,7 +701,7 @@ gbc() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -896,7 +951,7 @@ gbs() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -904,7 +959,7 @@ gbs() (
   branch_name=$(git branch --show-current)
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
-    echo "Error: This function is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
+    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
     return 1
   fi
 
@@ -1042,23 +1097,30 @@ gcs() (
     return 1
   fi
 
+  # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
   local commit_sha1
-  commit_sha1=$(git rev-parse HEAD) # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
+  commit_sha1=$(git rev-parse HEAD)
+
+  # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
   local remote_url
-  remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+  remote_url=$(git remote get-url origin)
+
+  # Remove the trailing ".git" (if present) and then match after the final forward slash.
+  local repository_name
+  repository_name=$(
+    local tmp="${remote_url%.git}"
+    echo "${tmp##*/}"
+  )
+
   if echo "$remote_url" | grep -q "github.com"; then
     if [[ "$remote_url" == git@* ]]; then
       # SSH URL format: git@github.com:alice/my-repo.git
       local repository_owner
       repository_owner=$(echo "$remote_url" | sed -E 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
-      local repository_name
-      repository_name=$(echo "$remote_url" | sed -E 's/git@github\.com:[^\/]+\/(.*)\.git/\1/')
     else
       # HTTPS URL format: https://github.com/alice/my-repo.git
       local repository_owner
       repository_owner=$(echo "$remote_url" | sed -E 's|https://github\.com/([^/]+)/.*\.git|\1|')
-      local repository_name
-      repository_name=$(echo "$remote_url" | sed -E 's|https://github\.com/[^/]+/(.*)\.git|\1|')
     fi
     local commit_url="https://github.com/$repository_owner/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep -q "dev.azure.com"; then
@@ -1066,16 +1128,12 @@ gcs() (
     organization_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
     local project_name
     project_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
-    local repository_name
-    repository_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/[^/]+/||')
     local commit_url="https://dev.azure.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep -q "azuredevops.logixhealth.com"; then
     local organization_name
     organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
     local project_name
     project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
-    local repository_name
-    repository_name=$(git rev-parse --show-toplevel | xargs basename)
     local commit_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep -q "dev.azure.com"; then
     local commit_url="https://dev.azure.com/logixhealth/Main/_git/$repository_name/commit/$commit_sha1"
@@ -1114,7 +1172,7 @@ gh-sync() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -1158,7 +1216,7 @@ gh-clean() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -1227,22 +1285,131 @@ gpr() (
     return 1
   fi
 
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
+    return 1
+  fi
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  if [[ "$branch_name" == "$main_branch_name" ]]; then
+    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
   if is_github_repository; then
     gh pr create --fill-first --web
-  else
-    local remote_url
-    remote_url=$(git config --get remote.origin.url) # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
-    local organization_name
-    organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
-    local project_name
-    project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
-    local repository_name
-    repository_name=$(git rev-parse --show-toplevel | xargs basename)
-    local branch_name
-    branch_name=$(git branch --show-current)
-    local pr_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/pullrequestcreate?sourceRef=$branch_name"
-    o "$pr_url"
+    return
   fi
+
+  if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN:-}" ]]; then
+    echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN\" environment variable is not set. (This is required to automatically open pull requests to Azure DevOps.)" >&2
+    return 1
+  fi
+
+  if ! command -v jq &> /dev/null; then
+    echo "Error: jq is required to automatically open pull requests to Azure DevOps. If you are on Windows, you can install it with: winget install --exact --id jqlang.jq" >&2
+    return 1
+  fi
+
+  local domain="azuredevops.logixhealth.com"
+  local api_version="7.0"
+
+  # e.g. "ssh://azuredevops.logixhealth.com:22/someOrganization/someProject/_git/someRepository"
+  # or "https://azuredevops.logixhealth.com/someOrganization/someProject/_git/someRepository"
+  local remote_url
+  remote_url=$(git remote get-url origin)
+
+  local organization_name
+  organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
+
+  local project_name
+  project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
+
+  # Remove the trailing ".git" (if present) and then match after the final forward slash.
+  local repository_name
+  repository_name=$(
+    local tmp="${remote_url%.git}"
+    echo "${tmp##*/}"
+  )
+
+  # First, check for an existing pull request.
+  local azdo_project_url="https://$domain/$organization_name/$project_name"
+  local azdo_api_url="$azdo_project_url/_apis/git/repositories/$repository_name/pullrequests?api-version=$api_version"
+  local azdo_api_url_check="$azdo_api_url&searchCriteria.sourceRefName=refs/heads/$branch_name&searchCriteria.status=active"
+
+  local api_response_check
+  api_response_check=$(curl \
+    --silent \
+    --fail \
+    --show-error \
+    --user ":$AZDO_PERSONAL_ACCESS_TOKEN" \
+    "$azdo_api_url_check")
+
+  local pull_request_count
+  pull_request_count=$(echo "$api_response_check" | jq -r '.count')
+
+  local azdo_pull_request_url_prefix="$azdo_project_url/_git/$repository_name/pullrequest"
+
+  if [[ "$pull_request_count" != "0" ]]; then
+    local existing_pull_request_id
+    existing_pull_request_id=$(echo "$api_response_check" | jq -r '.value[0].pullRequestId')
+
+    local existing_pull_request_url="$azdo_pull_request_url_prefix/$existing_pull_request_id"
+    o "$existing_pull_request_url"
+
+    echo "Pull request already exists: $existing_pull_request_url"
+    return
+  fi
+
+  # Second, use the Azure DevOps API to open a new pull request.
+  local pull_request_title
+  local pull_request_description
+
+  if [[ -z "${GEMINI_API_KEY:-}" ]]; then
+    # If the user does not have an API key, use a generic pull request title and description.
+    pull_request_title=$(get_first_branch_commit_description)
+    pull_request_description="n/a"
+  else
+    local pull_request_text
+    pull_request_text=$(get_llm_pull_request_text)
+    pull_request_title=$(echo "$pull_request_text" | head -n 1)
+    pull_request_description=$(echo "$pull_request_text" | tail -n +2)
+  fi
+
+  local json_payload
+  json_payload=$(jq -n \
+    --arg source "refs/heads/$branch_name" \
+    --arg target "refs/heads/$main_branch_name" \
+    --arg title "$pull_request_title" \
+    --arg desc "$pull_request_description" \
+    '{sourceRefName: $source, targetRefName: $target, title: $title, description: $desc}')
+
+  local response_body
+  response_body=$(mktemp)
+  trap 'rm -f "$response_body"' EXIT
+
+  curl \
+    --silent \
+    --fail \
+    --show-error \
+    --output "$response_body" \
+    --user ":$AZDO_PERSONAL_ACCESS_TOKEN" \
+    --header "Content-Type: application/json" \
+    --data "$json_payload" \
+    "$azdo_api_url"
+
+  # Finally, open the new pull request in a browser so that the user can confirm that everything
+  # looks okay.
+  local pull_request_id
+  pull_request_id=$(jq -r '.pullRequestId' "$response_body")
+  local pull_request_url="$azdo_pull_request_url_prefix/$pull_request_id"
+  o "$pull_request_url"
 )
 
 # "grb" is short for "git rebase".
@@ -1278,7 +1445,7 @@ grbm() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -1405,7 +1572,7 @@ gsw() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 
@@ -1449,7 +1616,7 @@ gswm() (
   elif git show-ref --verify --quiet refs/heads/master; then
     local main_branch_name="master"
   else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
     return 1
   fi
 

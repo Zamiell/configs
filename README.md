@@ -9,5 +9,5 @@ Currently, the configs have [LogixHealth](https://www.logixhealth.com)-specific 
 For example, if you want to load the config from your ".bash_profile" file:
 
 ```sh
-curl https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile --silent >> ~/.bash_profile
+curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.bash_profile
 ```
