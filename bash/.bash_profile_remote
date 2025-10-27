@@ -333,7 +333,7 @@ ai() (
   fi
   local prompt="$*"
 
-  local system_prompt="You are an expert full-stack systems engineer. You will be given an English description of a Linux/Bash command. Your response must be a Linux/Bash command that matches the description, to the best of your ability. Only include the command, as it will be copy-pasted by the user. Do not include any preamble, explanation, or markdown."
+  local system_prompt="You are an expert full-stack systems engineer. You will be given an English description of a Linux/Bash command. Your response must be a Linux/Bash command that matches the description, to the best of your ability. Only include the command, as it will be copy-pasted by the user. Do not include any preamble, explanation, or markdown. If the command includes flags, always include the long-form version of the flag, if available."
 
   get_llm_output "$system_prompt" "$prompt"
 )
