@@ -267,6 +267,21 @@ get_num_github_repository_commits() (
   fi
 )
 
+# -------
+# Version
+# -------
+
+BASH_PROFILE_VERSION=$(get_num_github_repository_commits Zamiell configs)
+export BASH_PROFILE_VERSION
+version() (
+  echo "Remote Bash profile version: $BASH_PROFILE_VERSION"
+)
+
+# Only print the version if the shell is interactive.
+if [[ $- == *i* ]]; then
+  version
+fi
+
 # ---------------------
 # Environment Variables
 # ---------------------
@@ -339,9 +354,10 @@ ai() (
 )
 
 # Automatically list the contents of a directory after changing to it.
-cd() (
+# (We have to use braces instead of parenthesis here.)
+cd() {
   builtin cd "$@" && ll
-)
+}
 
 # It is annoying that Claude Code requires permission to edit files on every invocation.
 alias claude="claude --permission-mode acceptEdits"
@@ -438,11 +454,11 @@ elif [[ -d "/d/Repositories" ]]; then # Windows D drive
   REPOSITORIES_DIRECTORY="/d/Repositories"
 fi
 if [[ -n "$REPOSITORIES_DIRECTORY" ]]; then
-  alias r='cd $REPOSITORIES_DIRECTORY'
+  alias r='builtin cd $REPOSITORIES_DIRECTORY'
 
   # Only automatically change directories if the shell is interactive.
   if [[ $- == *i* ]]; then
-    cd "$REPOSITORIES_DIRECTORY"
+    builtin cd "$REPOSITORIES_DIRECTORY"
   fi
 fi
 
@@ -1791,19 +1807,4 @@ if [[ $- == *i* ]]; then
     PS1="$PS1"'\n'           # new line
     PS1="$PS1"'$ '           # prompt: always $
   fi
-fi
-
-# -------
-# Version
-# -------
-
-BASH_PROFILE_VERSION=$(get_num_github_repository_commits Zamiell configs)
-export BASH_PROFILE_VERSION
-version() (
-  echo "Remote Bash profile version: $BASH_PROFILE_VERSION"
-)
-
-# Only print the version if the shell is interactive.
-if [[ $- == *i* ]]; then
-  version
 fi
