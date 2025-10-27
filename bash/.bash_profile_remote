@@ -338,6 +338,11 @@ ai() (
   get_llm_output "$system_prompt" "$prompt"
 )
 
+# Automatically list the contents of a directory after changing to it.
+cd() (
+  builtin cd "$@" && ll
+)
+
 # It is annoying that Claude Code requires permission to edit files on every invocation.
 alias claude="claude --permission-mode acceptEdits"
 
