@@ -10,5 +10,5 @@ cd "$DIR"
 
 bunx prettier --log-level=warn --check .
 shellcheck ./*.sh ./bash/.bash_profile_remote
-cspell --no-progress --no-summary
-cspell-check-unused-words
+bunx cspell --no-progress --no-summary
+bunx cspell-check-unused-words
