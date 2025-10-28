@@ -356,7 +356,9 @@ ai() (
 # Automatically list the contents of a directory after changing to it.
 # (We have to use braces instead of parenthesis here.)
 cd() {
-  builtin cd "$@" && ll
+  # We use the same flags as the "ll" alias.
+  # (We do not use the alias directly for compatibility reasons.)
+  builtin cd "$@" && ls -a -h -l -F
 }
 
 # It is annoying that Claude Code requires permission to edit files on every invocation.
@@ -395,7 +397,11 @@ explorer() (
 )
 
 # A better "ll" alias that shows human-readable file sizes.
-alias ll="ls -alFh"
+# (macOS does not support any of the long-form flags, so we use the short ones instead.)
+# - "-a" is short for "--all", which shows hidden files.
+# - "-h" is short for "--human-readable", which converts bytes to kilobytes and so on.
+# - "-F" is short for "--classify", which displays extra characters to signify the file type.
+alias ll="ls -a -h -l -F"
 
 # "n" is short for "nuke".
 alias n="npx complete-cli@latest nuke"
