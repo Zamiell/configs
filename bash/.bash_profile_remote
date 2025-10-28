@@ -186,10 +186,16 @@ get_llm_output() (
   fi
   local prompt="$2"
 
-  # If we use a "--arg" for the prompt, it can cause an "Argument list too long" error. To work
-  # around this, we instead, pipe the prompt directly into jq's stdin. (The "." refers to stdin.)
-  local json_payload
-  json_payload=$(printf "%s" "$prompt" | jq \
+  # Because there can be a huge amount of data in the git diff, we need to create the API response
+  # all in one command. Otherwise, we get errors like "Argument list too long".
+  # 1. printf pipes the prompt into jq.
+  # 2. jq pipes the JSON payload into curl.
+  # 3. curl reads from stdin using "--data @-".
+  # Additionally, we have to use the "--ssl-no-revoke" flag with Google URLs when using curl inside
+  # Git Bash for Windows, since the LogixHealth Palo Alto blocks the revocation check for some
+  # reason.
+  local api_response
+  api_response=$(printf "%s" "$prompt" | jq \
     --raw-input \
     --slurp \
     --arg system_prompt_str "$system_prompt" \
@@ -200,18 +206,13 @@ get_llm_output() (
       "contents": [
         { "parts": [{ "text": . }] }
       ]
-     }')
-
-  # We have to use the "--ssl-no-revoke" flag with Google URLs when using curl inside Git Bash for
-  # Windows, since the LogixHealth Palo Alto blocks the revocation check for some reason.
-  local api_response
-  api_response=$(curl \
+     }' | curl \
     --silent \
     --fail \
     --show-error \
     --request POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
     --header "content-type: application/json" \
-    --data "$json_payload" \
+    --data @- \
     --ssl-no-revoke)
 
   if ! echo "$api_response" | jq --exit-status '.candidates' > /dev/null; then
