@@ -186,16 +186,19 @@ get_llm_output() (
   fi
   local prompt="$2"
 
+  # If we use a "--arg" for the prompt, it can cause an "Argument list too long" error. To work
+  # around this, we instead, pipe the prompt directly into jq's stdin. (The "." refers to stdin.)
   local json_payload
-  json_payload=$(jq --null-input \
+  json_payload=$(printf "%s" "$prompt" | jq \
+    --raw-input \
+    --slurp \
     --arg system_prompt_str "$system_prompt" \
-    --arg prompt_str "$prompt" \
     '{
       "systemInstruction": {
         "parts": [{ "text": $system_prompt_str }]
       },
       "contents": [
-        { "parts": [{ "text": $prompt_str }] }
+        { "parts": [{ "text": . }] }
       ]
      }')
 
