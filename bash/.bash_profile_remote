@@ -1116,10 +1116,18 @@ gc() (
   gcs
 )
 
-# "gca" is similar to "gc", but it will amend the previous commit and add all unstaged files. Use
-# this sparingly, since it will force push.
+# "gca" is short for "git commit amend". This is similar to "gc", but it will amend the previous
+# commit and add all unstaged files. Use this sparingly, since it will force push. By default, it
+# will use the previous commit message, but you can use "gca edit" (or "gcam") to edit the commit
+# message before pushing.
 gca() (
   set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ "${1:-}" == "edit" ]]; then
+    local edit="true"
+  else
+    local edit="false"
+  fi
 
   if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
     echo "Error: Not inside a Git repository." >&2
@@ -1149,12 +1157,25 @@ gca() (
   fi
 
   git add --all
-  # "--amend" amends the previous commit instead of making a new commit.
-  # "--no-edit" avoids prompting for a commit message and uses the default commit message.
-  git commit --amend --no-edit
+  if [[ "$edit" == "true" ]]; then
+    # "--amend" amends the previous commit instead of making a new commit.
+    git commit --amend
+  else
+    # "--amend" amends the previous commit instead of making a new commit.
+    # "--no-edit" avoids prompting for a commit message and uses the default commit message.
+    git commit --amend --no-edit
+  fi
   git push --force
 
   gcs
+)
+
+# "gcam" is short for "git commit amend message". This is similar to "gca", but it will also allow
+# you to change the commit message.
+gcam() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  gca edit
 )
 
 # "gcs" is short for "git commit show", which will open a browser to view the last commit.
