@@ -664,6 +664,7 @@ gb() (
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
+    echo "The repository is not clean. Stashing all of your existing changes."
     git stash push --message "Auto-stash before creating a new git branch"
   fi
 
@@ -690,6 +691,7 @@ gb() (
   git push
 
   if [[ $(git stash list | wc -l) -gt 0 ]]; then
+    echo "A previous git stash exists. Applying it to this new branch."
     git stash pop
   fi
 
@@ -714,6 +716,7 @@ gb_() (
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
+    echo "The repository is not clean. Stashing all of your existing changes."
     git stash push --message "Auto-stash before creating a new git branch"
   fi
 
@@ -740,6 +743,7 @@ gb_() (
   git push
 
   if [[ $(git stash list | wc -l) -gt 0 ]]; then
+    echo "A previous git stash exists. Applying it to this new branch."
     git stash pop
   fi
 
@@ -1711,6 +1715,7 @@ gswm() (
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
+    echo "The repository is not clean. Stashing all of your existing changes."
     git stash push --message "Auto-stash before switching to $main_branch_name"
   fi
 
