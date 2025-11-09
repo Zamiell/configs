@@ -1079,12 +1079,17 @@ gc() (
 
   local branch_name
   branch_name=$(git branch --show-current)
-  local remote_branch_info
-  remote_branch_info=$(git ls-remote --heads origin "$branch_name")
 
-  if [[ -z "$remote_branch_info" ]]; then
-    echo "Error: The remote branch of \"$branch_name\" does not yet exist." >&2
-    return 1
+  # Only check for the remote branch existing if there are one or more commits. (For brand-new
+  # repositories, the remote branch will not yet exist.)
+  if git rev-parse --verify HEAD > /dev/null 2>&1; then
+    local remote_branch_info
+    remote_branch_info=$(git ls-remote --heads origin "$branch_name")
+
+    if [[ -z "$remote_branch_info" ]]; then
+      echo "Error: The remote branch of \"$branch_name\" does not yet exist." >&2
+      return 1
+    fi
   fi
 
   if is_github_repository; then
@@ -1140,12 +1145,17 @@ gca() (
 
   local branch_name
   branch_name=$(git branch --show-current)
-  local remote_branch_info
-  remote_branch_info=$(git ls-remote --heads origin "$branch_name")
 
-  if [[ -z "$remote_branch_info" ]]; then
-    echo "Error: The remote branch of \"$branch_name\" does not yet exist." >&2
-    return 1
+  # Only check for the remote branch existing if there are one or more commits. (For brand-new
+  # repositories, the remote branch will not yet exist.)
+  if git rev-parse --verify HEAD > /dev/null 2>&1; then
+    local remote_branch_info
+    remote_branch_info=$(git ls-remote --heads origin "$branch_name")
+
+    if [[ -z "$remote_branch_info" ]]; then
+      echo "Error: The remote branch of \"$branch_name\" does not yet exist." >&2
+      return 1
+    fi
   fi
 
   # Validate that we are at the remote tip so that we do not accidentally blow away commits.
