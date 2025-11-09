@@ -163,7 +163,7 @@ get_llm_output_git_diff() (
     return 1
   fi
 
-  local system_prompt="You are an expert git commit message generator. You will be given a git diff. Your response must be only the commit message. Be concise and descriptive. The commit message is allowed to be more than one line, but only if the changes are complicated. Follow the 50/72 rule. Follow conventional commit standards (e.g. \"feat: add new feature\", \"fix: correct bug\", \"chore: update build\"). Pay particular attention to removed lines, since if a block of code is moved from one place to another, the commit message should not say \"added\", it should say \"moved\". Do not include any preamble, explanation, or markdown."
+  local system_prompt="You are an expert git commit message generator. You will be given a git diff. Your response must be only the commit message; do not include any preamble, explanation, or markdown. Be concise and descriptive. The commit message is allowed to be more than one line, but only if the changes are complicated. Follow the 50/72 rule. Follow conventional commit standards (e.g. \"feat: add new feature\", \"fix: correct bug\", \"chore: update build\"). Pay particular attention to removed lines, since if a block of code is moved from one place to another, the commit message should not say \"add\", it should say \"move\". If the file being modified is in the \"3_Applications/kubernetes\" directory, then add a commit message scope like \"feat(kubernetes): add foo variable\". Additionally, the \"3_Applications/containers/logix-ci-cd-tasks\" directory should be scoped to \"logix-ci-cd-tasks\" in the same way that the \"kubernetes\" directory is."
 
   local llm_output
   llm_output=$(get_llm_output "$system_prompt" "$git_diff")
