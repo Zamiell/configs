@@ -1077,26 +1077,29 @@ gc() (
     return 1
   fi
 
-  local branch_name
-  branch_name=$(git branch --show-current)
-
-  # Only check for the remote branch existing if there are one or more commits. (For brand-new
-  # repositories, the remote branch will not yet exist.)
-  if git rev-parse --verify HEAD > /dev/null 2>&1; then
-    local remote_branch_info
-    remote_branch_info=$(git ls-remote --heads origin "$branch_name")
-
-    if [[ -z "$remote_branch_info" ]]; then
-      echo "Error: The remote branch of \"$branch_name\" does not yet exist." >&2
-      return 1
-    fi
-  fi
-
   if is_github_repository; then
     local user_email
     user_email=$(git config user.email)
     if [[ "$user_email" == *@logixhealth.com ]]; then
       echo "Error: You are trying to commit to a GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
+      return 1
+    fi
+  fi
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  local REPOSITORY_HAS_COMMITS="false"
+  git rev-parse --verify HEAD > /dev/null 2>&1 && REPOSITORY_HAS_COMMITS="true"
+
+  # Only check for the remote branch existing if there are one or more commits. (For brand-new
+  # repositories, the remote branch will not yet exist.)
+  if [[ "$REPOSITORY_HAS_COMMITS" == "true" ]]; then
+    local remote_branch_info
+    remote_branch_info=$(git ls-remote --heads origin "$branch_name")
+
+    if [[ -z "$remote_branch_info" ]]; then
+      echo "Error: The remote branch of \"$branch_name\" does not yet exist." >&2
       return 1
     fi
   fi
@@ -1119,7 +1122,9 @@ gc() (
   fi
 
   git commit --message "$commit_message"
-  git pull --rebase
+  if [[ "$REPOSITORY_HAS_COMMITS" == "true" ]]; then
+    git pull --rebase
+  fi
   git push
 
   gcs
@@ -1143,12 +1148,34 @@ gca() (
     return 1
   fi
 
+  if [[ -z "$(git config user.name)" ]]; then
+    echo "Error: Git user name not set. Run: git config --global user.name \"Your Name\"" >&2
+    return 1
+  fi
+
+  if [[ -z "$(git config user.email)" ]]; then
+    echo "Error: Git user email not set. Run: git config --global user.email you@example.com" >&2
+    return 1
+  fi
+
+  if is_github_repository; then
+    local user_email
+    user_email=$(git config user.email)
+    if [[ "$user_email" == *@logixhealth.com ]]; then
+      echo "Error: You are trying to commit to a GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
+      return 1
+    fi
+  fi
+
   local branch_name
   branch_name=$(git branch --show-current)
 
+  local REPOSITORY_HAS_COMMITS="false"
+  git rev-parse --verify HEAD > /dev/null 2>&1 && REPOSITORY_HAS_COMMITS="true"
+
   # Only check for the remote branch existing if there are one or more commits. (For brand-new
   # repositories, the remote branch will not yet exist.)
-  if git rev-parse --verify HEAD > /dev/null 2>&1; then
+  if [[ "$REPOSITORY_HAS_COMMITS" == "true" ]]; then
     local remote_branch_info
     remote_branch_info=$(git ls-remote --heads origin "$branch_name")
 
@@ -1171,6 +1198,11 @@ gca() (
   fi
 
   git add --all
+  if git diff --cached --quiet; then
+    echo "Error: There are no changes to commit."
+    return 1
+  fi
+
   if [[ "$edit" == "true" ]]; then
     # "--amend" amends the previous commit instead of making a new commit.
     git commit --amend
@@ -1179,8 +1211,9 @@ gca() (
     # "--no-edit" avoids prompting for a commit message and uses the default commit message.
     git commit --amend --no-edit
   fi
-  git push --force
 
+  # We do not need to `git pull` because we already verified above that we are on the remote tip.
+  git push --force
   gcs
 )
 
