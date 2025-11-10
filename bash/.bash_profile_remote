@@ -8,28 +8,6 @@
 # Helper functions
 # ----------------
 
-is_git_bash() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  local kernel_name
-  kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on MacOS.
-  [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
-)
-
-is_github_repository() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
-  local remote_url
-  remote_url=$(git remote get-url origin)
-
-  if echo "$remote_url" | grep -q "github.com"; then
-    return 0 # True
-  else
-    return 1 # False
-  fi
-)
-
 get_first_branch_commit_description() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -270,6 +248,34 @@ get_num_github_repository_commits() (
     echo "1"
   fi
 )
+
+is_git_bash() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local kernel_name
+  kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on MacOS.
+  [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
+)
+
+is_github_repository() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
+  local remote_url
+  remote_url=$(git remote get-url origin)
+
+  if echo "$remote_url" | grep -q "github.com"; then
+    return 0 # True
+  else
+    return 1 # False
+  fi
+)
+
+remove_leading_and_trailing_whitespace() {
+  # Removes leading spaces or tabs: s/^[ \t]*//
+  # Removes trailing spaces or tabs: s/[ \t]*$//
+  sed 's/^[ \t]*//;s/[ \t]*$//'
+}
 
 # -------
 # Version
@@ -1516,7 +1522,7 @@ gpr() (
     local pull_request_text
     pull_request_text=$(get_llm_pull_request_text)
     pull_request_title=$(echo "$pull_request_text" | head -n 1)
-    pull_request_description=$(echo "$pull_request_text" | tail -n +2)
+    pull_request_description=$(echo "$pull_request_text" | tail -n +2 | remove_leading_and_trailing_whitespace)
   fi
 
   local json_payload
