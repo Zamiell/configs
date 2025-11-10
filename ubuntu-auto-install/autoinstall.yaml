@@ -1,32 +1,5 @@
 #cloud-config
 
-# 1) Use Rufus to create a USB drive from an Ubuntu Server installation ISO.
-# 2) Place this file in the root of the USB drive.
-# 3) Place the "post-install" directory in the root of the USB drive.
-# 4) Edit the "/boot/grub/grub.cfg" file:
-#
-#    set timeout=30
-#    -->
-#    set timeout=1
-#
-#    linux	/casper/vmlinuz  ---
-#    -->
-#    linux	/casper/vmlinuz autoinstall cloud-init=disabled ---
-#
-#    Explanation:
-#    - autoinstall
-#      - Needed to load the "autoinstall.yaml" file.
-#      - This file can also be called "user-data" instead of "autoinstall.yaml", which is required
-#        if using cloud-init.
-#      - We do not have to specify "s=", because it will look for "autoinstall.yaml" at the root by
-#        default.
-#      - Adding this is potentially dangerous because now the installer will automatically blow away
-#        the hard drive.
-#    - cloud-init=disabled
-#      - cloud-init is enabled by default and will wait for a long time waiting for the Ethernet
-#        device to come up. Since on a laptop we do not typically have the Ethernet cable plugged
-#        in, we can disable it to prevent the long period of lag.
-
 # See:
 # https://canonical-subiquity.readthedocs-hosted.com/en/latest/howto/autoinstall-quickstart.html
 autoinstall:
