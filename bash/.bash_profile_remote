@@ -558,6 +558,7 @@ run_package_script() (
 )
 
 alias b="run_package_script build"
+alias d="run_package_script dev"
 alias l="run_package_script lint"
 alias la="run_package_script lint-all"
 alias p="run_package_script publish"
