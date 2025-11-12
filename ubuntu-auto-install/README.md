@@ -6,3 +6,6 @@
    - autoinstall.yaml
    - boot/grub/grub.cfg
    - post-install
+
+3. To add WiFi support to the installation media:
+   - TODO

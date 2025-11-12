@@ -1,8 +1,34 @@
 #cloud-config
 
+# By default, standard Ubuntu Server will be installed. We could install minimal instead, but this
+# leads to installation crashes on Dell laptops, so we keep the default.
+# https://askubuntu.com/questions/1276664/how-can-i-make-a-minimal-installation-with-autoinstall
+
 # See:
 # https://canonical-subiquity.readthedocs-hosted.com/en/latest/howto/autoinstall-quickstart.html
 autoinstall:
+  # All cloud-init configurations must have an identity.
+  identity:
+    hostname: LH6224
+    username: jnesta
+    # cspell:disable-next-line
+    password: $y$j9T$wD6g6uau8MzskrXlLYZ5A.$XeD3Wim4mOvC8JgFpKsivT5KlekvkscXAJaF1YzIkvC
+
+  # This section runs commands after installation but before the first reboot.
+  late-commands:
+    # By default, SSH host keys and other information is printed to the console around 30 settings
+    # after the first boot, which is confusing/distracting.
+    - sed --in-place 's/- keys_to_console/#- keys_to_console/g' /target/etc/cloud/cloud.cfg
+
+    # The installation USB drive is mounted at: /cdrom
+    # The new root filesystem is at: /target
+    - cp --recursive /cdrom/post-install /target/home/jnesta
+    # The "jnesta" directory will now be owned by the root user, so we have to manually fix it.
+    # We have to use the numeric UID since the "jnesta" user does not exist on the installer. (The
+    # first account on the system will always have a UID of 1000 and the first group on the system
+    # will always have a UID of 1000.)
+    - chown --recursive 1000:1000 /target/home/jnesta
+
   # Stop the annoying network timeout on boot:
   # Job systemd-networkd-wait-online.service/start running (50s / no limit)
   network:
@@ -18,27 +44,5 @@ autoinstall:
           name: eth*
         dhcp4: true
         optional: true
-
-  # All cloud-init configurations must have an identity.
-  identity:
-    hostname: LH6224
-    username: jnesta
-    password: $6$QpZkxesFczJrJtX4$6CtBBHmzC4LA8VAPYtKFoM88QkJN9Th8tCUYu9R.I6sFt21/wXP1/.JPKI26t0QIrLUr.65Ixod2WMf.rxa/K0 # cspell:disable-line
-
-  # By default, standard Ubuntu Server will be installed. We could install minimal instead, but this
-  # leads to installation crashes on Dell laptops, so we keep the default.
-  # https://askubuntu.com/questions/1276664/how-can-i-make-a-minimal-installation-with-autoinstall
-
-  # This section runs commands after installation but before the first reboot.
-  late-commands:
-    # On the first boot, after about 30 seconds, output from "cloud init" shows up in the terminal
-    # relating to SSH keys.
-    - touch /target/etc/cloud/cloud-init.disabled
-
-    # The installation USB drive is mounted at: /cdrom
-    # The new root filesystem is at: /target
-    - mkdir --parents /target/home/jnesta/auto-install
-    - cp --recursive /cdrom/post-install /target/home/jnesta
-    - chown --recursive jnesta:jnesta /target/home/jnesta
 
   version: 1
