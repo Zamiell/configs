@@ -1609,6 +1609,27 @@ alias grs="git reset"
 # "grsh" is short for "git reset --hard".
 alias grsh="git reset --hard"
 
+# "grshm" is short for "git reset --hard origin/main".
+grshm() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a Git repository." >&2
+    return 1
+  fi
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
+    return 1
+  fi
+
+  git reset --hard "origin/$main_branch_name"
+)
+
 # "grv" is short for "git revert".
 grv() (
   set -euo pipefail # Exit on errors and undefined variables.
