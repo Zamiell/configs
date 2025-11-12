@@ -17,11 +17,15 @@ autoinstall:
   # This section runs commands after installation but before the first reboot.
   late-commands:
     # By default, SSH host keys and other information is printed to the console around 30 settings
-    # after the first boot, which is confusing/distracting.
+    # after the first boot, which is confusing/distracting. (Even with these changes, "cloud-init"
+    # will still display some output to the console, but it is impossible to stop entirely.)
+    - sed --in-place 's/- ssh_authkey_fingerprints/#- ssh_authkey_fingerprints/g' /target/etc/cloud/cloud.cfg
     - sed --in-place 's/- keys_to_console/#- keys_to_console/g' /target/etc/cloud/cloud.cfg
+    - sed --in-place 's/- final_message/#- final_message/g' /target/etc/cloud/cloud.cfg
 
     # The installation USB drive is mounted at: /cdrom
     # The new root filesystem is at: /target
+    - mkdir /target/home/jnesta
     - cp --recursive /cdrom/post-install /target/home/jnesta
     # The "jnesta" directory will now be owned by the root user, so we have to manually fix it.
     # We have to use the numeric UID since the "jnesta" user does not exist on the installer. (The

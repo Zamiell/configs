@@ -22,6 +22,7 @@
     "yarn.lock",
   ],
   "words": [
+    "authkey",
     "autoinstall",
     "azuredevops",
     "BEDROOTCA",
@@ -72,7 +73,7 @@
     "mktemp",
     "MSYS",
     "Nemo",
-    "NETPLAN",
+    "netplan",
     "networkd",
     "nohup",
     "nssdb",

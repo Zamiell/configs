@@ -17,9 +17,11 @@ fi
 # Connect to WiFi.
 NETPLAN_FILE_NAME="99-wifi.yaml"
 NETPLAN_FILE_PATH="/etc/netplan/$NETPLAN_FILE_NAME"
-cp "$DIR/$NETPLAN_FILE_NAME" "$NETPLAN_FILE_PATH"
-chmod 600 "$NETPLAN_FILE_PATH"
-netplan apply
+if [[ ! -f "$NETPLAN_FILE_PATH" ]]; then
+  cp "$DIR/$NETPLAN_FILE_NAME" "$NETPLAN_FILE_PATH"
+  chmod 600 "$NETPLAN_FILE_PATH"
+  netplan apply
+fi
 
 # Patch the OS.
 apt-get update
