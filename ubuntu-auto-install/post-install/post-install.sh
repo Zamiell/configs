@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This script is used on a new Ubuntu Server to get all the installed software and settings that I need.
+# This script is used on a new Ubuntu Server to get all the installed software and settings that I
+# need.
 
 set -euo pipefail # Exit on errors and undefined variables.
 
