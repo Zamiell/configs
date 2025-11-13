@@ -89,16 +89,16 @@ source "$ENV_PATH"
 
 # Set up SSH keys.
 mkdir --parents "$HOME/.ssh"
-USER_PRIVATE_KEY_PATH="$HOME/.ssh/id_rsa"
-if [[ ! -s "$USER_PRIVATE_KEY_PATH" ]]; then
-  bw get notes ssh-private-key --session "$BW_SESSION" > "$USER_PRIVATE_KEY_PATH"
-  echo >> "$USER_PRIVATE_KEY_PATH"
-  chmod 600 "$USER_PRIVATE_KEY_PATH"
+PRIVATE_KEY_PATH="$HOME/.ssh/id_rsa"
+if [[ ! -s "$PRIVATE_KEY_PATH" ]]; then
+  bw get notes ssh-private-key --session "$BW_SESSION" > "$PRIVATE_KEY_PATH"
+  echo >> "$PRIVATE_KEY_PATH"
+  chmod 600 "$PRIVATE_KEY_PATH"
 fi
-USER_PUBLIC_KEY_PATH="$HOME/.ssh/id_rsa.pub"
-if [[ ! -s "$USER_PUBLIC_KEY_PATH" ]]; then
-  bw get notes ssh-public-key --session "$BW_SESSION" > "$USER_PUBLIC_KEY_PATH"
-  echo >> "$USER_PUBLIC_KEY_PATH"
+PUBLIC_KEY_PATH="$HOME/.ssh/id_rsa.pub"
+if [[ ! -s "$PUBLIC_KEY_PATH" ]]; then
+  bw get notes ssh-public-key --session "$BW_SESSION" > "$PUBLIC_KEY_PATH"
+  echo >> "$PUBLIC_KEY_PATH"
 fi
 
 # Connect to WiFi.
@@ -134,6 +134,11 @@ if ! command -v gh &> /dev/null; then
 
   # gh uses HTTPS by default.
   gh config set git_protocol ssh
+
+  if [[ -z "$GH_TOKEN" ]]; then
+    echo "Error: The \"GH_TOKEN\" environment variable is empty. This is needed by the \"gh\" command to authenticate to GitHub. It should be present in the \".env\" file (which comes from BitWarden)." >&2
+    exit 1
+  fi
 fi
 
 # Set up the "repositories" directory.
@@ -155,19 +160,23 @@ fi
 # Install the remote configs from this repository.
 BASHRC_PATH="$HOME/.bashrc"
 if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
-  curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> "$HOME/.bashrc"
+  echo >> "$BASHRC_PATH"
+  curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> "$BASHRC_PATH"
 fi
 
 # Install a desktop environment.
-# - sway - Window manager
-# - foot - Terminal
-sudo apt install sway foot --yes
+# - sway     - The window manager.
+# - xwayland - A compatibility layer for X11 applications. By default, sway will enable xwayland, so
+#              even if we do not have any X11 applications, it is still needed to prevent errors.
+# - foot     - The terminal.
+sudo apt install sway xwayland foot --yes
 
 # Set sway on startup.
 PROFILE_PATH="$HOME/.profile"
 # shellcheck disable=SC2016
 if ! grep --quiet "exec dbus-run-session sway" "$PROFILE_PATH"; then
-  echo '# Start the window manager.
+  echo '
+# Start the window manager.
 if [ -z "$WAYLAND_DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
   exec dbus-run-session sway > ~/sway-startup.log 2>&1
 fi' >> "$PROFILE_PATH"
@@ -184,18 +193,22 @@ if grep --quiet --regexp "$PROFILE_MARKER" "$PROFILE_PATH"; then
 fi
 
 # Clean up.
-POST_INSTALL_PATH="$HOME/post-install"
+POST_INSTALL_PATH="/post-install"
 if [[ -d "$POST_INSTALL_PATH" ]]; then
-  rm -rf "$POST_INSTALL_PATH"
+  sudo rm -rf "$POST_INSTALL_PATH"
 fi
 BITWARDEN_PASSWORD_PATH="$HOME/bitwarden_password"
 if [[ -f "$BITWARDEN_PASSWORD_PATH" ]]; then
   rm "$BITWARDEN_PASSWORD_PATH"
 fi
 
-# TODO
-# sudo rm -f /etc/sudoers.d/90-cloud-init-users
+# Enable the sudo password. (We only needed it to be disabled in order to run this script without
+# any prompts.)
+SUDOERS_FILE_PATH="/etc/sudoers.d/90-cloud-init-users"
+if [[ -f "$SUDOERS_FILE_PATH" ]]; then
+  sudo rm "$SUDOERS_FILE_PATH"
+fi
 
 # We want to reboot so that the new Ubuntu kernel can take effect. (There is a warning about this
 # when SSHing to the machine.)
-sudo reboot
+reboot

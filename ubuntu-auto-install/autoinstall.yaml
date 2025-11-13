@@ -14,20 +14,15 @@ autoinstall:
     # cspell:disable-next-line
     password: $y$j9T$wD6g6uau8MzskrXlLYZ5A.$XeD3Wim4mOvC8JgFpKsivT5KlekvkscXAJaF1YzIkvC
 
-  # This section runs commands after installation but before the first reboot.
+  # This section runs commands after installation but before the first boot.
+  # - The installation USB drive is mounted at: /cdrom
+  # - The new root filesystem is at: /target
   late-commands:
-    # The installation USB drive is mounted at: /cdrom
-    # The new root filesystem is at: /target
-    - mkdir /target/home/jnesta
-    - cp --recursive /cdrom/post-install /target/home/jnesta
+    # Copy the post-installation script and related files to the system.
+    - cp --recursive /cdrom/post-install /target/post-install
+    - chmod +x /target/post-install/post-install.sh
 
-    # Since the installer is running as root, the user's directory will be owned by root, so we have
-    # to manually fix it. We have to use the numeric UID since the user does not exist on the
-    # installer. (The first account on the system will always have a UID of 1000 and the first group
-    # on the system will always have a GID of 1000.)
-    - chown --recursive 1000:1000 /target/home/jnesta
-
-    # Set automatic login on boot.
+    # Set automatic login.
     - sudo mkdir --parents /target/etc/systemd/system/getty@tty1.service.d
     - cp /cdrom/post-install/etc/systemd/override.conf /target/etc/systemd/system/getty@tty1.service.d/override.conf
 
@@ -53,20 +48,20 @@ autoinstall:
       name: lvm
       password: hunter2
 
-  # This section is passed to the installed system's cloud-init and the commands run on the first
-  # boot.
+  # This section is passed to the installed system's cloud-init.
   user-data:
+    # These commands run on the first boot.
     runcmd:
       # By default, SSH host keys and other information is printed to the console around 30 settings
       # after the first boot, which is confusing/distracting. Since cloud-init has already created
-      # our user, we do not need it to be enabled anymore.
+      # our user at this point, we do not need it to be enabled anymore.
       - touch /etc/cloud/cloud-init.disabled
 
       # Set the post-installation script to automatically run once the user logs in for the first
       # time.
-      - echo '# --- TEMP ---' >> /home/jnesta/.profile
-      - echo '"$HOME/post-install/post-install.sh"' >> /home/jnesta/.profile
-      - echo '# --- TEMP ---' >> /home/jnesta/.profile
+      - echo "# --- TEMP ---" >> /home/jnesta/.profile
+      - echo "/post-install/post-install.sh" >> /home/jnesta/.profile
+      - echo "# --- TEMP ---" >> /home/jnesta/.profile
       - chown 1000:1000 /home/jnesta/.profile
 
       # Write the BitWarden master password to disk so that the post-installation script can use it.
