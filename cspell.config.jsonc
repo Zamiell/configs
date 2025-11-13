@@ -42,6 +42,7 @@
     "certifi",
     "certutil",
     "Creset",
+    "dcasella",
     "dconf",
     "dhclient",
     "dhcpcd",
