@@ -38,6 +38,10 @@ fi
 # Main
 # ----
 
+# Load information about the system for later.
+# shellcheck source=/dev/null
+source /etc/os-release
+
 # Patch the OS.
 sudo apt update
 sudo apt upgrade --yes
@@ -102,7 +106,9 @@ if [[ ! -s "$PUBLIC_KEY_PATH" ]]; then
 fi
 
 # Connect to WiFi.
-sudo apt install wpasupplicant --yes
+if ! dpkg --status wpasupplicant &> /dev/null; then
+  sudo apt install wpasupplicant --yes
+fi
 NETPLAN_FILE_NAME="99-wifi.yaml"
 NETPLAN_FILE_PATH="/etc/netplan/$NETPLAN_FILE_NAME"
 if [[ ! -s "$NETPLAN_FILE_PATH" ]]; then
@@ -179,7 +185,37 @@ if ! grep --quiet "exec dbus-run-session sway" "$PROFILE_PATH"; then
 # Start the window manager.
 if [[ -z "$WAYLAND_DISPLAY" ]] && [[ "$XDG_VTNR" -eq 1 ]]; then
   exec dbus-run-session sway > ~/sway-startup.log 2>&1
+  # Note that errors like this are expected and can be ignored:
+  # dbus-daemon[1382]: [session uid=1000 pid=1382] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+  # dbus-update-activation-environment: warning: error sending to systemd: org.freedesktop.DBus.Error.Spawn.ChildExited: Process org.freedesktop.systemd1 exited with status 1
 fi' >> "$PROFILE_PATH"
+fi
+
+# Install Microsoft Edge.
+MICROSOFT_GPG_KEY_PATH="/usr/share/keyrings/microsoft-edge.gpg"
+if [[ ! -s "$MICROSOFT_GPG_KEY_PATH" ]]; then
+  curl --silent --fail --show-error --location https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee "$MICROSOFT_GPG_KEY_PATH" > /dev/null
+fi
+MICROSOFT_EDGE_REPOSITORY_PATH="/etc/apt/sources.list.d/microsoft-edge.list"
+if [[ ! -s "$MICROSOFT_EDGE_REPOSITORY_PATH" ]]; then
+  echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main' | sudo tee "$MICROSOFT_EDGE_REPOSITORY_PATH" > /dev/null
+  sudo apt update
+fi
+if ! dpkg --status microsoft-edge-stable &> /dev/null; then
+  sudo apt install microsoft-edge-stable
+fi
+
+# Install Google Chrome.
+if ! dpkg --status google-chrome-stable_current_amd64 &> /dev/null; then
+  GOOGLE_CHROME_PATH="/tmp/google-chrome.deb"
+  curl --silent --fail --show-error --location --output "$GOOGLE_CHROME_PATH" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  sudo apt install "$GOOGLE_CHROME_PATH"
+  rm "$GOOGLE_CHROME_PATH"
+fi
+
+# Install Firefox.
+if ! snap info firefox | grep -q "^installed:"; then
+  sudo snap install firefox
 fi
 
 # ---
