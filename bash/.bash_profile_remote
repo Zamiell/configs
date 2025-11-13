@@ -1627,6 +1627,14 @@ grshm() (
     return 1
   fi
 
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  if [[ "$branch_name" == "$main_branch_name" ]]; then
+    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
   git reset --hard "origin/$main_branch_name"
   git push --force
 )
