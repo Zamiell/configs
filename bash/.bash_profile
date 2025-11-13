@@ -1,3 +1,4 @@
+# Load the commands from the "configs" GitHub repository.
 mkdir -p ~/.config
 BASH_PROFILE_REMOTE_PATH=~/.config/.bash_profile_remote
 rm -f "$BASH_PROFILE_REMOTE_PATH"

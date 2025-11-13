@@ -40,7 +40,7 @@ fi
 
 # Patch the OS.
 sudo apt update
-#sudo apt upgrade --yes # TODO: Uncomment
+sudo apt upgrade --yes
 
 # Install SSH.
 # https://documentation.ubuntu.com/server/how-to/security/openssh-server/index.html
@@ -61,24 +61,27 @@ fi
 
 # Login to BitWarden. (This command will prompt the user for the master password.)
 if [[ -z "${BW_SESSION:-}" ]]; then
+  BITWARDEN_PASSWORD_ARG=()
+  if [[ -f "$HOME/bitwarden_password" ]]; then
+    BITWARDEN_PASSWORD_ARG=(--passwordfile "$HOME/bitwarden_password")
+  fi
+
   if bw login --check &> /dev/null; then
-    BW_SESSION=$(bw unlock --raw)
+    BW_SESSION=$(bw unlock --raw "${BITWARDEN_PASSWORD_ARG[@]}")
   else
-    BW_SESSION=$(bw login $PERSONAL_EMAIL --raw)
+    BW_SESSION=$(bw login "$PERSONAL_EMAIL" --raw "${BITWARDEN_PASSWORD_ARG[@]}")
   fi
 
   if [[ -z "$BW_SESSION" ]]; then
     echo "Error: Failed to get the BitWarden session key." >&2
     exit 1
   fi
-
-  export BW_SESSION
 fi
 
 # Set up environment variables.
 ENV_PATH="$HOME/.env"
-if [[ ! -f "$ENV_PATH" ]]; then
-  bw get notes .env > "$ENV_PATH"
+if [[ ! -s "$ENV_PATH" ]]; then
+  bw get notes .env --session "$BW_SESSION" > "$ENV_PATH"
   echo >> "$ENV_PATH"
 fi
 # shellcheck source=/dev/null
@@ -87,14 +90,14 @@ source "$ENV_PATH"
 # Set up SSH keys.
 mkdir --parents "$HOME/.ssh"
 USER_PRIVATE_KEY_PATH="$HOME/.ssh/id_rsa"
-if [[ ! -f "$USER_PRIVATE_KEY_PATH" ]]; then
-  bw get notes ssh-private-key > "$USER_PRIVATE_KEY_PATH"
+if [[ ! -s "$USER_PRIVATE_KEY_PATH" ]]; then
+  bw get notes ssh-private-key --session "$BW_SESSION" > "$USER_PRIVATE_KEY_PATH"
   echo >> "$USER_PRIVATE_KEY_PATH"
   chmod 600 "$USER_PRIVATE_KEY_PATH"
 fi
 USER_PUBLIC_KEY_PATH="$HOME/.ssh/id_rsa.pub"
-if [[ ! -f "$USER_PUBLIC_KEY_PATH" ]]; then
-  bw get notes ssh-public-key > "$USER_PUBLIC_KEY_PATH"
+if [[ ! -s "$USER_PUBLIC_KEY_PATH" ]]; then
+  bw get notes ssh-public-key --session "$BW_SESSION" > "$USER_PUBLIC_KEY_PATH"
   echo >> "$USER_PUBLIC_KEY_PATH"
 fi
 
@@ -102,10 +105,10 @@ fi
 sudo apt install wpasupplicant --yes
 NETPLAN_FILE_NAME="99-wifi.yaml"
 NETPLAN_FILE_PATH="/etc/netplan/$NETPLAN_FILE_NAME"
-if [[ ! -f "$NETPLAN_FILE_PATH" ]]; then
-  sudo cp "$DIR/netplan/$NETPLAN_FILE_NAME" "$NETPLAN_FILE_PATH"
+if [[ ! -s "$NETPLAN_FILE_PATH" ]]; then
+  sudo cp "$DIR/etc/netplan/$NETPLAN_FILE_NAME" "$NETPLAN_FILE_PATH"
   sudo chmod 600 "$NETPLAN_FILE_PATH"
-  WIFI_PASSWORD=$(bw get password wifi)
+  WIFI_PASSWORD=$(bw get password wifi --session "$BW_SESSION")
   sudo sed --in-place "s/__PASSWORD__/$WIFI_PASSWORD/g" "$NETPLAN_FILE_PATH"
 fi
 
@@ -140,16 +143,44 @@ mkdir --parents "$REPOSITORIES_PATH"
 # Clone this repository.
 CONFIGS_PATH="$REPOSITORIES_PATH/configs"
 if [[ ! -d "$CONFIGS_PATH" ]]; then
+  KNOWN_HOSTS_PATH="$HOME/.ssh/known_hosts"
+  if ! grep --quiet github.com "$KNOWN_HOSTS_PATH"; then
+    ssh-keyscan github.com >> "$KNOWN_HOSTS_PATH"
+  fi
   gh repo clone Zamiell/configs "$CONFIGS_PATH"
   git -C "$CONFIGS_PATH" config user.name "$GITHUB_USERNAME"
   git -C "$CONFIGS_PATH" config user.email "$GITHUB_EMAIL"
 fi
 
-# Overwrite the profile that was set up in the "autoinstall.yaml" file with the one from the
-# "configs" repository.
+# Install the remote configs from this repository.
+BASHRC_PATH="$HOME/.bashrc"
+if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
+  curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> "$HOME/.bashrc"
+fi
+
+# Install a desktop environment.
+# - sway - Window manager
+# - foot - Terminal
+sudo apt install sway foot --yes
+
+# Set sway on startup.
 PROFILE_PATH="$HOME/.profile"
-if grep post-install.sh "$PROFILE_PATH"; then
-  curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile > "$PROFILE_PATH"
+# shellcheck disable=SC2016
+if ! grep --quiet "exec dbus-run-session sway" "$PROFILE_PATH"; then
+  echo '# Start the window manager.
+if [ -z "$WAYLAND_DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
+  exec dbus-run-session sway > ~/sway-startup.log 2>&1
+fi' >> "$PROFILE_PATH"
+fi
+
+# ---
+# End
+# ---
+
+# Stop the automatic execution of this script.
+PROFILE_MARKER="--- TEMP ---" # This has to match the command in "autoinstall.yaml".
+if grep --quiet --regexp "$PROFILE_MARKER" "$PROFILE_PATH"; then
+  sed --in-place "/$PROFILE_MARKER/,/$PROFILE_MARKER/d" "$PROFILE_PATH"
 fi
 
 # Clean up.
@@ -157,5 +188,14 @@ POST_INSTALL_PATH="$HOME/post-install"
 if [[ -d "$POST_INSTALL_PATH" ]]; then
   rm -rf "$POST_INSTALL_PATH"
 fi
+BITWARDEN_PASSWORD_PATH="$HOME/bitwarden_password"
+if [[ -f "$BITWARDEN_PASSWORD_PATH" ]]; then
+  rm "$BITWARDEN_PASSWORD_PATH"
+fi
 
-reboot
+# TODO
+# sudo rm -f /etc/sudoers.d/90-cloud-init-users
+
+# We want to reboot so that the new Ubuntu kernel can take effect. (There is a warning about this
+# when SSHing to the machine.)
+sudo reboot

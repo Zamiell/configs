@@ -297,39 +297,39 @@ fi
 # ---------------------
 
 # Load secret environment variables that cannot be committed to Git.
-if [[ -f "$HOME/.env" ]]; then
+if [[ -s "$HOME/.env" ]]; then
   # shellcheck source=/dev/null
   source "$HOME/.env"
 fi
 
 # Fix self-signed certs for LogixHealth.
-if [[ -f "/usr/local/share/ca-certificates/BEDROOTCA001.crt" ]]; then
+if [[ -s "/usr/local/share/ca-certificates/BEDROOTCA001.crt" ]]; then
   export COMPANY_CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
-elif [[ -f "/c/tls/BEDROOTCA001.crt" ]]; then
+elif [[ -s "/c/tls/BEDROOTCA001.crt" ]]; then
   export COMPANY_CERT_PATH="/c/tls/BEDROOTCA001.crt"
-elif [[ -f "/c/_IT/tls/BEDROOTCA001.crt" ]]; then
+elif [[ -s "/c/_IT/tls/BEDROOTCA001.crt" ]]; then
   export COMPANY_CERT_PATH="/c/_IT/tls/BEDROOTCA001.crt"
 fi
 if [[ -n "${COMPANY_CERT_PATH-}" ]]; then
   export NODE_EXTRA_CA_CERTS="$COMPANY_CERT_PATH"
   export CURL_CA_BUNDLE="$COMPANY_CERT_PATH"
 fi
-if [[ -f "/c/Program Files/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
+if [[ -s "/c/Program Files/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/c/Program Files/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
-elif [[ -f "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
+elif [[ -s "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
-elif [[ -f "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
+elif [[ -s "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/opt/az/lib/python3.13/site-packages/certifi/cacert.pem"
 fi
 
 # Add browsers to the path, which is necessary for the GitHub CLI.
-if ! command -v chrome &> /dev/null && [[ -f "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
+if ! command -v chrome &> /dev/null && [[ -s "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
   export PATH="$PATH:/c/Program Files/Google/Chrome/Application"
 fi
 if ! command -v chrome &> /dev/null && command -v google-chrome &> /dev/null; then
   alias chrome="google-chrome"
 fi
-if ! command -v msedge &> /dev/null && [[ -f "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ]]; then
+if ! command -v msedge &> /dev/null && [[ -s "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ]]; then
   export PATH="$PATH:/c/Program Files (x86)/Microsoft/Edge/Application"
 fi
 if ! command -v msedge &> /dev/null && command -v microsoft-edge-stable &> /dev/null; then
@@ -488,7 +488,7 @@ vpn() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   MICROSOFT_EDGE_PATH="/opt/microsoft/msedge/msedge"
-  if [[ ! -f "$MICROSOFT_EDGE_PATH" ]]; then
+  if [[ ! -s "$MICROSOFT_EDGE_PATH" ]]; then
     echo "Error: Microsoft Edge must be installed at: $MICROSOFT_EDGE_PATH" >&2
     return 1
   fi
@@ -518,6 +518,7 @@ get_package_manager() (
   local current_dir="$PWD"
 
   # Search upward through directories, looking for package lock files.
+  # (We deliberately use "-f" over "-s" to be as conservative as possible.)
   while [ "$current_dir" != "/" ]; do
     if [ -f "$current_dir/package-lock.json" ]; then
       echo "npm"
@@ -1893,7 +1894,7 @@ alias tv="terraform validate"
 # Only change the prompt if the shell is interactive.
 if [[ $- == *i* ]]; then
   if ! command -v __git_ps1 &> /dev/null; then
-    if [[ -f "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh" ]]; then
+    if [[ -s "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh" ]]; then
       # shellcheck source=/dev/null
       source "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh"
     else
@@ -1902,7 +1903,7 @@ if [[ $- == *i* ]]; then
     fi
   fi
 
-  if [ -f /etc/os-release ]; then
+  if [ -s /etc/os-release ]; then
     # shellcheck source=/dev/null
     source /etc/os-release
   fi
