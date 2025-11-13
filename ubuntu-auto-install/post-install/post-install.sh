@@ -3,6 +3,7 @@
 # This script sets up a new Ubuntu Server to have all of the configuration and software that I need.
 
 set -euo pipefail # Exit on errors and undefined variables.
+set -x            # Echo commands for easier troubleshooting.
 
 # Constants
 FULL_NAME="James Nesta"
@@ -14,15 +15,6 @@ GITHUB_USERNAME="Zamiell"
 # Get the directory of this script:
 # https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
 DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-
-# ----------------
-# Helper functions
-# ----------------
-
-play_sound() {
-  amixer sset Master unmute &> /dev/null
-  play "$HOME/post-install/ff7.mp3" &> /dev/null
-}
 
 # ----------
 # Validation
@@ -48,13 +40,15 @@ fi
 
 # Patch the OS.
 sudo apt update
-sudo apt upgrade --yes
+#sudo apt upgrade --yes # TODO: Uncomment
 
 # Install SSH.
 # https://documentation.ubuntu.com/server/how-to/security/openssh-server/index.html
-sudo apt install openssh-server --yes
-sudo systemctl enable ssh
-sudo systemctl start ssh
+if ! dpkg --status openssh-server &> /dev/null; then
+  sudo apt install openssh-server --yes
+  sudo systemctl enable ssh
+  sudo systemctl start ssh
+fi
 
 # Disable the message of the day.
 touch "$HOME/.hushlogin"
@@ -67,8 +61,6 @@ fi
 
 # Login to BitWarden. (This command will prompt the user for the master password.)
 if [[ -z "${BW_SESSION:-}" ]]; then
-  play_sound # Signify that manual intervention is needed.
-
   if bw login --check &> /dev/null; then
     BW_SESSION=$(bw unlock --raw)
   else
@@ -166,5 +158,4 @@ if [[ -d "$POST_INSTALL_PATH" ]]; then
   rm -rf "$POST_INSTALL_PATH"
 fi
 
-play_sound
-echo "Please log out and then log back in order to have the remote Bash profile take effect."
+reboot
