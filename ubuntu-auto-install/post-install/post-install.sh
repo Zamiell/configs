@@ -34,9 +34,9 @@ if ! curl --silent --fail --location https://www.google.com &> /dev/null; then
   exit 1
 fi
 
-# ----
-# Main
-# ----
+# -----------------
+# Phase 1 - Pre-GUI
+# -----------------
 
 # Load information about the system for later.
 # shellcheck source=/dev/null
@@ -170,6 +170,10 @@ if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
   curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> "$BASHRC_PATH"
 fi
 
+# -------------
+# Phase 2 - GUI
+# -------------
+
 # Install a desktop environment.
 # - sway     - The window manager.
 # - xwayland - A compatibility layer for X11 applications. By default, sway will enable xwayland, so
@@ -190,6 +194,10 @@ if [[ -z "$WAYLAND_DISPLAY" ]] && [[ "$XDG_VTNR" -eq 1 ]]; then
   # dbus-update-activation-environment: warning: error sending to systemd: org.freedesktop.DBus.Error.Spawn.ChildExited: Process org.freedesktop.systemd1 exited with status 1
 fi' >> "$PROFILE_PATH"
 fi
+
+# ----------------------
+# Phase 3 - Applications
+# ----------------------
 
 # Install Microsoft Edge.
 MICROSOFT_GPG_KEY_PATH="/usr/share/keyrings/microsoft-edge.gpg"
@@ -218,9 +226,9 @@ if ! snap info firefox | grep -q "^installed:"; then
   sudo snap install firefox
 fi
 
-# ---
-# End
-# ---
+# -------
+# Cleanup
+# -------
 
 # Stop the automatic execution of this script.
 PROFILE_MARKER="--- TEMP ---" # This has to match the command in "autoinstall.yaml".
@@ -228,11 +236,11 @@ if grep --quiet --regexp "$PROFILE_MARKER" "$PROFILE_PATH"; then
   sed --in-place "/$PROFILE_MARKER/,/$PROFILE_MARKER/d" "$PROFILE_PATH"
 fi
 
-# Clean up.
 POST_INSTALL_PATH="/post-install"
 if [[ -d "$POST_INSTALL_PATH" ]]; then
   sudo rm -rf "$POST_INSTALL_PATH"
 fi
+
 BITWARDEN_PASSWORD_PATH="$HOME/bitwarden_password"
 if [[ -f "$BITWARDEN_PASSWORD_PATH" ]]; then
   rm "$BITWARDEN_PASSWORD_PATH"
