@@ -1207,7 +1207,10 @@ gca() (
   fi
 
   git add --all
-  if git diff --cached --quiet; then
+
+  # Validate that we have one or more new changes to commit. (But allow 0 change commits if we are
+  # editing the commit message.)
+  if [[ "$edit" != "true" ]] && git diff --cached --quiet; then
     echo "Error: There are no changes to commit."
     return 1
   fi
