@@ -3,7 +3,7 @@
 # This script sets up a new Ubuntu Server to have all of the configuration and software that I need.
 
 set -euo pipefail # Exit on errors and undefined variables.
-set -x
+set -x            # Echo all commands to make debugging easier.
 
 # Constants
 GITHUB_USERNAME="Zamiell"
@@ -18,6 +18,15 @@ DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 # Other variables
 OS_USERNAME=$(id --name --user 1000)
+
+# ----------------
+# Helper functions
+# ----------------
+
+play_sound() {
+  amixer sset Master unmute &> /dev/null
+  play "/home/$OS_USERNAME/post-install/ff7.mp3" &> /dev/null
+}
 
 # ----------
 # Validation
@@ -36,22 +45,6 @@ if ! curl --silent --fail --location https://www.google.com &> /dev/null; then
   echo "Error: You must have an internet connection to run this script."
   exit 1
 fi
-
-# ----------------
-# Helper functions
-# ----------------
-
-bitwarden_login() {
-  if ! bw login --check &> /dev/null; then
-    # This command will prompt the user for the master password.
-    BW_SESSION=$(bw login $PERSONAL_EMAIL --raw)
-    export BW_SESSION
-  elif ! bw unlock --check &> /dev/null; then
-    # This command will prompt the user for the master password.
-    BW_SESSION=$(bw unlock --raw)
-    export BW_SESSION
-  fi
-}
 
 # ----
 # Main
@@ -75,12 +68,31 @@ if ! command -v bw &> /dev/null; then
   snap install bw
 fi
 
+# Login to BitWarden. (This command will prompt the user for the master password.)
+if [[ -z "${BW_SESSION:-}" ]]; then
+  play_sound # Signify that manual intervention is needed.
+
+  if ! bw login --check &> /dev/null; then
+    BW_SESSION=$(bw login $PERSONAL_EMAIL --raw)
+  else
+    BW_SESSION=$(bw unlock --raw)
+  fi
+
+  if [[ -z "$BW_SESSION" ]]; then
+    echo "Error: Failed to get the BitWarden session key." >&2
+    exit 1
+  fi
+
+  export BW_SESSION
+fi
+
 # Set up my environment variables.
 ENV_PATH="/home/$OS_USERNAME/.env"
 if [[ ! -f "$ENV_PATH" ]]; then
-  bitwarden_login
   bw get notes .env > "$ENV_PATH"
+  echo >> "$ENV_PATH"
 fi
+chown "$OS_USERNAME:$OS_USERNAME" "$ENV_PATH"
 # shellcheck source=/dev/null
 source "$ENV_PATH"
 
@@ -88,28 +100,28 @@ source "$ENV_PATH"
 mkdir --parents "/root/.ssh"
 ROOT_PRIVATE_KEY_PATH="/root/.ssh/id_rsa"
 if [[ ! -f "$ROOT_PRIVATE_KEY_PATH" ]]; then
-  bitwarden_login
   bw get notes ssh-private-key > "$ROOT_PRIVATE_KEY_PATH"
+  echo >> "$ROOT_PRIVATE_KEY_PATH"
   chmod 600 "$ROOT_PRIVATE_KEY_PATH"
 fi
 ROOT_PUBLIC_KEY_PATH="/root/.ssh/id_rsa.pub"
 if [[ ! -f "$ROOT_PUBLIC_KEY_PATH" ]]; then
-  bitwarden_login
   bw get notes ssh-public-key > "$ROOT_PUBLIC_KEY_PATH"
+  echo >> "$ROOT_PUBLIC_KEY_PATH"
 fi
 mkdir --parents "/home/$OS_USERNAME/.ssh"
 USER_PRIVATE_KEY_PATH="/home/$OS_USERNAME/.ssh/id_rsa"
 if [[ ! -f "$USER_PRIVATE_KEY_PATH" ]]; then
-  bitwarden_login
   bw get notes ssh-private-key > "$USER_PRIVATE_KEY_PATH"
+  echo >> "$USER_PRIVATE_KEY_PATH"
   chmod 600 "$USER_PRIVATE_KEY_PATH"
-  chown "$OS_USERNAME:$OS_USERNAME" "$REPOSITORIES_PATH"
+  chown "$OS_USERNAME:$OS_USERNAME" "$USER_PRIVATE_KEY_PATH"
 fi
 USER_PUBLIC_KEY_PATH="/home/$OS_USERNAME/.ssh/id_rsa.pub"
 if [[ ! -f "$USER_PUBLIC_KEY_PATH" ]]; then
-  bitwarden_login
   bw get notes ssh-public-key > "$USER_PUBLIC_KEY_PATH"
-  chown "$OS_USERNAME:$OS_USERNAME" "$REPOSITORIES_PATH"
+  echo >> "$USER_PUBLIC_KEY_PATH"
+  chown "$OS_USERNAME:$OS_USERNAME" "$USER_PUBLIC_KEY_PATH"
 fi
 
 # Connect to WiFi.
@@ -119,7 +131,6 @@ NETPLAN_FILE_PATH="/etc/netplan/$NETPLAN_FILE_NAME"
 if [[ ! -f "$NETPLAN_FILE_PATH" ]]; then
   cp "$DIR/netplan/$NETPLAN_FILE_NAME" "$NETPLAN_FILE_PATH"
   chmod 600 "$NETPLAN_FILE_PATH"
-  bitwarden_login
   WIFI_PASSWORD=$(bw get password wifi)
   sed --in-place "s/__PASSWORD__/$WIFI_PASSWORD/g" "$NETPLAN_FILE_PATH"
 fi
@@ -146,13 +157,6 @@ if ! command -v gh &> /dev/null; then
   gh config set git_protocol ssh
 fi
 
-# Set up the GitHub CLI token.
-if [[ -z "${GH_TOKEN:-}" ]]; then
-  bitwarden_login
-  GH_TOKEN=$(bw get password github-personal-access-token)
-  export GH_TOKEN
-fi
-
 # Set up the "repositories" directory.
 REPOSITORIES_PATH="/home/$OS_USERNAME/repositories"
 mkdir --parents "$REPOSITORIES_PATH"
@@ -167,5 +171,14 @@ if [[ ! -d "$CONFIGS_PATH" ]]; then
   chown --recursive "$OS_USERNAME:$OS_USERNAME" "$CONFIGS_PATH"
 fi
 
+# Overwrite the profile that was set up in the "autoinstall.yaml" file with the one from the
+# "configs" repository.
+PROFILE_PATH="/home/$OS_USERNAME/.profile"
+curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile > "$PROFILE_PATH"
+chown "$OS_USERNAME:$OS_USERNAME" "$PROFILE_PATH"
+
 # Clean up.
 rm -rf "$DIR"
+
+echo "Please log out and then log back in order to have the remote Bash profile take effect."
+play_sound

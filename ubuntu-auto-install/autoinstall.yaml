@@ -30,15 +30,7 @@ autoinstall:
 
     # Set the post-installation script to automatically run once the user logs in for the first
     # time.
-    - |
-      echo 'set -euo pipefail # Exit on errors and undefined variables.
-
-      FLAG_FILE="$HOME/.post-install-done"
-      if [ ! -f "$FLAG_FILE" ]; then
-        sudo "$HOME/post-install/post-install.sh"
-        touch "$FLAG_FILE"
-      fi
-      ' >> /target/home/jnesta/.profile
+    - echo 'sudo "$HOME/post-install/post-install.sh"' > /target/home/jnesta/.profile
 
     # Since the installer is running as root, the user's directory will be owned by root, so we have
     # to manually fix it. We have to use the numeric UID since the user does not exist on the
