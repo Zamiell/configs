@@ -174,11 +174,16 @@ fi
 # Overwrite the profile that was set up in the "autoinstall.yaml" file with the one from the
 # "configs" repository.
 PROFILE_PATH="/home/$OS_USERNAME/.profile"
-curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile > "$PROFILE_PATH"
-chown "$OS_USERNAME:$OS_USERNAME" "$PROFILE_PATH"
+if grep post-install.sh "$PROFILE_PATH"; then
+  curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile > "$PROFILE_PATH"
+  chown "$OS_USERNAME:$OS_USERNAME" "$PROFILE_PATH"
+fi
 
 # Clean up.
-rm -rf "$DIR"
+POST_INSTALL_PATH="/home/$OS_USERNAME/post-install"
+if [[ -d "$POST_INSTALL_PATH" ]]; then
+  rm -rf "$POST_INSTALL_PATH"
+fi
 
-echo "Please log out and then log back in order to have the remote Bash profile take effect."
 play_sound
+echo "Please log out and then log back in order to have the remote Bash profile take effect."
