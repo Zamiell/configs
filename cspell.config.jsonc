@@ -124,6 +124,7 @@
     "winget",
     "wmctrl",
     "wpasupplicant",
+    "xwayland",
     "Zamiell",
   ],
 }
