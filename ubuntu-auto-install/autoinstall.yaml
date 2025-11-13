@@ -10,7 +10,7 @@ autoinstall:
   # All cloud-init configurations must have an identity.
   identity:
     hostname: LH6224
-    username: &username jnesta
+    username: jnesta
     # cspell:disable-next-line
     password: $y$j9T$wD6g6uau8MzskrXlLYZ5A.$XeD3Wim4mOvC8JgFpKsivT5KlekvkscXAJaF1YzIkvC
 
@@ -25,13 +25,13 @@ autoinstall:
 
     # The installation USB drive is mounted at: /cdrom
     # The new root filesystem is at: /target
-    - mkdir /target/home/*username
-    - cp --recursive /cdrom/post-install /target/home/*username
+    - mkdir /target/home/jnesta
+    - cp --recursive /cdrom/post-install /target/home/jnesta
     # The user's directory will now be owned by the root user, so we have to manually fix it. We
     # have to use the numeric UID since the user does not exist on the installer. (The first account
     # on the system will always have a UID of 1000 and the first group on the system will always
     # have a UID of 1000.)
-    - chown --recursive 1000:1000 /target/home/*username
+    - chown --recursive 1000:1000 /target/home/jnesta
 
   # Stop the annoying network timeout on boot:
   # Job systemd-networkd-wait-online.service/start running (50s / no limit)

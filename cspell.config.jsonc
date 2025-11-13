@@ -1,9 +1,15 @@
 {
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
-  "import": ["@cspell/cspell-bundled-dicts"],
-  "files": ["**"],
-  "enableFiletypes": ["*"],
+  "import": [
+    "@cspell/cspell-bundled-dicts"
+  ],
+  "files": [
+    "**"
+  ],
+  "enableFiletypes": [
+    "*"
+  ],
   "enableGlobDot": true,
   "useGitignore": true,
   "ignorePaths": [
@@ -19,13 +25,14 @@
     "node_modules/**",
     "package-lock.json",
     "pnpm-lock.yaml",
-    "yarn.lock",
+    "yarn.lock"
   ],
   "words": [
     "authkey",
     "autoinstall",
     "azuredevops",
     "BEDROOTCA",
+    "BITWARDEN",
     "bunx",
     "cdrom",
     "certifi",
@@ -40,11 +47,13 @@
     "gblr",
     "gcam",
     "gfxpayload",
+    "githubcli",
     "gpclient",
     "grba",
     "grbc",
     "grbm",
     "grsh",
+    "grshm",
     "grva",
     "grvc",
     "grvl",
@@ -54,6 +63,7 @@
     "gstp",
     "gswc",
     "gswm",
+    "hushlogin",
     "ignorecase",
     "Intune",
     "jnesta",
@@ -71,6 +81,7 @@
     "mktemp",
     "MSYS",
     "Nemo",
+    "Nesta",
     "netplan",
     "networkd",
     "nohup",
@@ -88,6 +99,7 @@
     "wifis",
     "winget",
     "wmctrl",
-    "Zamiell",
-  ],
+    "wpasupplicant",
+    "Zamiell"
+  ]
 }
