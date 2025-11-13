@@ -99,6 +99,15 @@ if ! command -v bw &> /dev/null; then
   snap install bw
 fi
 
+# Set up my environment variables.
+ENV_PATH="/home/$OS_USERNAME/.env"
+if [[ ! -f "$ENV_PATH" ]]; then
+  bitwarden_login
+  bw get notes .env > "$ENV_PATH"
+fi
+# shellcheck source=/dev/null
+source "$ENV_PATH"
+
 # Set up my SSH keys.
 mkdir --parents "/root/.ssh"
 ROOT_PRIVATE_KEY_PATH="/root/.ssh/id_rsa"
@@ -118,11 +127,13 @@ if [[ ! -f "$USER_PRIVATE_KEY_PATH" ]]; then
   bitwarden_login
   bw get notes ssh-private-key > "$USER_PRIVATE_KEY_PATH"
   chmod 600 "$USER_PRIVATE_KEY_PATH"
+  chown "$OS_USERNAME:$OS_USERNAME" "$REPOSITORIES_PATH"
 fi
 USER_PUBLIC_KEY_PATH="/home/$OS_USERNAME/.ssh/id_rsa.pub"
 if [[ ! -f "$USER_PUBLIC_KEY_PATH" ]]; then
   bitwarden_login
   bw get notes ssh-public-key > "$USER_PUBLIC_KEY_PATH"
+  chown "$OS_USERNAME:$OS_USERNAME" "$REPOSITORIES_PATH"
 fi
 
 # Connect to WiFi.
@@ -154,6 +165,16 @@ if ! command -v gh &> /dev/null; then
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list &> /dev/null \
     && sudo apt update \
     && sudo apt install gh -y
+
+  # gh uses HTTPS by default.
+  gh config set git_protocol ssh
+fi
+
+# Set up the GitHub CLI token.
+if [[ -z "${GH_TOKEN:-}" ]]; then
+  bitwarden_login
+  GH_TOKEN=$(bw get password github-personal-access-token)
+  export GH_TOKEN
 fi
 
 # Set up the "repositories" directory.
@@ -164,11 +185,6 @@ chown --recursive "$OS_USERNAME:$OS_USERNAME" "$REPOSITORIES_PATH"
 # Clone this repository.
 CONFIGS_PATH="$REPOSITORIES_PATH/configs"
 if [[ ! -d "$CONFIGS_PATH" ]]; then
-  if [[ -z "${GH_TOKEN:-}" ]]; then
-    bitwarden_login
-    GH_TOKEN=$(bw get password github-personal-access-token)
-    export GH_TOKEN
-  fi
   gh repo clone Zamiell/configs "$CONFIGS_PATH"
   git -C "$CONFIGS_PATH" config user.name "$GITHUB_USERNAME"
   git -C "$CONFIGS_PATH" config user.email "$GITHUB_EMAIL"
