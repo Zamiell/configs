@@ -332,8 +332,8 @@ fi
 if ! command -v msedge &> /dev/null && [[ -s "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ]]; then
   export PATH="$PATH:/c/Program Files (x86)/Microsoft/Edge/Application"
 fi
-if ! command -v msedge &> /dev/null && command -v microsoft-edge-stable &> /dev/null; then
-  alias msedge="microsoft-edge-stable"
+if ! command -v msedge &> /dev/null && command -v microsoft-edge &> /dev/null; then
+  alias msedge="microsoft-edge"
 fi
 
 # Get the username is a platform-agnostic way.

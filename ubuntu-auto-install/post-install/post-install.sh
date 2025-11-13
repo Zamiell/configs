@@ -199,31 +199,53 @@ fi
 # Phase 3 - Applications
 # ----------------------
 
-# Install Microsoft Edge.
+# Install the Microsoft package signing key. (This is needed for Edge and Intune.)
 MICROSOFT_GPG_KEY_PATH="/usr/share/keyrings/microsoft-edge.gpg"
 if [[ ! -s "$MICROSOFT_GPG_KEY_PATH" ]]; then
   curl --silent --fail --show-error --location https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee "$MICROSOFT_GPG_KEY_PATH" > /dev/null
 fi
+
+# Install Microsoft Edge.
 MICROSOFT_EDGE_REPOSITORY_PATH="/etc/apt/sources.list.d/microsoft-edge.list"
 if [[ ! -s "$MICROSOFT_EDGE_REPOSITORY_PATH" ]]; then
   echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main' | sudo tee "$MICROSOFT_EDGE_REPOSITORY_PATH" > /dev/null
   sudo apt update
 fi
 if ! dpkg --status microsoft-edge-stable &> /dev/null; then
-  sudo apt install microsoft-edge-stable
+  sudo apt install microsoft-edge-stable --yes
 fi
 
 # Install Google Chrome.
 if ! dpkg --status google-chrome-stable_current_amd64 &> /dev/null; then
   GOOGLE_CHROME_PATH="/tmp/google-chrome.deb"
   curl --silent --fail --show-error --location --output "$GOOGLE_CHROME_PATH" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-  sudo apt install "$GOOGLE_CHROME_PATH"
+  sudo apt install "$GOOGLE_CHROME_PATH" --yes
   rm "$GOOGLE_CHROME_PATH"
 fi
 
 # Install Firefox.
 if ! snap info firefox | grep -q "^installed:"; then
   sudo snap install firefox
+fi
+
+# Install Microsoft Intune.
+if ! dpkg --status packages-microsoft-prod &> /dev/null; then
+  MICROSOFT_LINUX_REPOSITORY_PATH="/tmp/packages-microsoft-prod.deb"
+  curl --silent --fail --show-error --location --output "$MICROSOFT_LINUX_REPOSITORY_PATH" "https://packages.microsoft.com/config/$ID/$VERSION_ID/packages-microsoft-prod.deb"
+  sudo apt install "$MICROSOFT_LINUX_REPOSITORY_PATH" --yes
+  rm "$MICROSOFT_LINUX_REPOSITORY_PATH"
+  sudo apt update
+fi
+if ! dpkg --status intune-portal &> /dev/null; then
+  sudo apt install intune-portal --yes
+fi
+
+# Install the VPN client.
+if [[ ! -s "/etc/apt/sources.list.d/yuezk-ubuntu-globalprotect-openconnect-noble.sources" ]]; then
+  sudo add-apt-repository ppa:yuezk/globalprotect-openconnect --yes
+fi
+if ! dpkg --status globalprotect-openconnect &> /dev/null; then
+  sudo apt-get install globalprotect-openconnect --yes
 fi
 
 # -------
