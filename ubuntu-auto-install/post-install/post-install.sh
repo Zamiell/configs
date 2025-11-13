@@ -177,7 +177,7 @@ PROFILE_PATH="$HOME/.profile"
 if ! grep --quiet "exec dbus-run-session sway" "$PROFILE_PATH"; then
   echo '
 # Start the window manager.
-if [ -z "$WAYLAND_DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
+if [[ -z "$WAYLAND_DISPLAY" ]] && [[ "$XDG_VTNR" -eq 1 ]]; then
   exec dbus-run-session sway > ~/sway-startup.log 2>&1
 fi' >> "$PROFILE_PATH"
 fi
