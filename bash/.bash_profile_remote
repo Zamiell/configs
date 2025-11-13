@@ -370,7 +370,7 @@ if [[ $- == *i* ]]; then
   cd() {
     # We use the same flags as the "ll" alias.
     # (We do not use the alias directly for compatibility reasons.)
-    builtin cd "$@" && ls -a -h -l -F
+    builtin cd "$@" && ls -a -h -l -F --color=auto
   }
 fi
 
