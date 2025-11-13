@@ -414,7 +414,8 @@ explorer() (
 # - "-a" is short for "--all", which shows hidden files.
 # - "-h" is short for "--human-readable", which converts bytes to kilobytes and so on.
 # - "-F" is short for "--classify", which displays extra characters to signify the file type.
-alias ll="ls -a -h -l -F"
+# - "--color=auto" makes Ubuntu have the same colors that Git Bash for Windows does.
+alias ll="ls -a -h -l -F --color=auto"
 
 # "n" is short for "nuke".
 alias n="npx complete-cli@latest nuke"
