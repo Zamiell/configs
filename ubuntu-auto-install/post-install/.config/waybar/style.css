@@ -1,0 +1,43 @@
+* {
+  border: none;
+  font-family: sans-serif;
+  font-size: 13px;
+}
+
+window#waybar {
+  background-color: #222222;
+  color: #ffffff;
+}
+
+/* The Start Button */
+#custom-start {
+  background-color: #0078d7;
+  color: #ffffff;
+  padding: 0 10px;
+  margin-right: 5px;
+  font-size: 16px;
+}
+
+/* The Taskbar (Window List) */
+#taskbar button {
+  padding: 0 10px;
+  background-color: transparent;
+  color: #ffffff;
+  border-bottom: 3px solid transparent;
+}
+
+#taskbar button:hover {
+  background-color: #333333;
+}
+
+#taskbar button.active {
+  background-color: #333333;
+  border-bottom: 3px solid #0078d7;
+}
+
+/* Right side modules */
+#clock,
+#tray {
+  padding: 0 10px;
+  background-color: #222222;
+}

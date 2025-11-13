@@ -20,7 +20,7 @@ const config = {
     },
 
     {
-      files: [".bash_profile_remote"],
+      files: [".bash_profile", ".bash_profile_remote"],
       options: {
         parser: "sh",
       },

@@ -10,6 +10,7 @@
 
   "files.associations": {
     ".env*": "shellscript", // e.g. ".env.example" is the same as ".env".
+    "**/sway/config": "i3",
   },
 
   // We want to always use "lf" to be consistent with all platforms.
@@ -33,6 +34,17 @@
     "pnpm-lock.yaml": true,
     "yarn.lock": true,
   },
+
+  // Needed to suppress "jsonc(519)" warnings since Waybar config files do not have a schema.
+  // https://github.com/Alexays/Waybar/issues/4481
+  "json.schemas": [
+    {
+      "fileMatch": ["*.jsonc"],
+      "schema": {
+        "allowTrailingCommas": true,
+      },
+    },
+  ],
 
   // ------------------
   // Extension settings

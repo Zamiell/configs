@@ -167,7 +167,7 @@ fi
 BASHRC_PATH="$HOME/.bashrc"
 if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
   echo >> "$BASHRC_PATH"
-  curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> "$BASHRC_PATH"
+  curl --silent --fail --show-error "$CONFIGS_PATH/bash/.bash_profile" >> "$BASHRC_PATH"
 fi
 
 # -------------
@@ -175,13 +175,21 @@ fi
 # -------------
 
 # Install a desktop environment.
-# - sway     - The window manager.
+# - sway     - Window manager
 # - xwayland - A compatibility layer for X11 applications. By default, sway will enable xwayland, so
 #              even if we do not have any X11 applications, it is still needed to prevent errors.
-# - foot     - The terminal.
-sudo apt install sway xwayland foot --yes
+# - foot     - Terminal
+# - waybar   - Taskbar
+sudo apt install sway xwayland foot waybar --yes
 
-# Set sway on startup.
+# Copy the Sway config.
+mkdir --parents "$HOME/.config/sway"
+SWAY_CONFIG_PATH="$HOME/.config/sway/config"
+if [[ -s "$SWAY_CONFIG_PATH" ]]; then
+  cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/sway/config" "$SWAY_CONFIG_PATH"
+fi
+
+# Open Sway on startup.
 PROFILE_PATH="$HOME/.profile"
 # shellcheck disable=SC2016
 if ! grep --quiet "exec dbus-run-session sway" "$PROFILE_PATH"; then
@@ -193,6 +201,13 @@ if [[ -z "$WAYLAND_DISPLAY" ]] && [[ "$XDG_VTNR" -eq 1 ]]; then
   # dbus-daemon[1382]: [session uid=1000 pid=1382] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
   # dbus-update-activation-environment: warning: error sending to systemd: org.freedesktop.DBus.Error.Spawn.ChildExited: Process org.freedesktop.systemd1 exited with status 1
 fi' >> "$PROFILE_PATH"
+fi
+
+# Copy the Waybar config.
+mkdir --parents "$HOME/.config/waybar"
+WAYBAR_CONFIG_PATH="$HOME/.config/waybar/config.jsonc"
+if [[ -s "$WAYBAR_CONFIG_PATH" ]]; then
+  cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/config.jsonc" "$WAYBAR_CONFIG_PATH"
 fi
 
 # ----------------------
