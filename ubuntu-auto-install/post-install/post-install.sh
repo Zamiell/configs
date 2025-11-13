@@ -209,6 +209,8 @@ if [[ -f "$SUDOERS_FILE_PATH" ]]; then
   sudo rm "$SUDOERS_FILE_PATH"
 fi
 
-# We want to reboot so that the new Ubuntu kernel can take effect. (There is a warning about this
-# when SSHing to the machine.)
-reboot
+# The "apt upgrade" above might have downloaded a new kernel, which would need a reboot to take
+# effect.
+if [[ -f /var/run/reboot-required ]]; then
+  reboot
+fi
