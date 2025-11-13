@@ -27,10 +27,23 @@ autoinstall:
     # The new root filesystem is at: /target
     - mkdir /target/home/jnesta
     - cp --recursive /cdrom/post-install /target/home/jnesta
-    # The user's directory will now be owned by the root user, so we have to manually fix it. We
-    # have to use the numeric UID since the user does not exist on the installer. (The first account
-    # on the system will always have a UID of 1000 and the first group on the system will always
-    # have a UID of 1000.)
+
+    # Set the post-installation script to automatically run once the user logs in for the first
+    # time.
+    - |
+      echo 'set -euo pipefail # Exit on errors and undefined variables.
+
+      FLAG_FILE="$HOME/.post-install-done"
+      if [ ! -f "$FLAG_FILE" ]; then
+        sudo "$HOME/post-install/post-install.sh"
+        touch "$FLAG_FILE"
+      fi
+      ' >> /target/home/jnesta/.profile
+
+    # Since the installer is running as root, the user's directory will be owned by root, so we have
+    # to manually fix it. We have to use the numeric UID since the user does not exist on the
+    # installer. (The first account on the system will always have a UID of 1000 and the first group
+    # on the system will always have a UID of 1000.)
     - chown --recursive 1000:1000 /target/home/jnesta
 
   # Stop the annoying network timeout on boot:

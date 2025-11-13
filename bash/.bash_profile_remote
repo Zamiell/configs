@@ -1628,6 +1628,7 @@ grshm() (
   fi
 
   git reset --hard "origin/$main_branch_name"
+  git push --force
 )
 
 # "grv" is short for "git revert".

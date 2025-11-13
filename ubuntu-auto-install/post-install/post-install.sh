@@ -53,37 +53,13 @@ bitwarden_login() {
   fi
 }
 
-is_apt_update_needed() {
-  local lists_dir="/var/lib/apt/lists"
-
-  if [ ! -d "$lists_dir" ]; then
-    return 0 # True
-  fi
-
-  local now
-  now=$(date +%s)
-  local last_update
-  last_update=$(stat -c %Y "$lists_dir")
-  local age
-  age=$((now - last_update))
-
-  local max_age="86400" # 24 hours
-  if ((age > max_age)); then
-    return 0 # True
-  fi
-
-  return 1 # False
-}
-
 # ----
 # Main
 # ----
 
 # Patch the OS.
-if is_apt_update_needed; then
-  apt update
-  apt upgrade --yes
-fi
+apt update
+apt upgrade --yes
 
 # Install SSH.
 # https://documentation.ubuntu.com/server/how-to/security/openssh-server/index.html
