@@ -105,19 +105,6 @@ if [[ ! -s "$PUBLIC_KEY_PATH" ]]; then
   echo >> "$PUBLIC_KEY_PATH"
 fi
 
-# Connect to WiFi.
-if ! dpkg --status wpasupplicant &> /dev/null; then
-  sudo apt install wpasupplicant --yes
-fi
-NETPLAN_FILE_NAME="99-wifi.yaml"
-NETPLAN_FILE_PATH="/etc/netplan/$NETPLAN_FILE_NAME"
-if [[ ! -s "$NETPLAN_FILE_PATH" ]]; then
-  sudo cp "$DIR/etc/netplan/$NETPLAN_FILE_NAME" "$NETPLAN_FILE_PATH"
-  sudo chmod 600 "$NETPLAN_FILE_PATH"
-  WIFI_PASSWORD=$(bw get password wifi --session "$BW_SESSION")
-  sudo sed --in-place "s/__PASSWORD__/$WIFI_PASSWORD/g" "$NETPLAN_FILE_PATH"
-fi
-
 # Install Git.
 if ! command -v git &> /dev/null; then
   sudo apt install git --yes
@@ -167,7 +154,20 @@ fi
 BASHRC_PATH="$HOME/.bashrc"
 if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
   echo >> "$BASHRC_PATH"
-  curl --silent --fail --show-error "$CONFIGS_PATH/bash/.bash_profile" >> "$BASHRC_PATH"
+  cp "$CONFIGS_PATH/bash/.bash_profile" "$BASHRC_PATH"
+fi
+
+# Connect to WiFi. (See the comment above about requiring a wired connection.)
+if ! dpkg --status wpasupplicant &> /dev/null; then
+  sudo apt install wpasupplicant --yes
+fi
+NETPLAN_FILE_NAME="99-wifi.yaml"
+NETPLAN_FILE_PATH="/etc/netplan/$NETPLAN_FILE_NAME"
+if [[ ! -s "$NETPLAN_FILE_PATH" ]]; then
+  sudo cp "$DIR/etc/netplan/$NETPLAN_FILE_NAME" "$NETPLAN_FILE_PATH"
+  sudo chmod 600 "$NETPLAN_FILE_PATH"
+  WIFI_PASSWORD=$(bw get password wifi --session "$BW_SESSION")
+  sudo sed --in-place "s/__PASSWORD__/$WIFI_PASSWORD/g" "$NETPLAN_FILE_PATH"
 fi
 
 # -------------
@@ -184,10 +184,7 @@ sudo apt install sway xwayland foot waybar --yes
 
 # Copy the Sway config.
 mkdir --parents "$HOME/.config/sway"
-SWAY_CONFIG_PATH="$HOME/.config/sway/config"
-if [[ -s "$SWAY_CONFIG_PATH" ]]; then
-  cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/sway/config" "$SWAY_CONFIG_PATH"
-fi
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/sway/config" "$HOME/.config/sway/config"
 
 # Open Sway on startup.
 PROFILE_PATH="$HOME/.profile"
@@ -205,10 +202,8 @@ fi
 
 # Copy the Waybar config.
 mkdir --parents "$HOME/.config/waybar"
-WAYBAR_CONFIG_PATH="$HOME/.config/waybar/config.jsonc"
-if [[ -s "$WAYBAR_CONFIG_PATH" ]]; then
-  cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/config.jsonc" "$WAYBAR_CONFIG_PATH"
-fi
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/config.jsonc" "$HOME/.config/waybar/config.jsonc"
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/style.css" "$HOME/.config/waybar/style.css"
 
 # ----------------------
 # Phase 3 - Applications
