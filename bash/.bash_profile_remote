@@ -1897,7 +1897,12 @@ alias tv="terraform validate"
 # Only change the prompt if the shell is interactive.
 if [[ $- == *i* ]]; then
   if ! command -v __git_ps1 &> /dev/null; then
-    if [[ -s "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh" ]]; then
+    if [[ -s "/usr/lib/git-core/git-sh-prompt" ]]; then
+      # This is the standard location on Ubuntu.
+      # shellcheck source=/dev/null
+      source "/usr/lib/git-core/git-sh-prompt"
+    elif [[ -s "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh" ]]; then
+      # This is the standard location on macOS.
       # shellcheck source=/dev/null
       source "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh"
     else
