@@ -199,6 +199,8 @@ echo "Hidden=true" >> ~/.config/autostart/org.kde.discover.notifier.desktop
 
 # Right click taskbar --> Enter Edit Mode --> Mouse over system tray --> Configure --> Entries -->
 # Check "Always show all entries"
+kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key showAllItems true
+
 # By default, the following icons are shown:
 # - Volume (org.kde.plasma.volume)
 # - Networks (org.kde.plasma.networkmanagement)
@@ -210,7 +212,28 @@ echo "Hidden=true" >> ~/.config/autostart/org.kde.discover.notifier.desktop
 # - Battery and Brightness (org.kde.plasma.battery)
 # - Disks & Devices (org.kde.plasma.devicenotifier)
 # - Display Configuration (org.kde.kscreen)
-kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key showAllItems true
+# Now that every icon is shown from the previous change, we can get rid of the specific ones that we
+# do not want to see. "extraItems" controls which applets are actually shown in the system tray. The
+# default value is:
+# org.kde.plasma.networkmanagement,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.devicenotifier,org.kde.plasma.keyboardlayout,org.kde.kupapplet,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.battery,org.kde.plasma.clipboard,org.kde.plasma.vault,org.kde.plasma.notifications,org.kde.kscreen
+# We want to remove the following:
+# - Notifications (org.kde.plasma.notifications)
+# - Clipboard (org.kde.plasma.clipboard)
+# - Vaults (org.kde.plasma.vault)
+kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key extraItems "org.kde.plasma.networkmanagement,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.devicenotifier,org.kde.plasma.keyboardlayout,org.kde.kupapplet,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.battery,org.kde.kscreen"
+
+# Right click clock --> Configure Digital Clock --> Appearance --> Uncheck "Show date"
+kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key showDate false
+
+# Right click clock --> Configure Digital Clock --> Appearance --> Text display: Manual (8pt Noto Sans)
+# (The default is 10pt Noto Sans.)
+kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key autoFontAndSize false
+kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontFamily "Noto Sans"
+kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontSize 8
+kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontStyleName Regular
+
+# Get rid of the "Peek at Desktop" button in the bottom-right corner.
+qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "panels()[0].widgets().forEach(w => { if (w.type == 'org.kde.plasma.showdesktop') w.remove() })"
 
 # Settings --> Workspace Behavior --> Screen Locking --> Uncheck "After 5 minutes"
 kwriteconfig5 --file ~/.config/kscreenlockerrc --group Daemon --key Autolock false
@@ -219,9 +242,6 @@ kwriteconfig5 --file ~/.config/kscreenlockerrc --group Daemon --key Autolock fal
 # Change "Press bottom-right-corner" to "Press anywhere with two fingers"
 kwriteconfig5 --file ~/.config/touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
 kwriteconfig5 --file ~/.config/touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
-
-# Get rid of the "Peek at Desktop" button in the bottom-right corner.
-qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "panels()[0].widgets().forEach(w => { if (w.type == 'org.kde.plasma.showdesktop') w.remove() })"
 
 # Unfortunately, "systemctl restart --user plasma-plasmashell.service" does not work to make GUI
 # setting changes take effect, so we have to wait for the next reboot. (This was tested with the
