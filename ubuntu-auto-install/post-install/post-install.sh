@@ -235,6 +235,7 @@ if [[ ! -s "$NETWORK_MANAGER_YAML_PATH" ]]; then
 fi
 
 # Copy the Simple Desktop Display Manager (SDDM) config. (SDDM is the login manager.)
+# (This handles automatic login.)
 sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/sddm.conf" /etc/
 
 # Disable Bluetooth. (This will automatically remove the Bluetooth icon from the system tray.)
@@ -258,14 +259,33 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # In order to find the files corresponding to GUI settings, use this command:
   # find ~/.config -type f -mmin -1
 
-  # Right click start menu / application launcher --> Configure Application Launcher --> General -->
-  # Icon --> Choose --> Browse --> [png file]
-  cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/windows10.png" "$HOME/.config/"
-  kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 3 --group Configuration --group General --key icon /home/jnesta/.config/windows10.png
+  # --------
+  # Explorer
+  # --------
 
-  # Right click taskbar --> Enter Edit Mode --> Mouse over system tray --> Configure --> Entries -->
-  # Check "Always show all entries"
-  kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key showAllItems true
+  # KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
+  kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
+
+  # ------------------------------------------
+  # Start Menu + Taskbar + System Tray + Clock
+  # ------------------------------------------
+
+  # Changing the configuration for these things from the CLI is brittle because the numeric
+  # groupings can change. Thus, we revert to setting things up in the way that we want and then
+  # backing up the configuration file.
+  cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/windows10.png" "$HOME/.config/"
+  cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/plasma-org.kde.plasma.desktop-appletsrc" "$HOME/.config/"
+
+  # Start Menu:
+  # - Right click start menu / application launcher --> Configure Application Launcher --> General
+  #   --> Icon --> Choose --> Browse --> [windows10.png]
+
+  # Taskbar:
+  # - Replace the "Icons-only Task Manager" widget with "Task Manager".
+
+  # System Tray:
+  # - Right click taskbar --> Enter Edit Mode --> Mouse over system tray --> Configure --> Entries
+  #   --> Check "Always show all entries"
 
   # By default, the following icons are shown:
   # - Volume (org.kde.plasma.volume)
@@ -287,23 +307,19 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # - Clipboard (org.kde.plasma.clipboard)
   # - Vaults (org.kde.plasma.vault)
   # - Display Configuration (org.kde.kscreen)
-  kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key extraItems "org.kde.plasma.networkmanagement,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.devicenotifier,org.kde.plasma.keyboardlayout,org.kde.kupapplet,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.battery"
 
-  # Right click clock --> Configure Digital Clock --> Appearance --> Uncheck "Show date"
-  kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key showDate false
+  # Clock:
+  # - Right click clock --> Configure Digital Clock --> Appearance --> Uncheck "Show date"
+  # - Right click clock --> Configure Digital Clock --> Appearance --> Text display: Manual (8pt
+  #   Noto Sans)
+  #   (The default is 10pt Noto Sans.)
 
-  # Right click clock --> Configure Digital Clock --> Appearance --> Text display: Manual (8pt Noto Sans)
-  # (The default is 10pt Noto Sans.)
-  kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key autoFontAndSize false
-  kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontFamily "Noto Sans"
-  kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontSize 8
-  kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontStyleName Regular
+  # Peek at Desktop
+  # - Remove.
 
-  # Get rid of the "Peek at Desktop" button in the bottom-right corner.
-  PLASMASHELL_METHOD="org.kde.PlasmaShell.evaluateScript"
-  if qdbus org.kde.plasmashell /PlasmaShell | grep --quiet "$PLASMASHELL_METHOD"; then
-    qdbus org.kde.plasmashell /PlasmaShell "$PLASMASHELL_METHOD" "panels()[0].widgets().forEach(w => { if (w.type == 'org.kde.plasma.showdesktop') w.remove() })"
-  fi
+  # -----
+  # Other
+  # -----
 
   # Settings --> Workspace Behavior --> Screen Locking --> Uncheck "After 5 minutes"
   kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
@@ -313,8 +329,9 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
 
-  # KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
-  kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
+  # -------
+  # Cleanup
+  # -------
 
   # We do not want this script to run on every boot.
   if [[ -f "$FIRST_LOGIN_SETUP_DESKTOP_PATH" ]]; then
