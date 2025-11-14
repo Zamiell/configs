@@ -42,9 +42,9 @@ bitwarden_login() {
   # Disable command echoing in this function to prevent sensitive information from showing on the
   # screen.
   set +x
-  trap 'set -x' EXIT
 
   if [[ -n "${BW_SESSION:-}" ]]; then
+    set -x
     return
   fi
 
@@ -79,8 +79,11 @@ bitwarden_login() {
 
   if [[ -z "$BW_SESSION" ]]; then
     echo "Error: Failed to get a BitWarden session key." >&2
+    set -x
     return 1
   fi
+
+  set -x
 }
 
 # -----------------
