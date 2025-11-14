@@ -22,9 +22,17 @@ autoinstall:
     - cp --recursive /cdrom/post-install /target/post-install
     - chmod +x /target/post-install/post-install.sh
 
+    # Write the BitWarden API client secret to disk so that the post-installation script can use it.
+    # (This will be deleted later by the post-installation script.)
+    - echo "hunter2" > /target/post-install/bitwarden_api_client_secret
+
     # Set automatic login.
     - sudo mkdir --parents /target/etc/systemd/system/getty@tty1.service.d
     - cp /cdrom/post-install/etc/systemd/override.conf /target/etc/systemd/system/getty@tty1.service.d/override.conf
+
+    # By default, SSH host keys and other information is printed to the console around 30 settings
+    # after the first boot, which is confusing/distracting.
+    - touch /etc/cloud/cloud-init.disabled
 
   # Stop the annoying network timeout on boot:
   # Job systemd-networkd-wait-online.service/start running (50s / no limit)
@@ -46,28 +54,19 @@ autoinstall:
   storage:
     layout:
       name: lvm
-      password: hunter2
+      password: "hunter2"
 
   # This section is passed to the installed system's cloud-init.
   user-data:
-    # These commands run on the first boot.
+    # These commands run on the first boot. (They run instantly as the root user.)
     runcmd:
-      # By default, SSH host keys and other information is printed to the console around 30 settings
-      # after the first boot, which is confusing/distracting. Since cloud-init has already created
-      # our user at this point, we do not need it to be enabled anymore.
-      - touch /etc/cloud/cloud-init.disabled
-
       # Set the post-installation script to automatically run once the user logs in for the first
-      # time.
+      # time. (We do not do this in the "late-commands" section because the initial ".profile" needs
+      # to be created by the operating system first.)
       - echo "# --- TEMP ---" >> /home/jnesta/.profile
       - echo "/post-install/post-install.sh" >> /home/jnesta/.profile
       - echo "# --- TEMP ---" >> /home/jnesta/.profile
       - chown 1000:1000 /home/jnesta/.profile
-
-      # Write the BitWarden master password to disk so that the post-installation script can use it.
-      # (This will be deleted later by the post-installation script.)
-      - echo 'hunter2' >> /home/jnesta/bitwarden_password
-      - chown 1000:1000 /home/jnesta/bitwarden_password
 
     # Make it so that the user does not require a password to use sudo so that the post-installation
     # script can be completely automated. (This will be changed back to the default at the end of

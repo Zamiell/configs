@@ -7,10 +7,10 @@ set -x            # Echo commands for easier troubleshooting.
 
 # Constants
 FULL_NAME="James Nesta"
-PERSONAL_EMAIL="j.nesta@gmail.com"
 WORK_EMAIL="jnesta@logixhealth.com"
 GITHUB_EMAIL="5511220+Zamiell@users.noreply.github.com"
 GITHUB_USERNAME="Zamiell"
+export BW_CLIENTID="user.c73c6208-71e9-48f5-ac11-b3940010eeee"
 
 # ----------
 # Validation
@@ -26,7 +26,10 @@ fi
 # needs to match the existing system and would quickly get out of date.) Thus, we require a wired
 # connection.
 if ! curl --silent --fail --location https://www.google.com &> /dev/null; then
+  # Make the error message easy to see so that it does not get lost in the spam of the initial boot.
+  echo "---------------------------------------------------------------"
   echo "Error: You must have an internet connection to run this script."
+  echo "---------------------------------------------------------------"
   exit 1
 fi
 
@@ -64,19 +67,19 @@ fi
 
 # Login to BitWarden. (This command will prompt the user for the master password.)
 if [[ -z "${BW_SESSION:-}" ]]; then
-  BITWARDEN_PASSWORD_ARG=()
-  if [[ -f "$HOME/bitwarden_password" ]]; then
-    BITWARDEN_PASSWORD_ARG=(--passwordfile "$HOME/bitwarden_password")
+  if [[ -z "${BW_CLIENTSECRET:-}" ]]; then
+    BW_CLIENTSECRET=$(cat /post-install/bitwarden_api_client_secret)
   fi
+  export BW_CLIENTSECRET
 
   if bw login --check &> /dev/null; then
-    BW_SESSION=$(bw unlock --raw "${BITWARDEN_PASSWORD_ARG[@]}")
+    BW_SESSION=$(bw unlock --raw)
   else
-    BW_SESSION=$(bw login "$PERSONAL_EMAIL" --raw "${BITWARDEN_PASSWORD_ARG[@]}")
+    BW_SESSION=$(bw login --apikey --raw)
   fi
 
   if [[ -z "$BW_SESSION" ]]; then
-    echo "Error: Failed to get the BitWarden session key." >&2
+    echo "Error: Failed to get a BitWarden session key." >&2
     exit 1
   fi
 fi
