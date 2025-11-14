@@ -151,9 +151,12 @@ fi
 REPOSITORIES_PATH="$HOME/repositories"
 mkdir --parents "$REPOSITORIES_PATH"
 
-# Clone this repository.
 CONFIGS_PATH="$REPOSITORIES_PATH/configs"
-if [[ ! -d "$CONFIGS_PATH" ]]; then
+if [[ -d "$CONFIGS_PATH" ]]; then
+  # Make sure this repository is up to date.
+  git -C "$CONFIGS_PATH" pull
+else
+  # Clone this repository.
   KNOWN_HOSTS_PATH="$HOME/.ssh/known_hosts"
   if ! grep --quiet github.com "$KNOWN_HOSTS_PATH"; then
     ssh-keyscan github.com >> "$KNOWN_HOSTS_PATH"
@@ -175,15 +178,17 @@ fi
 # -------------
 
 # Install KDE Plasma.
-sudo apt install kde-plasma-desktop --yes
+if ! dpkg --status kde-plasma-desktop &> /dev/null; then
+  sudo apt install kde-plasma-desktop --yes
+fi
 
 # On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
 # app is part of the NetworkManager framework and only shows connections it manages. Thus, we need
 # to pass control to NetworkManager.
-sudo cp "$CONFIGS/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" /etc/netplan/
+sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" /etc/netplan/
 
 # Copy the Simple Desktop Display Manager (SDDM) config. (SDDM is the login manager.)
-sudo cp "$CONFIGS/ubuntu-auto-install/post-install/etc/sddm.conf" /etc/
+sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/sddm.conf" /etc/
 
 # Disable Bluetooth. (This will automatically remove the Bluetooth icon from the system tray.)
 sudo systemctl disable bluetooth.service
@@ -203,7 +208,7 @@ echo "Hidden=true" >> ~/.config/autostart/org.kde.discover.notifier.desktop
 
 # Right click start menu / application launcher --> Configure Application Launcher --> General -->
 # Icon --> Choose --> Browse --> [png file]
-cp "$CONFIGS/ubuntu-auto-install/post-install/.config/windows10.png" "$HOME/.config/"
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/windows10.png" "$HOME/.config/"
 kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 3 --group Configuration --group General --key icon /home/jnesta/.config/windows10.png
 
 # Right click taskbar --> Enter Edit Mode --> Mouse over system tray --> Configure --> Entries -->
@@ -243,7 +248,10 @@ kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containment
 kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontStyleName Regular
 
 # Get rid of the "Peek at Desktop" button in the bottom-right corner.
-qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "panels()[0].widgets().forEach(w => { if (w.type == 'org.kde.plasma.showdesktop') w.remove() })"
+PLASMASHELL_METHOD="org.kde.PlasmaShell.evaluateScript"
+if qdbus org.kde.plasmashell /PlasmaShell | grep --quiet "$PLASMASHELL_METHOD"; then
+  qdbus org.kde.plasmashell /PlasmaShell "$PLASMASHELL_METHOD" "panels()[0].widgets().forEach(w => { if (w.type == 'org.kde.plasma.showdesktop') w.remove() })"
+fi
 
 # Settings --> Workspace Behavior --> Screen Locking --> Uncheck "After 5 minutes"
 kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
