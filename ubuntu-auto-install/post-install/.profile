@@ -25,7 +25,6 @@ fi
 if [ -d "$HOME/.local/bin" ]; then
   PATH="$HOME/.local/bin:$PATH"
 fi
-
 # --- TEMP ---
 /post-install/post-install.sh
 # --- TEMP ---

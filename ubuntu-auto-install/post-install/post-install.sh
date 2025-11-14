@@ -63,7 +63,7 @@ bitwarden_login() {
       # "-s" is for silent mode, which hides the input.
       # "-r" is recommended by shellcheck.
       # "-p" is to provide a prompt.
-      read -s -r -p "Type in your BitWarden master password: " BW_PASSWORD
+      read -s -r -p "Type in your BitWarden master password and press enter. (The input will be masked.) " BW_PASSWORD && echo
     fi
   fi
 
@@ -270,9 +270,9 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # - Battery and Brightness (org.kde.plasma.battery)
   # - Disks & Devices (org.kde.plasma.devicenotifier)
   # - Display Configuration (org.kde.kscreen)
-  # Now that every icon is shown from the previous change, we can get rid of the specific ones that we
-  # do not want to see. "extraItems" controls which applets are actually shown in the system tray. The
-  # default value is:
+  # Now that every icon is shown from the previous change, we can get rid of the specific ones that
+  # we do not want to see. "extraItems" controls which applets are actually shown in the system
+  # tray. The default value is:
   # org.kde.plasma.networkmanagement,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.devicenotifier,org.kde.plasma.keyboardlayout,org.kde.kupapplet,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.battery,org.kde.plasma.clipboard,org.kde.plasma.vault,org.kde.plasma.notifications,org.kde.kscreen
   # We want to remove the following:
   # - Notifications (org.kde.plasma.notifications)
