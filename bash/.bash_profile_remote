@@ -1911,7 +1911,7 @@ if [[ $- == *i* ]]; then
     fi
   fi
 
-  if [ -s /etc/os-release ]; then
+  if [[ -s "/etc/os-release" ]]; then
     # shellcheck source=/dev/null
     source /etc/os-release
   fi
