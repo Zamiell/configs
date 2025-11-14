@@ -1,8 +1,0 @@
-network:
-  version: 2
-  wifis:
-    wlp0s20f3:
-      dhcp4: yes
-      access-points:
-        poop:
-          password: __PASSWORD__

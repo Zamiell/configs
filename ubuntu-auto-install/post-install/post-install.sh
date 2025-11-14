@@ -12,10 +12,6 @@ WORK_EMAIL="jnesta@logixhealth.com"
 GITHUB_EMAIL="5511220+Zamiell@users.noreply.github.com"
 GITHUB_USERNAME="Zamiell"
 
-# Get the directory of this script:
-# https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
-DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-
 # ----------
 # Validation
 # ----------
@@ -160,19 +156,6 @@ if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
   cp "$CONFIGS_PATH/bash/.bash_profile" "$BASHRC_PATH"
 fi
 
-# Connect to WiFi. (See the comment above about requiring a wired connection.)
-if ! dpkg --status wpasupplicant &> /dev/null; then
-  sudo apt install wpasupplicant --yes
-fi
-NETPLAN_FILE_NAME="99-wifi.yaml"
-NETPLAN_FILE_PATH="/etc/netplan/$NETPLAN_FILE_NAME"
-if [[ ! -s "$NETPLAN_FILE_PATH" ]]; then
-  sudo cp "$DIR/etc/netplan/$NETPLAN_FILE_NAME" "$NETPLAN_FILE_PATH"
-  sudo chmod 600 "$NETPLAN_FILE_PATH"
-  WIFI_PASSWORD=$(bw get password wifi --session "$BW_SESSION")
-  sudo sed --in-place "s/__PASSWORD__/$WIFI_PASSWORD/g" "$NETPLAN_FILE_PATH"
-fi
-
 # -------------
 # Phase 2 - GUI
 # -------------
@@ -180,8 +163,13 @@ fi
 # Install KDE Plasma.
 sudo apt install kde-plasma-desktop
 
+# On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
+# app is part of the NetworkManager framework and only shows connections it manages. Thus, we need
+# to pass control to NetworkManager.
+sudo cp "$CONFIGS/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" /etc/netplan/
+
 # Copy the Simple Desktop Display Manager (SDDM) config. (SDDM is the login manager.)
-sudo cp "$CONFIGS/ubuntu-auto-install/post-install/etc/sddm.conf" /etc/sddm.conf
+sudo cp "$CONFIGS/ubuntu-auto-install/post-install/etc/sddm.conf" /etc/
 
 # Disable Bluetooth. (This will automatically remove the Bluetooth icon from the system tray.)
 sudo systemctl disable bluetooth.service
