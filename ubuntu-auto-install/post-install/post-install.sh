@@ -42,6 +42,9 @@ fi
 # shellcheck source=/dev/null
 source /etc/os-release
 
+# Set the timezone.
+sudo timedatectl set-timezone America/New_York
+
 # Patch the OS.
 sudo apt update
 sudo apt upgrade --yes
@@ -178,9 +181,10 @@ fi
 # - sway     - Window manager
 # - xwayland - A compatibility layer for X11 applications. By default, sway will enable xwayland, so
 #              even if we do not have any X11 applications, it is still needed to prevent errors.
-# - foot     - Terminal
 # - waybar   - Taskbar
-sudo apt install sway xwayland foot waybar --yes
+# - wofi     - Start menu
+# - foot     - Terminal
+sudo apt install sway xwayland waybar wofi foot --yes
 
 # Copy the Sway config.
 mkdir --parents "$HOME/.config/sway"
@@ -204,6 +208,11 @@ fi
 mkdir --parents "$HOME/.config/waybar"
 cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/config.jsonc" "$HOME/.config/waybar/config.jsonc"
 cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/style.css" "$HOME/.config/waybar/style.css"
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/windows10.png" "$HOME/.config/waybar/windows10.png"
+
+# Copy the foot config.
+mkdir --parents "$HOME/.config/foot"
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/foot/foot.ini" "$HOME/.config/foot/foot.ini"
 
 # ----------------------
 # Phase 3 - Applications
