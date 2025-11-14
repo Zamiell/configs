@@ -1,0 +1,13 @@
+# This file will cause KDE Plasma to run the post-installation script when the user has logged in to
+# the GUI for the first time. (The script will remove this file after it is finished running so that
+# the script does not run on every boot.)
+[Desktop Entry]
+Type=Application
+Name=KDE First-Run Setup
+Comment=Applies custom GUI settings on first login
+Exec=/home/jnesta/repositories/config/post-install/post-install.sh
+Terminal=true
+OnlyShowIn=KDE;
+X-KDE-Autostart-enabled=true
+# This is the final phase that runs after the full desktop environment is initialized and running.
+X-KDE-Autostart-Phase=3

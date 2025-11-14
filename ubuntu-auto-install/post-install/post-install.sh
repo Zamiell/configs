@@ -39,6 +39,11 @@ fi
 # ----------------
 
 bitwarden_login() {
+  # Disable command echoing in this function to prevent sensitive information from showing on the
+  # screen.
+  set +x
+  trap 'set -x' EXIT
+
   if [[ -n "${BW_SESSION:-}" ]]; then
     return
   fi
@@ -64,19 +69,13 @@ bitwarden_login() {
 
   if ! bw login --check &> /dev/null; then
     if [[ -n "${BW_CLIENTSECRET:-}" ]]; then
-      set +x
       BW_CLIENTID="$BW_CLIENTID" BW_CLIENTSECRET="$BW_CLIENTSECRET" bw login --apikey
-      set -x
     else
-      set +x
       echo "$BW_PASSWORD" | bw login "$PERSONAL_EMAIL"
-      set -x
     fi
   fi
 
-  set +x
   BW_SESSION=$(echo "$BW_PASSWORD" | bw unlock --raw)
-  set -x
 
   if [[ -z "$BW_SESSION" ]]; then
     echo "Error: Failed to get a BitWarden session key." >&2
@@ -231,7 +230,8 @@ echo "Hidden=true" >> ~/.config/autostart/org.kde.discover.notifier.desktop
 
 # The rest of GUI configuration uses the `kwriteconfig5` command, which requires that the user has
 # logged on to the system at least once so that the relevant files in the ".config" directory get
-# created. This script should be executed again on the next boot. (It is designed to be idempotent.)
+# created.
+FIRST_LOGIN_SETUP_DESKTOP_PATH="$HOME/.config/autostart/first-login-setup.desktop"
 if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # In order to find the files corresponding to GUI settings, use this command:
   # find ~/.config -type f -mmin -1
@@ -294,9 +294,20 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
   kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
 
-  # Unfortunately, "systemctl restart --user plasma-plasmashell.service" does not work to make some
-  # GUI setting changes take effect, so we have to wait for the next reboot. (This was tested with the
-  # touchpad change.)
+  # We do not want this script to run on every boot.
+  if [[ -f "$FIRST_LOGIN_SETUP_DESKTOP_PATH" ]]; then
+    rm "$FIRST_LOGIN_SETUP_DESKTOP_PATH"
+  fi
+
+  # Restart KDE Plasma to make the settings take effect.
+  systemctl restart --user plasma-plasmashell.service
+  # (Unfortunately, some settings will not take effect until the next reboot, like the touchpad
+  # change.)
+else
+  # We have just installed the GUI and have not yet logged on for the first time, so the relevant
+  # files in the ".config" directory do not yet exist. Make this script run again on the next boot.
+  # (It is designed to be idempotent.)
+  cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/autostart/first-login-setup.desktop" "$FIRST_LOGIN_SETUP_DESKTOP_PATH"
 fi
 
 # ----------------------
@@ -382,5 +393,7 @@ if [[ -f "$SUDOERS_FILE_PATH" ]]; then
   sudo rm "$SUDOERS_FILE_PATH"
 fi
 
-# Some changes to GUI settings require a reboot to take effect.
-reboot
+# If the GUI is not already running, reboot.
+if [[ -z "$DISPLAY" ]]; then
+  sudo reboot
+fi
