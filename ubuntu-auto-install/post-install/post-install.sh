@@ -67,15 +67,20 @@ bitwarden_login() {
     fi
   fi
 
+  # These variables have to be exported for the BitWarden CLI to see them.
+  export BW_CLIENTID
+  export BW_CLIENTSECRET
+  export BW_PASSWORD
+
   if ! bw login --check &> /dev/null; then
     if [[ -n "${BW_CLIENTSECRET:-}" ]]; then
-      BW_CLIENTID="$BW_CLIENTID" BW_CLIENTSECRET="$BW_CLIENTSECRET" bw login --apikey
+      bw login --apikey
     else
-      echo "$BW_PASSWORD" | bw login "$PERSONAL_EMAIL"
+      bw login "$PERSONAL_EMAIL" --passwordenv BW_PASSWORD
     fi
   fi
 
-  BW_SESSION=$(echo "$BW_PASSWORD" | bw unlock --raw)
+  BW_SESSION=$(bw unlock --raw --passwordenv BW_PASSWORD)
 
   if [[ -z "$BW_SESSION" ]]; then
     echo "Error: Failed to get a BitWarden session key." >&2
