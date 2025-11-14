@@ -72,10 +72,15 @@ if [[ -z "${BW_SESSION:-}" ]]; then
   fi
   export BW_CLIENTSECRET
 
-  if bw login --check &> /dev/null; then
-    BW_SESSION=$(bw unlock --raw)
+  if ! bw login --check &> /dev/null; then
+    bw login --apikey --raw
+  fi
+
+  BITWARDEN_MASTER_PASSWORD_PATH="/post-install/bitwarden_master_password"
+  if [[ -s "$BITWARDEN_MASTER_PASSWORD_PATH" ]]; then
+    BW_SESSION=$(bw unlock --raw --passwordfile "$BITWARDEN_MASTER_PASSWORD_PATH")
   else
-    BW_SESSION=$(bw login --apikey --raw)
+    BW_SESSION=$(bw unlock --raw)
   fi
 
   if [[ -z "$BW_SESSION" ]]; then
@@ -253,6 +258,12 @@ kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidde
 # Phase 3 - Applications
 # ----------------------
 
+# Install Variety. (This is similar to Bing Wallpaper for Windows.)
+if ! dpkg --status variety &> /dev/null; then
+  sudo apt install variety --yes
+  # TODO: Configure it
+fi
+
 # Install the Microsoft package signing key. (This is needed for Edge and Intune.)
 MICROSOFT_GPG_KEY_PATH="/usr/share/keyrings/microsoft-edge.gpg"
 if [[ ! -s "$MICROSOFT_GPG_KEY_PATH" ]]; then
@@ -316,11 +327,6 @@ fi
 POST_INSTALL_PATH="/post-install"
 if [[ -d "$POST_INSTALL_PATH" ]]; then
   sudo rm -rf "$POST_INSTALL_PATH"
-fi
-
-BITWARDEN_PASSWORD_PATH="$HOME/bitwarden_password"
-if [[ -f "$BITWARDEN_PASSWORD_PATH" ]]; then
-  rm "$BITWARDEN_PASSWORD_PATH"
 fi
 
 # Enable the sudo password. (We only needed it to be disabled in order to run this script without

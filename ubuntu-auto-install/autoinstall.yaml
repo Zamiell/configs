@@ -22,9 +22,11 @@ autoinstall:
     - cp --recursive /cdrom/post-install /target/post-install
     - chmod +x /target/post-install/post-install.sh
 
-    # Write the BitWarden API client secret to disk so that the post-installation script can use it.
-    # (This will be deleted later by the post-installation script.)
+    # Write the BitWarden API client secret and master password to disk so that the
+    # post-installation script can use it. (This will be deleted later by the post-installation
+    # script.)
     - echo "hunter2" > /target/post-install/bitwarden_api_client_secret
+    - echo "hunter2" > /target/post-install/bitwarden_master_password
 
     # Set automatic login.
     - sudo mkdir --parents /target/etc/systemd/system/getty@tty1.service.d
