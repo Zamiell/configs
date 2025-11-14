@@ -18,6 +18,10 @@ autoinstall:
   # - The installation USB drive is mounted at: /cdrom
   # - The new root filesystem is at: /target
   late-commands:
+    # Set automatic login.
+    - sudo mkdir --parents /target/etc/systemd/system/getty@tty1.service.d
+    - cp /cdrom/post-install/etc/systemd/override.conf /target/etc/systemd/system/getty@tty1.service.d/
+
     # Copy the post-installation script and related files to the system.
     - cp --recursive /cdrom/post-install /target/post-install
     - chmod +x /target/post-install/post-install.sh
@@ -28,13 +32,28 @@ autoinstall:
     - echo "hunter2" > /target/post-install/bitwarden_api_client_secret
     - echo "hunter2" > /target/post-install/bitwarden_master_password
 
-    # Set automatic login.
-    - sudo mkdir --parents /target/etc/systemd/system/getty@tty1.service.d
-    - cp /cdrom/post-install/etc/systemd/override.conf /target/etc/systemd/system/getty@tty1.service.d/override.conf
+    # Set the post-installation script to automatically run once the user logs in for the first
+    # time. Note that:
+    # - When the operating system creates a user, it will also create a stock ".profile" file that
+    #   includes things like loading the ".bashrc" file. Creating the file before the user exists
+    #   will prevent that from occurring, so we explicitly include all of the stock lines in the
+    #   copied ".profile" file.
+    # - The "user-data" --> "run_cmd" section can be used to run commands on the first boot, but we
+    #   cannot use it for this purpose because the automatic login occurs first. In other words, any
+    #   modifications to "/home/jnesta/.profile" would not take effect.
+    - mkdir --parents /target/home/jnesta
+    - cp /cdrom/post-install/.profile /target/home/jnesta/
+
+    # Since the installer is running as root, the user's directory will be owned by root, so we have
+    # to manually fix it. We have to use the numeric UID since the user does not exist on the
+    # installer. (The first account on the system will always have a UID of 1000 and the first group
+    # on the system will always have a GID of 1000.)
+    - chown --recursive 1000:1000 /target/home/jnesta
 
     # By default, SSH host keys and other information is printed to the console around 30 settings
     # after the first boot, which is confusing/distracting.
-    - touch /etc/cloud/cloud-init.disabled
+    - |
+      echo "output: {all: '> /dev/null'}" >> /target/etc/cloud/cloud.cfg
 
   # Stop the annoying network timeout on boot:
   # Job systemd-networkd-wait-online.service/start running (50s / no limit)
@@ -60,16 +79,6 @@ autoinstall:
 
   # This section is passed to the installed system's cloud-init.
   user-data:
-    # These commands run on the first boot. (They run instantly as the root user.)
-    runcmd:
-      # Set the post-installation script to automatically run once the user logs in for the first
-      # time. (We do not do this in the "late-commands" section because the initial ".profile" needs
-      # to be created by the operating system first.)
-      - echo "# --- TEMP ---" >> /home/jnesta/.profile
-      - echo "/post-install/post-install.sh" >> /home/jnesta/.profile
-      - echo "# --- TEMP ---" >> /home/jnesta/.profile
-      - chown 1000:1000 /home/jnesta/.profile
-
     # Make it so that the user does not require a password to use sudo so that the post-installation
     # script can be completely automated. (This will be changed back to the default at the end of
     # the post-installation script.)

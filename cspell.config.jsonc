@@ -102,6 +102,7 @@
     "NOPASSWD",
     "Noto",
     "nssdb",
+    "oneshot",
     "openconnect",
     "Palo",
     "passwordenv",
