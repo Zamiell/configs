@@ -83,6 +83,8 @@
     "kscreen",
     "kscreenlockerrc",
     "kupapplet",
+    "kwin",
+    "kwinrc",
     "kwriteconfig",
     "lhvpn",
     "libexec",

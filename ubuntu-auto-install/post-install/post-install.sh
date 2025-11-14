@@ -318,17 +318,43 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
   kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
 
-  # -----
-  # Other
-  # -----
+  # -------
+  # Display
+  # -------
 
   # Settings --> Workspace Behavior --> Screen Locking --> Uncheck "After 5 minutes"
   kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
+
+  # --------
+  # Hardware
+  # --------
 
   # Settings --> Input Devices --> Touchpad --> Right-click -->
   # Change "Press bottom-right-corner" to "Press anywhere with two fingers"
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
+
+  # ----------
+  # Animations
+  # ----------
+
+  # Settings --> Workspace Behavior --> General Behavior --> Animation speed --> Instant
+  kwriteconfig5 --file kdeglobals --group KDE --key AnimationDurationFactor 0
+
+  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Login"
+  kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_loginEnabled false
+
+  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Logout"
+  kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_logoutEnabled false
+
+  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Maximize"
+  kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_maximizeEnabled false
+
+  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Squash"
+  kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_squashEnabled false
+
+  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Scale"
+  kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_scaleEnabled false
 
   # -------
   # Cleanup
