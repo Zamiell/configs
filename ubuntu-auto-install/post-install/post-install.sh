@@ -259,13 +259,6 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # In order to find the files corresponding to GUI settings, use this command:
   # find ~/.config -type f -mmin -1
 
-  # --------
-  # Explorer
-  # --------
-
-  # KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
-  kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
-
   # ------------------------------------------
   # Start Menu + Taskbar + System Tray + Clock
   # ------------------------------------------
@@ -314,8 +307,16 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   #   Noto Sans)
   #   (The default is 10pt Noto Sans.)
 
-  # Peek at Desktop
-  # - Remove.
+  # Other:
+  # - Removed "Peek at Desktop".
+  # - Removed pinned applications.
+
+  # --------
+  # Explorer
+  # --------
+
+  # KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
+  kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
 
   # -----
   # Other
