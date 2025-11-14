@@ -394,6 +394,6 @@ if [[ -f "$SUDOERS_FILE_PATH" ]]; then
 fi
 
 # If the GUI is not already running, reboot.
-if [[ -z "$DISPLAY" ]]; then
+if [[ -z "${DISPLAY:-}" ]]; then
   sudo reboot
 fi
