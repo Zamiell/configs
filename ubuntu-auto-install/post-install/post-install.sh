@@ -210,7 +210,18 @@ fi
 # On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
 # app is part of the NetworkManager framework and only shows connections it manages. Thus, we need
 # to pass control to NetworkManager.
-sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" /etc/netplan/
+NETWORK_MANAGER_YAML_PATH="/etc/netplan/01-network-manager.yaml"
+if [[ ! -s "$NETWORK_MANAGER_YAML_PATH" ]]; then
+  sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" "$NETWORK_MANAGER_YAML_PATH"
+  sudo netplan apply
+  sudo systemctl stop systemd-networkd-wait-online.service
+  sudo systemctl disable systemd-networkd-wait-online.service
+  sudo systemctl stop systemd-networkd.service
+  sudo systemctl disable systemd-networkd.service
+  sudo systemctl enable NetworkManager.service
+  sudo systemctl start NetworkManager.service
+  sudo systemctl enable NetworkManager-wait-online.service
+fi
 
 # Copy the Simple Desktop Display Manager (SDDM) config. (SDDM is the login manager.)
 sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/sddm.conf" /etc/

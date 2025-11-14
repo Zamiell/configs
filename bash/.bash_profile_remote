@@ -1902,7 +1902,7 @@ if [[ $- == *i* ]]; then
       source "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh"
     else
       echo "Error: Cannot find the \"__git_ps1\" function declared." >&2
-      exit
+      return
     fi
   fi
 
