@@ -407,7 +407,7 @@ if [[ -f "$SUDOERS_FILE_PATH" ]]; then
   sudo rm "$SUDOERS_FILE_PATH"
 fi
 
-# If the GUI is not already running, reboot.
-if [[ -z "${DISPLAY:-}" ]]; then
+# If the GUI was just installed for the first time, reboot the system to load the GUI.
+if [[ -z "${DISPLAY:-}" ]] && [[ -z "${SSH_CONNECTION:-}" ]]; then
   sudo reboot
 fi
