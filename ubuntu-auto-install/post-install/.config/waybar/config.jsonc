@@ -7,7 +7,7 @@
   "margin-bottom": -1,
   "passthrough": false,
   "height": 41,
-  "modules-left": ["custom/os_button", "hyprland/workspaces", "wlr/taskbar"],
+  "modules-left": ["custom/start_button", "hyprland/workspaces", "wlr/taskbar"],
   "modules-center": [],
   "modules-right": [
     "cpu",
@@ -24,8 +24,8 @@
     "icon-size": 32,
     "spacing": 16,
   },
-  "custom/os_button": {
-    "format": "Start",
+  "custom/start_button": {
+    "format": " ",
     "on-click": "wofi --show drun",
     "tooltip": false,
   },

@@ -1,15 +1,12 @@
 /*base background color*/
 @define-color bg_main rgba(25, 25, 25, 0.65);
 @define-color bg_main_tooltip rgba(0, 0, 0, 0.7);
-
 /*base background color of selections */
 @define-color bg_hover rgba(200, 200, 200, 0.3);
 /*base background color of active elements */
 @define-color bg_active rgba(100, 100, 100, 0.5);
-
 /*base border color*/
 @define-color border_main rgba(255, 255, 255, 0.2);
-
 /*text color for entries, views and content in general */
 @define-color content_main white;
 /*text color for entries that are unselected */
@@ -38,17 +35,25 @@ tooltip {
   border-style: solid;
   border-color: @border_main;
 }
+
 tooltip label {
   color: @content_main;
 }
 
-#custom-os_button {
-  font-size: 24px;
-  padding-left: 12px;
-  padding-right: 20px;
+#custom-start_button {
+  font-size: 0px;
+  color: transparent;
+  padding-left: 15px;
+  padding-right: 15px;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+  background-image: url("windows10.png");
+  background-size: 24px 24px;
+  background-repeat: no-repeat;
+  background-position: center;
+  min-width: 40px;
 }
-#custom-os_button:hover {
+
+#custom-start_button:hover {
   background: @bg_hover;
   color: @content_main;
 }
@@ -58,29 +63,31 @@ tooltip label {
   margin-right: 1.5px;
   margin-left: 1.5px;
 }
+
 #workspaces button {
   padding: 3px;
   color: @content_inactive;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
+
 #workspaces button.active {
   color: @content_main;
   border-bottom: 3px solid white;
 }
+
 #workspaces button.focused {
   color: @bg_active;
 }
+
 #workspaces button.urgent {
   background: rgba(255, 200, 0, 0.35);
   border-bottom: 3px dashed @warning_color;
   color: @warning_color;
 }
+
 #workspaces button:hover {
   background: @bg_hover;
   color: @content_main;
-}
-
-#taskbar {
 }
 
 #taskbar button {
@@ -116,6 +123,7 @@ tooltip label {
   font-size: 0px;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
+
 #temperature.critical {
   padding-right: 3px;
   color: @warning_color;
@@ -134,18 +142,23 @@ tooltip label {
   margin-left: 5px;
   margin-right: 5px;
 }
+
 #tray > .passive {
   border-bottom: none;
 }
+
 #tray > .active {
   border-bottom: 3px solid white;
 }
+
 #tray > .needs-attention {
   border-bottom: 3px solid @warning_color;
 }
+
 #tray > widget {
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
+
 #tray > widget:hover {
   background: @bg_hover;
 }
@@ -156,6 +169,7 @@ tooltip label {
   padding-right: 3px;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
+
 #pulseaudio:hover {
   background: @bg_hover;
 }
@@ -175,6 +189,7 @@ tooltip label {
   padding-left: 5px;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
+
 #clock:hover {
   background: @bg_hover;
 }

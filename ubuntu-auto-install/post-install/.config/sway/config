@@ -227,3 +227,6 @@ include /etc/sway/config.d/*
 
 # Add Waybar.
 exec_always "killall --quiet waybar; waybar"
+
+# Hotkeys
+bindsym $mod+d exec wofi --show drun
