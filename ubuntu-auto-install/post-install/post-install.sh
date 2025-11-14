@@ -189,7 +189,9 @@ sudo systemctl stop bluetooth.service
 
 # Disable Discover. (This will automatically remove the "Updates" icon from the system tray.)
 # https://old.reddit.com/r/kde/comments/f2bquo/how_to_stop_discover_from_autostarting/
-# (We do not need Discover because we will handle system updates manually.)
+# - Normally, icons in the system tray can be removed by deleting the corresponding entry from the
+#   "extraItems" key. However, "Updates" is a special case, because it has no corresponding entry.
+# - We do not need Discover because we will handle system updates manually.
 mkdir --parents ~/.config/autostart
 cp /etc/xdg/autostart/org.kde.discover.notifier.desktop ~/.config/autostart/
 echo "Hidden=true" >> ~/.config/autostart/org.kde.discover.notifier.desktop
@@ -197,9 +199,14 @@ echo "Hidden=true" >> ~/.config/autostart/org.kde.discover.notifier.desktop
 # In order to find the files corresponding to GUI settings, use this command:
 # find ~/.config -type f -mmin -1
 
+# Right click start menu / application launcher --> Configure Application Launcher --> General -->
+# Icon --> Choose --> Browse --> [png file]
+cp "$CONFIGS/ubuntu-auto-install/post-install/.config/windows10.png" "$HOME/.config/"
+kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 3 --group Configuration --group General --key icon /home/jnesta/.config/windows10.png
+
 # Right click taskbar --> Enter Edit Mode --> Mouse over system tray --> Configure --> Entries -->
 # Check "Always show all entries"
-kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key showAllItems true
+kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key showAllItems true
 
 # By default, the following icons are shown:
 # - Volume (org.kde.plasma.volume)
@@ -220,28 +227,31 @@ kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group C
 # - Notifications (org.kde.plasma.notifications)
 # - Clipboard (org.kde.plasma.clipboard)
 # - Vaults (org.kde.plasma.vault)
-kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key extraItems "org.kde.plasma.networkmanagement,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.devicenotifier,org.kde.plasma.keyboardlayout,org.kde.kupapplet,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.battery,org.kde.kscreen"
+kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key extraItems "org.kde.plasma.networkmanagement,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.devicenotifier,org.kde.plasma.keyboardlayout,org.kde.kupapplet,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.battery,org.kde.kscreen"
 
 # Right click clock --> Configure Digital Clock --> Appearance --> Uncheck "Show date"
-kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key showDate false
+kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key showDate false
 
 # Right click clock --> Configure Digital Clock --> Appearance --> Text display: Manual (8pt Noto Sans)
 # (The default is 10pt Noto Sans.)
-kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key autoFontAndSize false
-kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontFamily "Noto Sans"
-kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontSize 8
-kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontStyleName Regular
+kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key autoFontAndSize false
+kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontFamily "Noto Sans"
+kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontSize 8
+kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key fontStyleName Regular
 
 # Get rid of the "Peek at Desktop" button in the bottom-right corner.
 qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "panels()[0].widgets().forEach(w => { if (w.type == 'org.kde.plasma.showdesktop') w.remove() })"
 
 # Settings --> Workspace Behavior --> Screen Locking --> Uncheck "After 5 minutes"
-kwriteconfig5 --file ~/.config/kscreenlockerrc --group Daemon --key Autolock false
+kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
 
 # Settings --> Input Devices --> Touchpad --> Right-click -->
 # Change "Press bottom-right-corner" to "Press anywhere with two fingers"
-kwriteconfig5 --file ~/.config/touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
-kwriteconfig5 --file ~/.config/touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
+kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
+kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
+
+# KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
+kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
 
 # Unfortunately, "systemctl restart --user plasma-plasmashell.service" does not work to make GUI
 # setting changes take effect, so we have to wait for the next reboot. (This was tested with the
