@@ -308,5 +308,5 @@ if [[ -f "$SUDOERS_FILE_PATH" ]]; then
   sudo rm "$SUDOERS_FILE_PATH"
 fi
 
-# Some changes to GUI settings require a reboot.
+# Some changes to GUI settings require a reboot to take effect.
 reboot
