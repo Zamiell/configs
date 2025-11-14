@@ -227,7 +227,8 @@ kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containment
 # - Notifications (org.kde.plasma.notifications)
 # - Clipboard (org.kde.plasma.clipboard)
 # - Vaults (org.kde.plasma.vault)
-kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key extraItems "org.kde.plasma.networkmanagement,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.devicenotifier,org.kde.plasma.keyboardlayout,org.kde.kupapplet,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.battery,org.kde.kscreen"
+# - Display Configuration (org.kde.kscreen)
+kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key extraItems "org.kde.plasma.networkmanagement,org.kde.plasma.manage-inputmethod,org.kde.plasma.mediacontroller,org.kde.plasma.devicenotifier,org.kde.plasma.keyboardlayout,org.kde.kupapplet,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.battery"
 
 # Right click clock --> Configure Digital Clock --> Appearance --> Uncheck "Show date"
 kwriteconfig5 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 2 --group Applets --group 17 --group Configuration --group Appearance --key showDate false
