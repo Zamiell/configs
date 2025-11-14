@@ -78,7 +78,13 @@ if [[ -z "${BW_SESSION:-}" ]]; then
 
   BITWARDEN_MASTER_PASSWORD_PATH="/post-install/bitwarden_master_password"
   if [[ -s "$BITWARDEN_MASTER_PASSWORD_PATH" ]]; then
-    BW_SESSION=$(bw unlock --raw --passwordfile "$BITWARDEN_MASTER_PASSWORD_PATH")
+    # BitWarden throws a permission error when using the "--passwordfile" option for some reason, so
+    # we use "--passwordenv" instead.
+    set +x
+    BW_PASSWORD=$(cat $BITWARDEN_MASTER_PASSWORD_PATH)
+    set -x
+    export BW_PASSWORD
+    BW_SESSION=$(bw unlock --raw --passwordenv BW_PASSWORD)
   else
     BW_SESSION=$(bw unlock --raw)
   fi
@@ -169,7 +175,7 @@ fi
 # -------------
 
 # Install KDE Plasma.
-sudo apt install kde-plasma-desktop
+sudo apt install kde-plasma-desktop --yes
 
 # On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
 # app is part of the NetworkManager framework and only shows connections it manages. Thus, we need

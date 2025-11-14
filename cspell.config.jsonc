@@ -104,6 +104,7 @@
     "nssdb",
     "openconnect",
     "Palo",
+    "passwordenv",
     "passwordfile",
     "pipefail",
     "plasmashell",
