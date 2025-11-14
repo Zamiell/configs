@@ -177,42 +177,55 @@ fi
 # Phase 2 - GUI
 # -------------
 
-# Install a desktop environment.
-# - sway     - Window manager
-# - xwayland - A compatibility layer for X11 applications. By default, sway will enable xwayland, so
-#              even if we do not have any X11 applications, it is still needed to prevent errors.
-# - waybar   - Taskbar
-# - wofi     - Start menu
-# - foot     - Terminal
-sudo apt install sway xwayland waybar wofi foot --yes
+# Install KDE Plasma.
+sudo apt install kde-plasma-desktop
 
-# Copy the Sway config.
-mkdir --parents "$HOME/.config/sway"
-cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/sway/config" "$HOME/.config/sway/config"
+# Copy the Simple Desktop Display Manager (SDDM) config. (SDDM is the login manager.)
+sudo cp "$CONFIGS/ubuntu-auto-install/post-install/etc/sddm.conf" /etc/sddm.conf
 
-# Open Sway on startup.
-PROFILE_PATH="$HOME/.profile"
-# shellcheck disable=SC2016
-if ! grep --quiet "exec dbus-run-session sway" "$PROFILE_PATH"; then
-  echo '
-# Start the window manager.
-if [[ -z "$WAYLAND_DISPLAY" ]] && [[ "$XDG_VTNR" -eq 1 ]]; then
-  exec dbus-run-session sway > ~/sway-startup.log 2>&1
-  # Note that errors like this are expected and can be ignored:
-  # dbus-daemon[1382]: [session uid=1000 pid=1382] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
-  # dbus-update-activation-environment: warning: error sending to systemd: org.freedesktop.DBus.Error.Spawn.ChildExited: Process org.freedesktop.systemd1 exited with status 1
-fi' >> "$PROFILE_PATH"
-fi
+# Disable Bluetooth. (This will automatically remove the Bluetooth icon from the system tray.)
+sudo systemctl disable bluetooth.service
+sudo systemctl stop bluetooth.service
 
-# Copy the Waybar config.
-mkdir --parents "$HOME/.config/waybar"
-cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/config.jsonc" "$HOME/.config/waybar/config.jsonc"
-cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/style.css" "$HOME/.config/waybar/style.css"
-cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/waybar/windows10.png" "$HOME/.config/waybar/windows10.png"
+# Disable Discover. (This will automatically remove the "Updates" icon from the system tray.)
+# https://old.reddit.com/r/kde/comments/f2bquo/how_to_stop_discover_from_autostarting/
+# (We do not need Discover because we will handle system updates manually.)
+mkdir --parents ~/.config/autostart
+cp /etc/xdg/autostart/org.kde.discover.notifier.desktop ~/.config/autostart/
+echo "Hidden=true" >> ~/.config/autostart/org.kde.discover.notifier.desktop
 
-# Copy the foot config.
-mkdir --parents "$HOME/.config/foot"
-cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/foot/foot.ini" "$HOME/.config/foot/foot.ini"
+# In order to find the files corresponding to GUI settings, use this command:
+# find ~/.config -type f -mmin -1
+
+# Right click taskbar --> Enter Edit Mode --> Mouse over system tray --> Configure --> Entries -->
+# Check "Always show all entries"
+# By default, the following icons are shown:
+# - Volume (org.kde.plasma.volume)
+# - Networks (org.kde.plasma.networkmanagement)
+# By default, the following icons are hidden:
+# - Notifications (org.kde.plasma.notifications)
+# - Updates (Discover Notifier_org.kde.DiscoverNotifier)
+# - Clipboard (org.kde.plasma.clipboard)
+# - Vaults (org.kde.plasma.vault)
+# - Battery and Brightness (org.kde.plasma.battery)
+# - Disks & Devices (org.kde.plasma.devicenotifier)
+# - Display Configuration (org.kde.kscreen)
+kwriteconfig5 --file ~/.config/plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 8 --group General --key showAllItems true
+
+# Settings --> Workspace Behavior --> Screen Locking --> Uncheck "After 5 minutes"
+kwriteconfig5 --file ~/.config/kscreenlockerrc --group Daemon --key Autolock false
+
+# Settings --> Input Devices --> Touchpad --> Right-click -->
+# Change "Press bottom-right-corner" to "Press anywhere with two fingers"
+kwriteconfig5 --file ~/.config/touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
+kwriteconfig5 --file ~/.config/touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
+
+# Get rid of the "Peek at Desktop" button in the bottom-right corner.
+qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "panels()[0].widgets().forEach(w => { if (w.type == 'org.kde.plasma.showdesktop') w.remove() })"
+
+# Unfortunately, "systemctl restart --user plasma-plasmashell.service" does not work to make GUI
+# setting changes take effect, so we have to wait for the next reboot. (This was tested with the
+# touchpad change.)
 
 # ----------------------
 # Phase 3 - Applications
@@ -235,7 +248,7 @@ if ! dpkg --status microsoft-edge-stable &> /dev/null; then
 fi
 
 # Install Google Chrome.
-if ! dpkg --status google-chrome-stable_current_amd64 &> /dev/null; then
+if ! dpkg --status google-chrome-stable &> /dev/null; then
   GOOGLE_CHROME_PATH="/tmp/google-chrome.deb"
   curl --silent --fail --show-error --location --output "$GOOGLE_CHROME_PATH" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
   sudo apt install "$GOOGLE_CHROME_PATH" --yes
@@ -273,6 +286,7 @@ fi
 
 # Stop the automatic execution of this script.
 PROFILE_MARKER="--- TEMP ---" # This has to match the command in "autoinstall.yaml".
+PROFILE_PATH="$HOME/.profile"
 if grep --quiet --regexp "$PROFILE_MARKER" "$PROFILE_PATH"; then
   sed --in-place "/$PROFILE_MARKER/,/$PROFILE_MARKER/d" "$PROFILE_PATH"
 fi
@@ -294,8 +308,5 @@ if [[ -f "$SUDOERS_FILE_PATH" ]]; then
   sudo rm "$SUDOERS_FILE_PATH"
 fi
 
-# The "apt upgrade" above might have downloaded a new kernel, which would need a reboot to take
-# effect.
-if [[ -f /var/run/reboot-required ]]; then
-  reboot
-fi
+# Some changes to GUI settings require a reboot.
+reboot
