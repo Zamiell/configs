@@ -26,7 +26,7 @@ fi
 # the "wpasupplicant" package. (Putting this on the installation media is non-trivial because it
 # needs to match the existing system and would quickly get out of date.) Thus, we require a wired
 # connection.
-if ! curl --silent --fail --location https://www.google.com &> /dev/null; then
+if ! curl --silent --fail --show-error --location https://www.google.com &> /dev/null; then
   # Make the error message easy to see so that it does not get lost in the spam of the initial boot.
   echo "---------------------------------------------------------------"
   echo "Error: You must have an internet connection to run this script."
@@ -322,14 +322,14 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # Display
   # -------
 
-  # Settings --> Workspace Behavior --> Screen Locking --> Uncheck "After 5 minutes"
+  # System Settings --> Workspace Behavior --> Screen Locking --> Uncheck "After 5 minutes"
   kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
 
   # --------
   # Hardware
   # --------
 
-  # Settings --> Input Devices --> Touchpad --> Right-click -->
+  # System Settings --> Input Devices --> Touchpad --> Right-click -->
   # Change "Press bottom-right-corner" to "Press anywhere with two fingers"
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
@@ -338,23 +338,48 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # Animations
   # ----------
 
-  # Settings --> Workspace Behavior --> General Behavior --> Animation speed --> Instant
+  # System Settings --> Workspace Behavior --> General Behavior --> Animation speed --> Instant
   kwriteconfig5 --file kdeglobals --group KDE --key AnimationDurationFactor 0
 
-  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Login"
+  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Login"
+  # (Smoothly fade to teh desktop when logging in)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_loginEnabled false
 
-  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Logout"
+  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Logout"
+  # (Smoothly fade to the logout screen)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_logoutEnabled false
 
-  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Maximize"
+  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Maximize"
+  # (Animation for a window going to maximize/restore from maximize)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_maximizeEnabled false
 
-  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Squash"
+  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Squash"
+  # (Squash windows when they are minimized)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_squashEnabled false
 
-  # Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Scale"
+  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Scale"
+  # (Make windows smoothly scale in and out when they are shown or hidden)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_scaleEnabled false
+
+  # -------
+  # Hotkeys
+  # -------
+
+  # System Settings --> Shortcuts --> Shortcuts --> KWin --> Maximize Window
+  # ("Meta+PgUp" by default)
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Maximize" "Meta+Up,Meta+PgUp,Maximize Window"
+
+  # System Settings --> Shortcuts --> Shortcuts --> KWin --> Minimize Window
+  # ("Meta+PgDown" by default)
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Minimize" "Meta+Down,Meta+PgDown,Minimize Window"
+
+  # System Settings --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Top
+  # ("Meta+Up" by default)
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Top" "none,Meta+Up,Quick Tile Window to the Top"
+
+  # System Settings --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Bottom
+  # ("Meta+Down" by default)
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Bottom" "none,Meta+Down,Quick Tile Window to the Top"
 
   # -------
   # Cleanup
@@ -379,12 +404,6 @@ fi
 # ----------------------
 # Phase 3 - Applications
 # ----------------------
-
-# Install Variety. (This is similar to Bing Wallpaper for Windows.)
-if ! dpkg --status variety &> /dev/null; then
-  sudo apt-get install variety --yes
-  # TODO: Configure it
-fi
 
 # Install the Microsoft package signing key. (This is needed for Edge and Intune.)
 MICROSOFT_GPG_KEY_PATH="/usr/share/keyrings/microsoft-edge.gpg"
@@ -413,6 +432,42 @@ fi
 # Install Firefox.
 if ! snap info firefox | grep -q "^installed:"; then
   sudo snap install firefox
+fi
+
+# Install Visual Studio Code.
+if ! command -v bw &> /dev/null; then
+  sudo snap install --classic code
+fi
+
+# Install Kate. (This is similar to Notepad++ on Windows.)
+if ! command -v kate &> /dev/null; then
+  sudo snap install --classic kate
+fi
+
+# Install nvm.
+if ! command -v nvm &> /dev/null; then
+  curl --silent --fail --show-error --location https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+
+  # Add it to path.
+  export NVM_DIR="$HOME/.nvm"
+  # shellcheck source=/dev/null
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+  # shellcheck source=/dev/null
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+fi
+
+# Install Node.js
+if ! command -v node &> /dev/null; then
+  nvm install --lts
+fi
+
+# Install Bun.
+if ! command -v bun &> /dev/null; then
+  if ! dpkg --status unzip &> /dev/null; then
+    sudo apt-get install unzip --yes
+  fi
+
+  curl --silent --fail --show-error --location https://bun.sh/install | bash
 fi
 
 # Install Microsoft Intune.
