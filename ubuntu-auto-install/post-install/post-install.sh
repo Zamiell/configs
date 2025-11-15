@@ -106,13 +106,13 @@ source /etc/os-release
 sudo timedatectl set-timezone America/New_York
 
 # Patch the OS.
-sudo apt-get update
-sudo apt-get upgrade --yes
+sudo apt-get update --quiet
+sudo apt-get upgrade --quiet --yes
 
 # Install SSH.
 # https://documentation.ubuntu.com/server/how-to/security/openssh-server/index.html
 if ! dpkg --status openssh-server &> /dev/null; then
-  sudo apt-get install openssh-server --yes
+  sudo apt-get install --quiet --yes openssh-server
   sudo systemctl enable ssh
   sudo systemctl start ssh
 fi
@@ -154,7 +154,7 @@ fi
 
 # Install Git.
 if ! command -v git &> /dev/null; then
-  sudo apt-get install git --yes
+  sudo apt-get install --quiet --yes git
   git config --global user.name "$FULL_NAME"
   git config --global user.email "$WORK_EMAIL"
 fi
@@ -162,15 +162,14 @@ fi
 # Install the GitHub CLI.
 if ! command -v gh &> /dev/null; then
   # From: https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
-  (type -p wget &> /dev/null || (sudo apt-get update && sudo apt-get install wget --yes)) \
-    && sudo mkdir -p -m 755 /etc/apt/keyrings \
+  sudo mkdir -p -m 755 /etc/apt/keyrings \
     && out=$(mktemp) && wget -nv "-O$out" https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     && cat "$out" | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg &> /dev/null \
     && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
     && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list &> /dev/null \
-    && sudo apt-get update \
-    && sudo apt-get install gh --yes
+    && sudo apt-get update --quiet \
+    && sudo apt-get install --quiet --yes gh
 
   # gh uses HTTPS by default.
   gh config set git_protocol ssh
@@ -215,7 +214,7 @@ fi
 
 # Install KDE Plasma.
 if ! dpkg --status kde-plasma-desktop &> /dev/null; then
-  sudo apt-get install kde-plasma-desktop --yes
+  sudo apt-get install --quiet --yes kde-plasma-desktop
 fi
 
 # On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
@@ -223,6 +222,7 @@ fi
 # to pass control to NetworkManager.
 NETWORK_MANAGER_YAML_PATH="/etc/netplan/01-network-manager.yaml"
 if [[ ! -s "$NETWORK_MANAGER_YAML_PATH" ]]; then
+  sudo find /etc/netplan -type f -name "*.yaml" -delete
   sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" "$NETWORK_MANAGER_YAML_PATH"
   sudo netplan apply
   sudo systemctl stop systemd-networkd-wait-online.service
@@ -444,17 +444,17 @@ fi
 MICROSOFT_EDGE_REPOSITORY_PATH="/etc/apt/sources.list.d/microsoft-edge.list"
 if [[ ! -s "$MICROSOFT_EDGE_REPOSITORY_PATH" ]]; then
   echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" | sudo tee "$MICROSOFT_EDGE_REPOSITORY_PATH" > /dev/null
-  sudo apt-get update
+  sudo apt-get update --quiet
 fi
 if ! dpkg --status microsoft-edge-stable &> /dev/null; then
-  sudo apt-get install microsoft-edge-stable --yes
+  sudo apt-get install --quiet --yes microsoft-edge-stable
 fi
 
 # Install Google Chrome.
 if ! dpkg --status google-chrome-stable &> /dev/null; then
   GOOGLE_CHROME_PATH="/tmp/google-chrome.deb"
   curl --silent --fail --show-error --location --output "$GOOGLE_CHROME_PATH" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-  sudo apt-get install "$GOOGLE_CHROME_PATH" --yes
+  sudo apt-get install --quiet --yes "$GOOGLE_CHROME_PATH"
   rm "$GOOGLE_CHROME_PATH"
 fi
 
@@ -493,7 +493,7 @@ fi
 # Install Bun.
 if ! command -v bun &> /dev/null; then
   if ! dpkg --status unzip &> /dev/null; then
-    sudo apt-get install unzip --yes
+    sudo apt-get install --quiet --yes unzip
   fi
 
   curl --silent --fail --show-error --location https://bun.sh/install | bash
@@ -503,12 +503,12 @@ fi
 if ! dpkg --status packages-microsoft-prod &> /dev/null; then
   MICROSOFT_LINUX_REPOSITORY_PATH="/tmp/packages-microsoft-prod.deb"
   curl --silent --fail --show-error --location --output "$MICROSOFT_LINUX_REPOSITORY_PATH" "https://packages.microsoft.com/config/$ID/$VERSION_ID/packages-microsoft-prod.deb"
-  sudo apt-get install "$MICROSOFT_LINUX_REPOSITORY_PATH" --yes
+  sudo apt-get install --quiet --yes "$MICROSOFT_LINUX_REPOSITORY_PATH"
   rm "$MICROSOFT_LINUX_REPOSITORY_PATH"
-  sudo apt-get update
+  sudo apt-get update --quiet
 fi
 if ! dpkg --status intune-portal &> /dev/null; then
-  sudo apt-get install intune-portal --yes
+  sudo apt-get install --quiet --yes intune-portal
 fi
 
 # Install the VPN client.
@@ -516,7 +516,7 @@ if [[ ! -s "/etc/apt/sources.list.d/yuezk-ubuntu-globalprotect-openconnect-noble
   sudo add-apt-repository ppa:yuezk/globalprotect-openconnect --yes
 fi
 if ! dpkg --status globalprotect-openconnect &> /dev/null; then
-  sudo apt-get install globalprotect-openconnect --yes
+  sudo apt-get install --quiet --yes globalprotect-openconnect
 fi
 
 # -------
