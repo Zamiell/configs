@@ -319,6 +319,15 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
 
   # -------
+  # Alt-Tab
+  # -------
+
+  if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) == "ClassicKde" ]]; then
+    echo
+    # TODO
+  fi
+
+  # -------
   # Display
   # -------
 
