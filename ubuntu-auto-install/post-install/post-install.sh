@@ -328,7 +328,6 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) == "ClassicKde" ]]; then
     kpackagetool5 --type KWin/WindowSwitcher --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
     kwriteconfig5 --file kwinrc --group TabBox --key LayoutName ClassicKde
-    # (This requires a reboot to take effect.)
   fi
 
   # System Settings --> Appearance --> Cursors --> Change "Breeze" to "PRA-DMZ".
@@ -342,8 +341,11 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
 
   # System Settings --> Appearance --> Window Decorations --> Change "Breeze" to "Win10OS-light".
   # This gives Window 10 icons in the top-right of a window.
-  # https://store.kde.org/p/1383080
-  # TODO
+  # From: https://store.kde.org/p/1383080
+  if [[ $(kreadconfig5 --file kwinrc --group org.kde.kdecoration2 --key library) != "Win10OS-light" ]]; then
+    kpackagetool5 --type Plasma/LookAndFeel --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip"
+    kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library Win10OS-light
+  fi
 
   # -------
   # Display
