@@ -323,8 +323,7 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # -------
 
   if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) == "ClassicKde" ]]; then
-    echo
-    # TODO
+    kpackagetool5 --type KWin/Script --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
   fi
 
   # -------
