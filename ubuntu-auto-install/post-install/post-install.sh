@@ -318,13 +318,32 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
   kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
 
-  # -------
-  # Alt-Tab
-  # -------
+  # ------------------
+  # Appearance / Theme
+  # ------------------
 
+  # System Settings --> Window Management --> Task Switcher --> Change "Breeze" to "ClassicKDE".
+  # This changes the Alt-Tab UI to something simpler and faster.
+  # From: https://store.kde.org/p/2024371
   if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) == "ClassicKde" ]]; then
-    kpackagetool5 --type KWin/Script --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
+    kpackagetool5 --type KWin/WindowSwitcher --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
+    kwriteconfig5 --file kwinrc --group TabBox --key LayoutName ClassicKde
+    # (This requires a reboot to take effect.)
   fi
+
+  # System Settings --> Appearance --> Cursors --> Change "Breeze" to "PRA-DMZ".
+  # This changes the cursors to Windows 10 cursors.
+  # From: https://store.kde.org/p/1258818
+  if [[ $(kreadconfig5 --file kcminputrc --group Mouse --key cursorTheme) != "PRA-DMZ" ]]; then
+    # This is an X11 theme, so we can't use "kpackagetool5" to install.
+    tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C ~/.icons/
+    kwriteconfig5 --file kcminputrc --group Mouse --key cursorTheme PRA-DMZ
+  fi
+
+  # System Settings --> Appearance --> Window Decorations --> Change "Breeze" to "Win10OS-light".
+  # This gives Window 10 icons in the top-right of a window.
+  # https://store.kde.org/p/1383080
+  # TODO
 
   # -------
   # Display
@@ -497,7 +516,6 @@ fi
 if ! dpkg --status globalprotect-openconnect &> /dev/null; then
   sudo apt-get install globalprotect-openconnect --yes
 fi
-# TODO: VPN script?
 
 # -------
 # Cleanup
