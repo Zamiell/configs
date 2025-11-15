@@ -50,6 +50,13 @@ autoinstall:
     # on the system will always have a GID of 1000.)
     - chown --recursive 1000:1000 /target/home/jnesta
 
+    # By default, SSH host keys and other information is printed to the console around 30 settings
+    # after the first boot, which is confusing/distracting. (Even with these changes, "cloud-init"
+    # will still display some output to the console.)
+    - sed --in-place "s/- ssh_authkey_fingerprints/#- ssh_authkey_fingerprints/g" /target/etc/cloud/cloud.cfg
+    - sed --in-place "s/- keys_to_console/#- keys_to_console/g" /target/etc/cloud/cloud.cfg
+    - sed --in-place "s/- final_message/#- final_message/g" /target/etc/cloud/cloud.cfg
+
   # Stop the annoying network timeout on boot:
   # Job systemd-networkd-wait-online.service/start running (50s / no limit)
   network:

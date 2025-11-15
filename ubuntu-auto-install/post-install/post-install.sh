@@ -441,7 +441,7 @@ fi
 # Install Microsoft Edge.
 MICROSOFT_EDGE_REPOSITORY_PATH="/etc/apt/sources.list.d/microsoft-edge.list"
 if [[ ! -s "$MICROSOFT_EDGE_REPOSITORY_PATH" ]]; then
-  echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main' | sudo tee "$MICROSOFT_EDGE_REPOSITORY_PATH" > /dev/null
+  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" | sudo tee "$MICROSOFT_EDGE_REPOSITORY_PATH" > /dev/null
   sudo apt-get update
 fi
 if ! dpkg --status microsoft-edge-stable &> /dev/null; then
