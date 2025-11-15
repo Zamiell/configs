@@ -50,11 +50,6 @@ autoinstall:
     # on the system will always have a GID of 1000.)
     - chown --recursive 1000:1000 /target/home/jnesta
 
-    # By default, SSH host keys and other information is printed to the console around 30 settings
-    # after the first boot, which is confusing/distracting.
-    - |
-      echo "output: {all: '> /dev/null'}" >> /target/etc/cloud/cloud.cfg
-
   # Stop the annoying network timeout on boot:
   # Job systemd-networkd-wait-online.service/start running (50s / no limit)
   network:
