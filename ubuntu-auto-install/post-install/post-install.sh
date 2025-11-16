@@ -421,9 +421,17 @@ else
   cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/autostart/first-login-setup.desktop" "$FIRST_LOGIN_SETUP_DESKTOP_PATH"
 fi
 
-# ----------------------
-# Phase 3 - Applications
-# ----------------------
+# --------------------------------
+# Phase 3 - Uninstall Applications
+# --------------------------------
+
+# KDE Plasma installs some applications that are unwanted.
+sudo apt-get purge --yes byobu # Byobu Terminal
+sudo apt-get autoremove --yes
+
+# ------------------------------
+# Phase 4 - Install Applications
+# ------------------------------
 
 # Install the Microsoft package signing key. (This is needed for Edge and Intune.)
 MICROSOFT_GPG_KEY_PATH="/usr/share/keyrings/microsoft-edge.gpg"
@@ -500,7 +508,7 @@ fi
 sudo apt-get install -qq --yes globalprotect-openconnect
 
 # -----------------
-# Phase 4 - Network
+# Phase 5 - Network
 # -----------------
 
 # On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
