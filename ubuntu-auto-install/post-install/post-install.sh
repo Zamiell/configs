@@ -17,7 +17,7 @@ BW_CLIENTID="user.c73c6208-71e9-48f5-ac11-b3940010eeee"
 # Validation
 # ----------
 
-if [[ $EUID -eq 0 ]]; then
+if [[ "$EUID" -eq 0 ]]; then
   echo "Error: This script cannot be run as root." >&2
   exit 1
 fi
@@ -67,15 +67,15 @@ bitwarden_login() {
     fi
   fi
 
-  export BW_CLIENTID
-  export BW_CLIENTSECRET
-  export BW_PASSWORD
-
   # Being already logged in makes the "unlock" command below not work properly, so we always start
   # from a clean slate.
   if bw login --check &> /dev/null; then
     bw logout
   fi
+
+  export BW_CLIENTID
+  export BW_CLIENTSECRET
+  export BW_PASSWORD
 
   if [[ -n "${BW_CLIENTSECRET:-}" ]]; then
     bw login --apikey
@@ -85,9 +85,9 @@ bitwarden_login() {
 
   BW_SESSION=$(bw unlock --raw --passwordenv BW_PASSWORD)
 
-  unset BW_CLIENTID
-  unset BW_CLIENTSECRET
-  unset BW_PASSWORD
+  export -n BW_CLIENTID
+  export -n BW_CLIENTSECRET
+  export -n BW_PASSWORD
 
   if [[ -z "$BW_SESSION" ]]; then
     echo "Error: Failed to get a BitWarden session key." >&2
@@ -169,6 +169,7 @@ if ! command -v gh &> /dev/null; then
   sudo mkdir -p -m 755 /etc/apt/keyrings \
     && out=$(mktemp) && wget -nv "-O$out" https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     && cat "$out" | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg &> /dev/null \
+    && rm "$out" \
     && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
     && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list &> /dev/null \
@@ -209,7 +210,7 @@ fi
 BASHRC_PATH="$HOME/.bashrc"
 if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
   echo >> "$BASHRC_PATH"
-  cp "$CONFIGS_PATH/bash/.bash_profile" "$BASHRC_PATH"
+  cat "$CONFIGS_PATH/bash/.bash_profile" >> "$BASHRC_PATH"
 fi
 
 # -------------
@@ -234,9 +235,9 @@ sudo systemctl stop bluetooth.service
 # - Normally, icons in the system tray can be removed by deleting the corresponding entry from the
 #   "extraItems" key. However, "Updates" is a special case, because it has no corresponding entry.
 # - We do not need Discover because we will handle system updates manually.
-mkdir --parents ~/.config/autostart
-cp /etc/xdg/autostart/org.kde.discover.notifier.desktop ~/.config/autostart/
-echo "Hidden=true" >> ~/.config/autostart/org.kde.discover.notifier.desktop
+mkdir --parents "$HOME/.config/autostart"
+cp /etc/xdg/autostart/org.kde.discover.notifier.desktop "$HOME/.config/autostart/"
+echo "Hidden=true" >> "$HOME/.config/autostart/org.kde.discover.notifier.desktop"
 
 # The rest of GUI configuration uses the `kwriteconfig5` command, which requires that the user has
 # logged on to the system at least once so that the relevant files in the ".config" directory get
@@ -312,7 +313,7 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # System Settings --> Window Management --> Task Switcher --> Change "Breeze" to "ClassicKDE".
   # This changes the Alt-Tab UI to something simpler and faster.
   # From: https://store.kde.org/p/2024371
-  if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) == "ClassicKde" ]]; then
+  if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) != "ClassicKde" ]]; then
     kpackagetool5 --type KWin/WindowSwitcher --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
     kwriteconfig5 --file kwinrc --group TabBox --key LayoutName ClassicKde
   fi
@@ -322,7 +323,8 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # From: https://store.kde.org/p/1258818
   if [[ $(kreadconfig5 --file kcminputrc --group Mouse --key cursorTheme) != "PRA-DMZ" ]]; then
     # This is an X11 theme, so we can't use "kpackagetool5" to install.
-    tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C ~/.icons/
+    mkdir --parents "$HOME/.icons"
+    tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C "$HOME/.icons/"
     kwriteconfig5 --file kcminputrc --group Mouse --key cursorTheme PRA-DMZ
   fi
 
@@ -395,7 +397,7 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
 
   # System Settings --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Bottom
   # ("Meta+Down" by default)
-  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Bottom" "none,Meta+Down,Quick Tile Window to the Top"
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Bottom" "none,Meta+Down,Quick Tile Window to the Bottom"
 
   # -------
   # Cleanup
@@ -451,7 +453,7 @@ if ! snap info firefox | grep -q "^installed:"; then
 fi
 
 # Install Visual Studio Code.
-if ! command -v bw &> /dev/null; then
+if ! command -v code &> /dev/null; then
   sudo snap install --classic code
 fi
 
@@ -506,6 +508,28 @@ if ! dpkg --status globalprotect-openconnect &> /dev/null; then
   sudo apt-get install --quiet --yes globalprotect-openconnect
 fi
 
+# -----------------
+# Phase 4 - Network
+# -----------------
+
+# On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
+# app is part of the NetworkManager framework and only shows connections it manages. Thus, we need
+# to pass control to NetworkManager. This will kill network connectivity until the next reboot, so
+# we must do this as the last thing in the script.
+NETWORK_MANAGER_YAML_PATH="/etc/netplan/01-network-manager.yaml"
+if [[ ! -s "$NETWORK_MANAGER_YAML_PATH" ]]; then
+  sudo find /etc/netplan -type f -name "*.yaml" -delete
+  sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" "$NETWORK_MANAGER_YAML_PATH"
+  sudo netplan apply
+  sudo systemctl stop systemd-networkd-wait-online.service
+  sudo systemctl disable systemd-networkd-wait-online.service
+  sudo systemctl stop systemd-networkd.service
+  sudo systemctl disable systemd-networkd.service
+  sudo systemctl enable NetworkManager.service
+  sudo systemctl start NetworkManager.service
+  sudo systemctl enable NetworkManager-wait-online.service
+fi
+
 # -------
 # Cleanup
 # -------
@@ -527,24 +551,6 @@ fi
 SUDOERS_FILE_PATH="/etc/sudoers.d/90-cloud-init-users"
 if [[ -f "$SUDOERS_FILE_PATH" ]]; then
   sudo rm "$SUDOERS_FILE_PATH"
-fi
-
-# On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
-# app is part of the NetworkManager framework and only shows connections it manages. Thus, we need
-# to pass control to NetworkManager. This will kill network connectivity until the next reboot, so
-# we must do this as the last thing in the script.
-NETWORK_MANAGER_YAML_PATH="/etc/netplan/01-network-manager.yaml"
-if [[ ! -s "$NETWORK_MANAGER_YAML_PATH" ]]; then
-  sudo find /etc/netplan -type f -name "*.yaml" -delete
-  sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" "$NETWORK_MANAGER_YAML_PATH"
-  sudo netplan apply
-  sudo systemctl stop systemd-networkd-wait-online.service
-  sudo systemctl disable systemd-networkd-wait-online.service
-  sudo systemctl stop systemd-networkd.service
-  sudo systemctl disable systemd-networkd.service
-  sudo systemctl enable NetworkManager.service
-  sudo systemctl start NetworkManager.service
-  sudo systemctl enable NetworkManager-wait-online.service
 fi
 
 # If the GUI was just installed for the first time, reboot the system to load the GUI.
