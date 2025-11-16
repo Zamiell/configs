@@ -5,7 +5,7 @@
 Type=Application
 Name=KDE First-Run Setup
 Comment=Applies custom GUI settings on first login
-Exec=/home/jnesta/repositories/configs/ubuntu-auto-install/post-install/post-install.sh
+Exec=sh -c '/home/jnesta/repositories/configs/ubuntu-auto-install/post-install/post-install.sh 2>&1 | tee /home/jnesta/post-install.log2'
 Terminal=true
 OnlyShowIn=KDE;
 X-KDE-Autostart-enabled=true

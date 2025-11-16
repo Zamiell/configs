@@ -71,12 +71,16 @@ bitwarden_login() {
   export BW_CLIENTSECRET
   export BW_PASSWORD
 
-  if ! bw login --check &> /dev/null; then
-    if [[ -n "${BW_CLIENTSECRET:-}" ]]; then
-      bw login --apikey
-    else
-      bw login "$PERSONAL_EMAIL" --passwordenv BW_PASSWORD
-    fi
+  # Being already logged in makes the "unlock" command below not work properly, so we always start
+  # from a clean slate.
+  if bw login --check &> /dev/null; then
+    bw logout
+  fi
+
+  if [[ -n "${BW_CLIENTSECRET:-}" ]]; then
+    bw login --apikey
+  else
+    bw login "$PERSONAL_EMAIL" --passwordenv BW_PASSWORD
   fi
 
   BW_SESSION=$(bw unlock --raw --passwordenv BW_PASSWORD)
@@ -215,23 +219,6 @@ fi
 # Install KDE Plasma.
 if ! dpkg --status kde-plasma-desktop &> /dev/null; then
   sudo apt-get install --quiet --yes kde-plasma-desktop
-fi
-
-# On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
-# app is part of the NetworkManager framework and only shows connections it manages. Thus, we need
-# to pass control to NetworkManager.
-NETWORK_MANAGER_YAML_PATH="/etc/netplan/01-network-manager.yaml"
-if [[ ! -s "$NETWORK_MANAGER_YAML_PATH" ]]; then
-  sudo find /etc/netplan -type f -name "*.yaml" -delete
-  sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" "$NETWORK_MANAGER_YAML_PATH"
-  sudo netplan apply
-  sudo systemctl stop systemd-networkd-wait-online.service
-  sudo systemctl disable systemd-networkd-wait-online.service
-  sudo systemctl stop systemd-networkd.service
-  sudo systemctl disable systemd-networkd.service
-  sudo systemctl enable NetworkManager.service
-  sudo systemctl start NetworkManager.service
-  sudo systemctl enable NetworkManager-wait-online.service
 fi
 
 # Copy the Simple Desktop Display Manager (SDDM) config. (SDDM is the login manager.)
@@ -540,6 +527,24 @@ fi
 SUDOERS_FILE_PATH="/etc/sudoers.d/90-cloud-init-users"
 if [[ -f "$SUDOERS_FILE_PATH" ]]; then
   sudo rm "$SUDOERS_FILE_PATH"
+fi
+
+# On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network
+# app is part of the NetworkManager framework and only shows connections it manages. Thus, we need
+# to pass control to NetworkManager. This will kill network connectivity until the next reboot, so
+# we must do this as the last thing in the script.
+NETWORK_MANAGER_YAML_PATH="/etc/netplan/01-network-manager.yaml"
+if [[ ! -s "$NETWORK_MANAGER_YAML_PATH" ]]; then
+  sudo find /etc/netplan -type f -name "*.yaml" -delete
+  sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" "$NETWORK_MANAGER_YAML_PATH"
+  sudo netplan apply
+  sudo systemctl stop systemd-networkd-wait-online.service
+  sudo systemctl disable systemd-networkd-wait-online.service
+  sudo systemctl stop systemd-networkd.service
+  sudo systemctl disable systemd-networkd.service
+  sudo systemctl enable NetworkManager.service
+  sudo systemctl start NetworkManager.service
+  sudo systemctl enable NetworkManager-wait-online.service
 fi
 
 # If the GUI was just installed for the first time, reboot the system to load the GUI.
