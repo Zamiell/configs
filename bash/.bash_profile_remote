@@ -1134,6 +1134,7 @@ gc() (
     if [[ -z "${GEMINI_API_KEY:-}" ]]; then
       commit_message="chore: update something"
     else
+      echo "Getting the commit message from an LLM..."
       commit_message=$(get_llm_commit_message)
     fi
   else
@@ -1536,6 +1537,7 @@ gpr() (
     pull_request_description="n/a"
   else
     local pull_request_text
+    echo "Getting the pull request text from an LLM..."
     pull_request_text=$(get_llm_pull_request_text)
     pull_request_title=$(echo "$pull_request_text" | head -n 1)
     pull_request_description=$(echo "$pull_request_text" | tail -n +2 | remove_leading_and_trailing_whitespace)
