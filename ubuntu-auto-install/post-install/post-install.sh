@@ -186,9 +186,8 @@ if ! command -v gh &> /dev/null; then
 fi
 
 # Install the public key for "github.com".
-KNOWN_HOSTS_PATH="$HOME/.ssh/known_hosts"
-if ! ssh-keygen -F github.com --quiet; then
-  ssh-keyscan github.com >> "$KNOWN_HOSTS_PATH"
+if ! ssh-keygen -F github.com &> /dev/null; then
+  ssh-keyscan github.com >> "$HOME/.ssh/known_hosts"
 fi
 
 # Set up the "repositories" directory.
@@ -238,6 +237,19 @@ sudo systemctl stop bluetooth.service
 mkdir --parents "$HOME/.config/autostart"
 cp /etc/xdg/autostart/org.kde.discover.notifier.desktop "$HOME/.config/autostart/"
 echo "Hidden=true" >> "$HOME/.config/autostart/org.kde.discover.notifier.desktop"
+
+# Install 3rd party themes, which will be enabled later on after the first GUI boot. (We do this now
+# to prevent authentication prompts in the GUI.)
+if ! kpackagetool5 --list --type KWin/WindowSwitcher | grep "ClassicKde"; then
+  kpackagetool5 --type KWin/WindowSwitcher --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
+fi
+if [[ ! -d "$HOME/.icons/Win10OS-cursors" ]]; then
+  mkdir --parents "$HOME/.icons"
+  tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C "$HOME/.icons/"
+fi
+if ! kpackagetool5 --list --type Plasma/LookAndFeel | grep "com.github.yeyushengfan258.Win10OS-light"; then
+  kpackagetool5 --type Plasma/LookAndFeel --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip"
+fi
 
 # The rest of GUI configuration uses the `kwriteconfig5` command, which requires that the user has
 # logged on to the system at least once so that the relevant files in the ".config" directory get
@@ -314,7 +326,6 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # This changes the Alt-Tab UI to something simpler and faster.
   # From: https://store.kde.org/p/2024371
   if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) != "ClassicKde" ]]; then
-    kpackagetool5 --type KWin/WindowSwitcher --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
     kwriteconfig5 --file kwinrc --group TabBox --key LayoutName ClassicKde
   fi
 
@@ -323,8 +334,6 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # From: https://store.kde.org/p/1258818
   if [[ $(kreadconfig5 --file kcminputrc --group Mouse --key cursorTheme) != "PRA-DMZ" ]]; then
     # This is an X11 theme, so we can't use "kpackagetool5" to install.
-    mkdir --parents "$HOME/.icons"
-    tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C "$HOME/.icons/"
     kwriteconfig5 --file kcminputrc --group Mouse --key cursorTheme PRA-DMZ
   fi
 
@@ -332,7 +341,6 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # This gives Window 10 icons in the top-right of a window.
   # From: https://store.kde.org/p/1383080
   if [[ $(kreadconfig5 --file kwinrc --group org.kde.kdecoration2 --key library) != "Win10OS-light" ]]; then
-    kpackagetool5 --type Plasma/LookAndFeel --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip"
     kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library Win10OS-light
   fi
 

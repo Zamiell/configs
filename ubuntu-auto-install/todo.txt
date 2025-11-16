@@ -1,0 +1,85 @@
+cspell:disable
+
+create_hotkey \
+  "Launch/Focus Terminal" \ # TABBY
+  'bash -c "wmctrl -x -a gnome-terminal-server.Gnome-terminal || gnome-terminal"' \
+  "['<Control>5']"
+
+create_hotkey \
+  "Launch/Focus Visual Studio Code" \
+  'bash -c "wmctrl -x -a Code || code"' \
+  "['<Control>6']"
+
+create_hotkey \
+  "Launch/Focus Google Chrome" \
+  'bash -c "wmctrl -x -a Google-chrome || google-chrome"' \
+  "['<Control>9']"
+
+create_hotkey \
+  "Launch/Focus Microsoft Edge" \
+  'bash -c "wmctrl -x -a Edge || msedge"' \
+  "['<Control>grave']"
+
+create_hotkey \
+  "Launch/Focus Obsidian" \
+  'bash -c "wmctrl -x -a obsidian || obsidian"' \
+  "['<Control><Shift>grave']"
+
+create_hotkey \
+  "Launch/Focus Firefox" \
+  'bash -c "wmctrl -x -a firefox || firefox"' \
+  "['<Control><Shift><Alt>grave']"
+
+
+
+
+
+TODO: intune + connect with vpn
+TODO: test `vpn` command
+
+
+
+- install LH Certificates
+
+# ------------
+# Certificates
+# ------------
+
+if ! command -v certutil &> /dev/null; then
+  sudo apt update
+  sudo apt install libnss3-tools -y
+fi
+
+LOGIXHEALTH_CERT_NAME="BEDROOTCA001"
+COMPANY_CERT_PATH="/usr/local/share/ca-certificates/$LOGIXHEALTH_CERT_NAME.crt"
+if [[ ! -f "$COMPANY_CERT_PATH" ]]; then
+  echo "Error: The LogixHealth certificate does not exist at: $COMPANY_CERT_PATH" >&2
+  exit
+fi
+
+
+
+
+
+
+- make all 3 browsers work with LH certificate
+
+# Make Google Chrome trust the LogixHealth certificate.
+# (The first line is necessary to check to see if it already exists.)
+certutil -d "sql:$HOME/.pki/nssdb" -L -n "$LOGIXHEALTH_CERT_NAME" > /dev/null 2>&1 \
+  || certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n "$LOGIXHEALTH_CERT_NAME" -i "$COMPANY_CERT_PATH"
+
+# Make Firefox trust the LogixHealth certificate.
+if [[ ! -d "$HOME/.mozilla" ]]; then
+  echo "Error: The \".mozilla\" directory does not exist. Open Firefox at least one time and then run this script again." >&2
+  exit
+fi
+FIREFOX_CERTIFICATE_DATABASE_PATH=$(find "$HOME/.mozilla/firefox/" -maxdepth 2 -name "cert9.db" -print0 -quit | xargs --null dirname 2> /dev/null)
+if [[ -z "$FIREFOX_CERTIFICATE_DATABASE_PATH" ]]; then
+  echo "Error: Failed to find the Firefox certificate store inside of the \".mozilla\" directory." >&2
+  exit
+fi
+certutil -d "sql:$FIREFOX_CERTIFICATE_DATABASE_PATH" -L -n "$LOGIXHEALTH_CERT_NAME" > /dev/null 2>&1 \
+  || certutil -d "sql:$FIREFOX_CERTIFICATE_DATABASE_PATH" -A -t "C,," -n "$LOGIXHEALTH_CERT_NAME" -i "$COMPANY_CERT_PATH"
+
+
