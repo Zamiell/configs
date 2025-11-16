@@ -457,12 +457,6 @@ if ! command -v code &> /dev/null; then
   sudo snap install --classic code
 fi
 
-# Install Kate. (This is similar to Notepad++ on Windows.)
-# TODO: Check to see if this is automatically installed.
-#if ! command -v kate &> /dev/null; then
-#  sudo snap install --classic kate
-#fi
-
 # Install nvm.
 if ! command -v nvm &> /dev/null; then
   curl --silent --fail --show-error --location https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
