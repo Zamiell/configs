@@ -187,7 +187,7 @@ fi
 
 # Install the public key for "github.com".
 KNOWN_HOSTS_PATH="$HOME/.ssh/known_hosts"
-if ! grep --quiet github.com "$KNOWN_HOSTS_PATH"; then
+if ! ssh-keygen -F github.com --quiet; then
   ssh-keyscan github.com >> "$KNOWN_HOSTS_PATH"
 fi
 
