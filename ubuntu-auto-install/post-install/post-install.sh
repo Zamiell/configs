@@ -23,9 +23,9 @@ if [[ "$EUID" -eq 0 ]]; then
 fi
 
 # By default, Ubuntu server does not have the ability to connect to a WiFi network because it needs
-# the "wpasupplicant" package. (Putting this on the installation media is non-trivial because it
-# needs to match the existing system and would quickly get out of date.) Thus, we require a wired
-# connection.
+# the "wpasupplicant" package. Putting this on the installation media is non-trivial because it
+# needs to match the existing system and would quickly get out of date. Thus, we first check for the
+# presence of a wired connection.
 if ! curl --silent --fail --show-error --location https://www.google.com &> /dev/null; then
   # Make the error message easy to see so that it does not get lost in the spam of the initial boot.
   echo "---------------------------------------------------------------"
@@ -39,12 +39,7 @@ fi
 # ----------------
 
 bitwarden_login() {
-  # Disable command echoing in this function to prevent sensitive information from showing on the
-  # screen.
-  set +x
-
   if [[ -n "${BW_SESSION:-}" ]]; then
-    set -x
     return
   fi
 
@@ -83,6 +78,10 @@ bitwarden_login() {
     bw login "$PERSONAL_EMAIL" --passwordenv BW_PASSWORD
   fi
 
+  # Before unlocking, we person a manual sync to try and avoid a race condition where the "bw
+  # unlock" command can occasionally fail.
+  bw sync
+
   BW_SESSION=$(bw unlock --raw --passwordenv BW_PASSWORD)
 
   export -n BW_CLIENTID
@@ -91,11 +90,8 @@ bitwarden_login() {
 
   if [[ -z "$BW_SESSION" ]]; then
     echo "Error: Failed to get a BitWarden session key." >&2
-    set -x
     return 1
   fi
-
-  set -x
 }
 
 # -----------------
@@ -110,13 +106,13 @@ source /etc/os-release
 sudo timedatectl set-timezone America/New_York
 
 # Patch the OS.
-sudo apt-get update --quiet
-sudo apt-get upgrade --quiet --yes
+sudo apt-get update -qq
+sudo apt-get upgrade -qq --yes
 
 # Install SSH.
 # https://documentation.ubuntu.com/server/how-to/security/openssh-server/index.html
 if ! dpkg --status openssh-server &> /dev/null; then
-  sudo apt-get install --quiet --yes openssh-server
+  sudo apt-get install -qq --yes openssh-server
   sudo systemctl enable ssh
   sudo systemctl start ssh
 fi
@@ -158,7 +154,7 @@ fi
 
 # Install Git.
 if ! command -v git &> /dev/null; then
-  sudo apt-get install --quiet --yes git
+  sudo apt-get install -qq --yes git
   git config --global user.name "$FULL_NAME"
   git config --global user.email "$WORK_EMAIL"
 fi
@@ -173,8 +169,8 @@ if ! command -v gh &> /dev/null; then
     && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
     && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list &> /dev/null \
-    && sudo apt-get update --quiet \
-    && sudo apt-get install --quiet --yes gh
+    && sudo apt-get update -qq \
+    && sudo apt-get install -qq --yes gh
 
   # gh uses HTTPS by default.
   gh config set git_protocol ssh
@@ -218,7 +214,7 @@ fi
 
 # Install KDE Plasma.
 if ! dpkg --status kde-plasma-desktop &> /dev/null; then
-  sudo apt-get install --quiet --yes kde-plasma-desktop
+  sudo apt-get install -qq --yes kde-plasma-desktop
 fi
 
 # Copy the Simple Desktop Display Manager (SDDM) config. (SDDM is the login manager.)
@@ -237,19 +233,6 @@ sudo systemctl stop bluetooth.service
 mkdir --parents "$HOME/.config/autostart"
 cp /etc/xdg/autostart/org.kde.discover.notifier.desktop "$HOME/.config/autostart/"
 echo "Hidden=true" >> "$HOME/.config/autostart/org.kde.discover.notifier.desktop"
-
-# Install 3rd party themes, which will be enabled later on after the first GUI boot. (We do this now
-# to prevent authentication prompts in the GUI.)
-if ! kpackagetool5 --list --type KWin/WindowSwitcher | grep "ClassicKde"; then
-  kpackagetool5 --type KWin/WindowSwitcher --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
-fi
-if [[ ! -d "$HOME/.icons/Win10OS-cursors" ]]; then
-  mkdir --parents "$HOME/.icons"
-  tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C "$HOME/.icons/"
-fi
-if ! kpackagetool5 --list --type Plasma/LookAndFeel | grep "com.github.yeyushengfan258.Win10OS-light"; then
-  kpackagetool5 --type Plasma/LookAndFeel --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip"
-fi
 
 # The rest of GUI configuration uses the `kwriteconfig5` command, which requires that the user has
 # logged on to the system at least once so that the relevant files in the ".config" directory get
@@ -325,6 +308,9 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # System Settings --> Window Management --> Task Switcher --> Change "Breeze" to "ClassicKDE".
   # This changes the Alt-Tab UI to something simpler and faster.
   # From: https://store.kde.org/p/2024371
+  if ! kpackagetool5 --list --type KWin/WindowSwitcher | grep "ClassicKde"; then
+    kpackagetool5 --type KWin/WindowSwitcher --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
+  fi
   if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) != "ClassicKde" ]]; then
     kwriteconfig5 --file kwinrc --group TabBox --key LayoutName ClassicKde
   fi
@@ -332,6 +318,10 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # System Settings --> Appearance --> Cursors --> Change "Breeze" to "PRA-DMZ".
   # This changes the cursors to Windows 10 cursors.
   # From: https://store.kde.org/p/1258818
+  if [[ ! -d "$HOME/.icons/Win10OS-cursors" ]]; then
+    mkdir --parents "$HOME/.icons"
+    tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C "$HOME/.icons/"
+  fi
   if [[ $(kreadconfig5 --file kcminputrc --group Mouse --key cursorTheme) != "PRA-DMZ" ]]; then
     # This is an X11 theme, so we can't use "kpackagetool5" to install.
     kwriteconfig5 --file kcminputrc --group Mouse --key cursorTheme PRA-DMZ
@@ -340,6 +330,9 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # System Settings --> Appearance --> Window Decorations --> Change "Breeze" to "Win10OS-light".
   # This gives Window 10 icons in the top-right of a window.
   # From: https://store.kde.org/p/1383080
+  if ! kpackagetool5 --list --type Plasma/LookAndFeel | grep "com.github.yeyushengfan258.Win10OS-light"; then
+    kpackagetool5 --type Plasma/LookAndFeel --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip"
+  fi
   if [[ $(kreadconfig5 --file kwinrc --group org.kde.kdecoration2 --key library) != "Win10OS-light" ]]; then
     kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library Win10OS-light
   fi
@@ -441,17 +434,17 @@ fi
 MICROSOFT_EDGE_REPOSITORY_PATH="/etc/apt/sources.list.d/microsoft-edge.list"
 if [[ ! -s "$MICROSOFT_EDGE_REPOSITORY_PATH" ]]; then
   echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" | sudo tee "$MICROSOFT_EDGE_REPOSITORY_PATH" > /dev/null
-  sudo apt-get update --quiet
+  sudo apt-get update -qq
 fi
 if ! dpkg --status microsoft-edge-stable &> /dev/null; then
-  sudo apt-get install --quiet --yes microsoft-edge-stable
+  sudo apt-get install -qq --yes microsoft-edge-stable
 fi
 
 # Install Google Chrome.
 if ! dpkg --status google-chrome-stable &> /dev/null; then
   GOOGLE_CHROME_PATH="/tmp/google-chrome.deb"
   curl --silent --fail --show-error --location --output "$GOOGLE_CHROME_PATH" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-  sudo apt-get install --quiet --yes "$GOOGLE_CHROME_PATH"
+  sudo apt-get install -qq --yes "$GOOGLE_CHROME_PATH"
   rm "$GOOGLE_CHROME_PATH"
 fi
 
@@ -490,7 +483,7 @@ fi
 # Install Bun.
 if ! command -v bun &> /dev/null; then
   if ! dpkg --status unzip &> /dev/null; then
-    sudo apt-get install --quiet --yes unzip
+    sudo apt-get install -qq --yes unzip
   fi
 
   curl --silent --fail --show-error --location https://bun.sh/install | bash
@@ -500,12 +493,12 @@ fi
 if ! dpkg --status packages-microsoft-prod &> /dev/null; then
   MICROSOFT_LINUX_REPOSITORY_PATH="/tmp/packages-microsoft-prod.deb"
   curl --silent --fail --show-error --location --output "$MICROSOFT_LINUX_REPOSITORY_PATH" "https://packages.microsoft.com/config/$ID/$VERSION_ID/packages-microsoft-prod.deb"
-  sudo apt-get install --quiet --yes "$MICROSOFT_LINUX_REPOSITORY_PATH"
+  sudo apt-get install -qq --yes "$MICROSOFT_LINUX_REPOSITORY_PATH"
   rm "$MICROSOFT_LINUX_REPOSITORY_PATH"
-  sudo apt-get update --quiet
+  sudo apt-get update -qq
 fi
 if ! dpkg --status intune-portal &> /dev/null; then
-  sudo apt-get install --quiet --yes intune-portal
+  sudo apt-get install -qq --yes intune-portal
 fi
 
 # Install the VPN client.
@@ -513,7 +506,7 @@ if [[ ! -s "/etc/apt/sources.list.d/yuezk-ubuntu-globalprotect-openconnect-noble
   sudo add-apt-repository ppa:yuezk/globalprotect-openconnect --yes
 fi
 if ! dpkg --status globalprotect-openconnect &> /dev/null; then
-  sudo apt-get install --quiet --yes globalprotect-openconnect
+  sudo apt-get install -qq --yes globalprotect-openconnect
 fi
 
 # -----------------
@@ -528,6 +521,7 @@ NETWORK_MANAGER_YAML_PATH="/etc/netplan/01-network-manager.yaml"
 if [[ ! -s "$NETWORK_MANAGER_YAML_PATH" ]]; then
   sudo find /etc/netplan -type f -name "*.yaml" -delete
   sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/netplan/01-network-manager.yaml" "$NETWORK_MANAGER_YAML_PATH"
+  sudo chmod 600 "$NETWORK_MANAGER_YAML_PATH"
   sudo netplan apply
   sudo systemctl stop systemd-networkd-wait-online.service
   sudo systemctl disable systemd-networkd-wait-online.service
