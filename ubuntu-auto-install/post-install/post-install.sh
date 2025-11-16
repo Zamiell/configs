@@ -467,12 +467,15 @@ fi
 if ! command -v nvm &> /dev/null; then
   curl --silent --fail --show-error --location https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
-  # Add it to path.
+  # Add it to path. (We temporarily disable command echoing since the script is noisy.)
+  # https://github.com/nvm-sh/nvm?tab=readme-ov-file#manual-install
+  set +x
   export NVM_DIR="$HOME/.nvm"
   # shellcheck source=/dev/null
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
   # shellcheck source=/dev/null
   [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+  set -e
 fi
 
 # Install Node.js
