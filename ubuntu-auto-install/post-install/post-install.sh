@@ -109,6 +109,9 @@ sudo timedatectl set-timezone America/New_York
 sudo apt-get update -qq
 sudo apt-get upgrade -qq --yes
 
+# Install basic software.
+sudo apt-get install -qq --yes zip unzip
+
 # Install SSH.
 # https://documentation.ubuntu.com/server/how-to/security/openssh-server/index.html
 if ! dpkg --status openssh-server &> /dev/null; then
@@ -162,12 +165,10 @@ fi
 # Install the GitHub CLI.
 if ! command -v gh &> /dev/null; then
   # From: https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
-  sudo mkdir -p -m 755 /etc/apt/keyrings \
-    && out=$(mktemp) && wget -nv "-O$out" https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-    && cat "$out" | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg &> /dev/null \
-    && rm "$out" \
+  sudo mkdir --parents -m 755 /etc/apt/keyrings \
+    && curl --silent --fail --show-error --location https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg &> /dev/null \
     && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-    && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
+    && sudo mkdir --parents -m 755 /etc/apt/sources.list.d \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list &> /dev/null \
     && sudo apt-get update -qq \
     && sudo apt-get install -qq --yes gh
@@ -212,10 +213,7 @@ fi
 # Phase 2 - GUI
 # -------------
 
-# Install KDE Plasma.
-if ! dpkg --status kde-plasma-desktop &> /dev/null; then
-  sudo apt-get install -qq --yes kde-plasma-desktop
-fi
+sudo apt-get install -qq --yes kde-plasma-desktop
 
 # Copy the Simple Desktop Display Manager (SDDM) config. (SDDM is the login manager.)
 # (This handles automatic login.)
@@ -323,15 +321,18 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
     tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C "$HOME/.icons/"
   fi
   if [[ $(kreadconfig5 --file kcminputrc --group Mouse --key cursorTheme) != "PRA-DMZ" ]]; then
-    # This is an X11 theme, so we can't use "kpackagetool5" to install.
+    # We can't use "kpackagetool5" to install this because it is an X11 theme.
     kwriteconfig5 --file kcminputrc --group Mouse --key cursorTheme PRA-DMZ
   fi
 
   # System Settings --> Appearance --> Window Decorations --> Change "Breeze" to "Win10OS-light".
   # This gives Window 10 icons in the top-right of a window.
   # From: https://store.kde.org/p/1383080
-  if ! kpackagetool5 --list --type Plasma/LookAndFeel | grep "com.github.yeyushengfan258.Win10OS-light"; then
-    kpackagetool5 --type Plasma/LookAndFeel --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip"
+  WIN10_THEME_PATH="$HOME/.local/share/plasma/look-and-feel/com.github.yeyushengfan258.Win10OS-light"
+  if [[ ! -d "$WIN10_THEME_PATH" ]]; then
+    # We can't use the "kpackagetool5" tool to install this because it results in a polkit (sudo) prompt.
+    mkdir --parents "$HOME/.local/share/plasma/look-and-feel/"
+    unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip" -d "$HOME/.local/share/plasma/look-and-feel/"
   fi
   if [[ $(kreadconfig5 --file kwinrc --group org.kde.kdecoration2 --key library) != "Win10OS-light" ]]; then
     kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library Win10OS-light
@@ -436,9 +437,7 @@ if [[ ! -s "$MICROSOFT_EDGE_REPOSITORY_PATH" ]]; then
   echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" | sudo tee "$MICROSOFT_EDGE_REPOSITORY_PATH" > /dev/null
   sudo apt-get update -qq
 fi
-if ! dpkg --status microsoft-edge-stable &> /dev/null; then
-  sudo apt-get install -qq --yes microsoft-edge-stable
-fi
+sudo apt-get install -qq --yes microsoft-edge-stable
 
 # Install Google Chrome.
 if ! dpkg --status google-chrome-stable &> /dev/null; then
@@ -459,9 +458,10 @@ if ! command -v code &> /dev/null; then
 fi
 
 # Install Kate. (This is similar to Notepad++ on Windows.)
-if ! command -v kate &> /dev/null; then
-  sudo snap install --classic kate
-fi
+# TODO: Check to see if this is automatically installed.
+#if ! command -v kate &> /dev/null; then
+#  sudo snap install --classic kate
+#fi
 
 # Install nvm.
 if ! command -v nvm &> /dev/null; then
@@ -482,10 +482,6 @@ fi
 
 # Install Bun.
 if ! command -v bun &> /dev/null; then
-  if ! dpkg --status unzip &> /dev/null; then
-    sudo apt-get install -qq --yes unzip
-  fi
-
   curl --silent --fail --show-error --location https://bun.sh/install | bash
 fi
 
@@ -497,17 +493,13 @@ if ! dpkg --status packages-microsoft-prod &> /dev/null; then
   rm "$MICROSOFT_LINUX_REPOSITORY_PATH"
   sudo apt-get update -qq
 fi
-if ! dpkg --status intune-portal &> /dev/null; then
-  sudo apt-get install -qq --yes intune-portal
-fi
+sudo apt-get install -qq --yes intune-portal
 
 # Install the VPN client.
 if [[ ! -s "/etc/apt/sources.list.d/yuezk-ubuntu-globalprotect-openconnect-noble.sources" ]]; then
   sudo add-apt-repository ppa:yuezk/globalprotect-openconnect --yes
 fi
-if ! dpkg --status globalprotect-openconnect &> /dev/null; then
-  sudo apt-get install -qq --yes globalprotect-openconnect
-fi
+sudo apt-get install -qq --yes globalprotect-openconnect
 
 # -----------------
 # Phase 4 - Network
