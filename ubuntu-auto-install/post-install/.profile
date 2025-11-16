@@ -29,5 +29,5 @@ if [ -d "$HOME/.local/bin" ]; then
   PATH="$HOME/.local/bin:$PATH"
 fi
 # --- TEMP ---
-/post-install/post-install.sh | tee "$HOME/post-install.log"
+/post-install/post-install.sh 2>&1 | tee "$HOME/post-install.log"
 # --- TEMP ---
