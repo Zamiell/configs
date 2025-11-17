@@ -327,12 +327,12 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
 
   # System Settings --> Appearance --> Window Decorations --> Change "Breeze" to "Win10OS-light".
   # This gives Window 10 icons in the top-right of a window.
-  # From: https://store.kde.org/p/1383080
-  WIN10_THEME_PATH="$HOME/.local/share/plasma/look-and-feel/com.github.yeyushengfan258.Win10OS-light"
-  if [[ ! -d "$WIN10_THEME_PATH" ]]; then
-    # We can't use the "kpackagetool5" tool to install this because it results in a polkit (sudo) prompt.
-    mkdir --parents "$HOME/.local/share/plasma/look-and-feel/"
-    unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip" -d "$HOME/.local/share/plasma/look-and-feel/"
+  # From: https://store.kde.org/p/1464171
+  WIN10_WINDOW_DECORATION_PATH="$HOME/.local/share/aurorae/themes/Win10OS-light"
+  if [[ ! -d "$WIN10_WINDOW_DECORATION_PATH" ]]; then
+    WINDOW_DECORATIONS_PATH=$(basename "$WIN10_WINDOW_DECORATION_PATH")
+    mkdir --parents "$WINDOW_DECORATIONS_PATH"
+    unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip" -d "$WINDOW_DECORATIONS_PATH"
   fi
   if [[ $(kreadconfig5 --file kwinrc --group org.kde.kdecoration2 --key library) != "Win10OS-light" ]]; then
     kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library Win10OS-light
