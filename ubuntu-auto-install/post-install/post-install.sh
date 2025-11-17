@@ -330,13 +330,12 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # From: https://store.kde.org/p/1464171
   WIN10_WINDOW_DECORATION_PATH="$HOME/.local/share/aurorae/themes/Win10OS-light"
   if [[ ! -d "$WIN10_WINDOW_DECORATION_PATH" ]]; then
-    WINDOW_DECORATIONS_PATH=$(basename "$WIN10_WINDOW_DECORATION_PATH")
+    WINDOW_DECORATIONS_PATH=$(dirname "$WIN10_WINDOW_DECORATION_PATH")
     mkdir --parents "$WINDOW_DECORATIONS_PATH"
     unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/Win10OS-light.zip" -d "$WINDOW_DECORATIONS_PATH"
   fi
-  if [[ $(kreadconfig5 --file kwinrc --group org.kde.kdecoration2 --key library) != "Win10OS-light" ]]; then
-    kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library Win10OS-light
-  fi
+  kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae
+  kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key theme __aurorae__svg__Win10OS-light
 
   # -------
   # Display
@@ -353,6 +352,7 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # Change "Press bottom-right-corner" to "Press anywhere with two fingers"
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
+  kcminit kcm_touchpad
 
   # ----------
   # Animations
@@ -410,8 +410,13 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
     rm "$FIRST_LOGIN_SETUP_DESKTOP_PATH"
   fi
 
-  # Restart KDE Plasma to make the settings take effect.
+  # Restart the desktop shell (which manages the panels, widgets, desktop background) to make some
+  # changes take effect.
   systemctl restart --user plasma-plasmashell.service
+
+  # Restart the window manager to make some changes take effect.
+  qdbus org.kde.KWin /KWin reconfigure
+
   # (Unfortunately, some settings will not take effect until the next reboot, like the touchpad
   # change.)
 else
