@@ -332,7 +332,7 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   if [[ ! -d "$WIN10_WINDOW_DECORATION_PATH" ]]; then
     WINDOW_DECORATIONS_PATH=$(basename "$WIN10_WINDOW_DECORATION_PATH")
     mkdir --parents "$WINDOW_DECORATIONS_PATH"
-    unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/com.github.yeyushengfan258.Win10OS-light.zip" -d "$WINDOW_DECORATIONS_PATH"
+    unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/Win10OS-light.zip" -d "$WINDOW_DECORATIONS_PATH"
   fi
   if [[ $(kreadconfig5 --file kwinrc --group org.kde.kdecoration2 --key library) != "Win10OS-light" ]]; then
     kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library Win10OS-light
