@@ -54,6 +54,7 @@
   "cSpell.autoFormatConfigFile": true,
 
   // Needed because the extension throws an error about the command not existing for some reason.
+  // cspell:disable-next-line
   "shellcheck.executablePath": "c:\\Users\\jnesta\\AppData\\Local\\Microsoft\\WinGet\\Packages\\koalaman.shellcheck_Microsoft.Winget.Source_8wekyb3d8bbwe\\shellcheck",
 
   // -----------------
