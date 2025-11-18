@@ -1615,6 +1615,7 @@ gpr() (
   local pull_request_id
   pull_request_id=$(jq -r '.pullRequestId' "$response_body")
   local pull_request_url="$azdo_pull_request_url_prefix/$pull_request_id"
+  echo "Created pull request: $pull_request_url"
   o "$pull_request_url"
 )
 
