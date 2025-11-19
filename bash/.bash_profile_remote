@@ -1577,11 +1577,11 @@ gpr() (
     pull_request_description="n/a"
   else
     local pull_request_text
-    echo "Getting the pull request text from an LLM..."
-    pull_request_text=$(get_llm_pull_request_text)
     if [[ $(get_num_commits_on_branch) == "1" ]]; then
+      echo "Using the commit description as the pull request title."
       pull_request_text=$(get_first_branch_commit_description)
     else
+      echo "Getting the pull request title & description from an LLM..."
       pull_request_text=$(get_llm_pull_request_text)
     fi
     pull_request_title=$(echo "$pull_request_text" | head -n 1)
