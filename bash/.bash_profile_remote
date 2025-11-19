@@ -885,6 +885,18 @@ gbd() (
     local branch_name="$1"
   fi
 
+  if [[ "$branch_name" == "main" ]] || [[ "$branch_name" == "master" ]]; then
+    echo "Error: You cannot use this command to delete the \"$branch_name\" branch. Are you sure you want to delete that?" >&2
+    return 1
+  fi
+
+  local current_branch_name
+  current_branch_name=$(git branch --show-current)
+  if [[ "$branch_name" == "$current_branch_name" ]]; then
+    echo "Error: You are deleting branch \"$branch_name\", but that is the branch that you are currently on. Switch to another branch first." >&2
+    return 1
+  fi
+
   if git show-ref --verify --quiet "refs/heads/$branch_name"; then
     git branch --delete --force "$branch_name"
     echo "Deleted branch \"$branch_name\" locally."
@@ -931,6 +943,18 @@ gbdl() (
     fi
   else
     local branch_name="$1"
+  fi
+
+  if [[ "$branch_name" == "main" ]] || [[ "$branch_name" == "master" ]]; then
+    echo "Error: You cannot use this command to delete the \"$branch_name\" branch. Are you sure you want to delete that?" >&2
+    return 1
+  fi
+
+  local current_branch_name
+  current_branch_name=$(git branch --show-current)
+  if [[ "$branch_name" == "$current_branch_name" ]]; then
+    echo "Error: You are deleting branch \"$branch_name\", but that is the branch that you are currently on. Switch to another branch first." >&2
+    return 1
   fi
 
   if git show-ref --verify --quiet "refs/heads/$branch_name"; then
