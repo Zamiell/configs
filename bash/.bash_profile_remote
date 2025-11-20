@@ -1146,7 +1146,7 @@ gbs() (
 
 # "gc" is short for "git commit", which will perform all the steps involved in making a new commit
 # with all unstaged changes. The arguments that are provided will be the commit message. If no
-# arguments are provided, then a default commit message will be used.
+# arguments are provided, then the script will attempt to find a suitable commit message.
 gc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -1506,6 +1506,8 @@ alias glg="git log --graph --pretty=format:'%C(yellow)%h%Creset %C(cyan)%d%Crese
 alias gp="git pull --rebase"
 
 # "gpr" is short for "git pull request", to start a new pull request based on the current branch.
+# The arguments that are provided will be the pull request title. If no arguments are provided, then
+# the script will attempt to find a suitable pull request title.
 gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -1600,21 +1602,26 @@ gpr() (
   local pull_request_title
   local pull_request_description
 
-  if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-    # If the user does not have an API key, use a generic pull request title and description.
-    pull_request_title=$(get_first_branch_commit_description)
-    pull_request_description="n/a"
-  else
-    local pull_request_text
-    if [[ $(get_num_commits_on_branch) == "1" ]]; then
-      echo "Using the commit description as the pull request title."
-      pull_request_text=$(get_first_branch_commit_description)
+  if [[ $# -eq 0 ]]; then
+    if [[ -z "${GEMINI_API_KEY:-}" ]]; then
+      # If the user does not have an API key, use a generic pull request title and description.
+      pull_request_title=$(get_first_branch_commit_description)
+      pull_request_description="n/a"
     else
-      echo "Getting the pull request title & description from an LLM..."
-      pull_request_text=$(get_llm_pull_request_text)
+      local pull_request_text
+      if [[ $(get_num_commits_on_branch) == "1" ]]; then
+        echo "Using the commit description as the pull request title."
+        pull_request_text=$(get_first_branch_commit_description)
+      else
+        echo "Getting the pull request title & description from an LLM..."
+        pull_request_text=$(get_llm_pull_request_text)
+      fi
+      pull_request_title=$(echo "$pull_request_text" | head -n 1)
+      pull_request_description=$(echo "$pull_request_text" | tail -n +2 | remove_leading_and_trailing_whitespace)
     fi
-    pull_request_title=$(echo "$pull_request_text" | head -n 1)
-    pull_request_description=$(echo "$pull_request_text" | tail -n +2 | remove_leading_and_trailing_whitespace)
+  else
+    pull_request_title="$*"
+    pull_request_description="n/a"
   fi
 
   local json_payload
