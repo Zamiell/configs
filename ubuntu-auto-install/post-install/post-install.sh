@@ -219,6 +219,12 @@ sudo apt-get install -qq --yes kde-plasma-desktop
 # (This handles automatic login.)
 sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/sddm.conf" /etc/
 
+# Some GUI apps require a GPG key, such as connecting to WiFi and VSCode.
+# (We add "(Personal)" since it is assumed in the GUI that all keys will have comments.)
+if ! gpg --list-secret-keys "$PERSONAL_EMAIL"; then
+  gpg --batch --passphrase "" --quick-generate-key "$FULL_NAME (Personal) <$PERSONAL_EMAIL>" default default 0
+fi
+
 # Disable Bluetooth. (This will automatically remove the Bluetooth icon from the system tray.)
 sudo systemctl disable bluetooth.service
 sudo systemctl stop bluetooth.service
@@ -381,9 +387,9 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # (Make windows smoothly scale in and out when they are shown or hidden)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_scaleEnabled false
 
-  # -------
-  # Hotkeys
-  # -------
+  # ---------------
+  # Vanilla Hotkeys
+  # ---------------
 
   # System Settings --> Shortcuts --> Shortcuts --> KWin --> Maximize Window
   # ("Meta+PgUp" by default)
@@ -400,6 +406,22 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # System Settings --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Bottom
   # ("Meta+Down" by default)
   kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Bottom" "none,Meta+Down,Quick Tile Window to the Bottom"
+
+  # --------------
+  # Custom Hotkeys
+  # --------------
+
+  # Disable the 3 vanilla groups.
+  kwriteconfig5 --file khotkeysrc --group Data_1 --key Enabled false
+  kwriteconfig5 --file khotkeysrc --group Data_2 --key Enabled false
+  kwriteconfig5 --file khotkeysrc --group Data_3 --key Enabled false
+
+  # -------------
+  # Miscellaneous
+  # -------------
+
+  # System Settings --> Window Management --> Window Behavior --> Focus stealing preventing: None
+  kwriteconfig5 --file kwinrc --group Windows --key FocusStealingPreventionLevel --type int 0
 
   # -------
   # Cleanup
@@ -426,8 +448,25 @@ else
   cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/autostart/first-login-setup.desktop" "$FIRST_LOGIN_SETUP_DESKTOP_PATH"
 fi
 
+# -----------------
+# Phase 3 - Hotkeys
+# -----------------
+
+# Install Autokey.
+if ! dpkg --status autokey-qt &> /dev/null; then
+  # https://github.com/autokey/autokey/wiki/Installing#debian-and-derivatives
+  LATEST_AUTOKEY_VERSION=$(curl --silent --fail --show-error --location --output /dev/null --write-out "%{url_effective}" https://github.com/autokey/autokey/releases/latest | sed 's|.*/||' | sed 's/^v//')
+  AUTOKEY_COMMON_PATH="/tmp/autokey-common.deb"
+  AUTOKEY_QT_PATH="/tmp/autokey-qt.deb"
+  curl --silent --fail --show-error --location --output "$AUTOKEY_COMMON_PATH" "https://github.com/autokey/autokey/releases/download/v0.96.0/autokey-common_${LATEST_AUTOKEY_VERSION}_all.deb"
+  curl --silent --fail --show-error --location --output "$AUTOKEY_QT_PATH" "https://github.com/autokey/autokey/releases/download/v0.96.0/autokey-qt_${LATEST_AUTOKEY_VERSION}_all.deb"
+  sudo dpkg --install "$AUTOKEY_COMMON_PATH" "$AUTOKEY_QT_PATH"
+  rm "$AUTOKEY_COMMON_PATH" "$AUTOKEY_QT_PATH"
+  sudo apt-get --fix-broken install
+fi
+
 # --------------------------------
-# Phase 3 - Uninstall Applications
+# Phase 4 - Uninstall Applications
 # --------------------------------
 
 # KDE Plasma installs some applications that are unwanted.
@@ -435,7 +474,7 @@ sudo apt-get purge --yes byobu # Byobu Terminal
 sudo apt-get autoremove --yes
 
 # ------------------------------
-# Phase 4 - Install Applications
+# Phase 5 - Install Applications
 # ------------------------------
 
 # Install the Microsoft package signing key. (This is needed for Edge and Intune.)
@@ -513,7 +552,7 @@ fi
 sudo apt-get install -qq --yes globalprotect-openconnect
 
 # -----------------
-# Phase 5 - Network
+# Phase 6 - Network
 # -----------------
 
 # On Ubuntu, Netplan is the default system for configuring network interfaces, but KDE's network

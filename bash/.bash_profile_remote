@@ -11,7 +11,7 @@
 get_first_branch_commit_description() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -54,7 +54,7 @@ get_first_branch_commit_description() (
 get_llm_commit_message() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -82,7 +82,7 @@ get_llm_commit_message() (
 get_llm_pull_request_text() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -431,7 +431,7 @@ alias claude="claude --permission-mode acceptEdits"
 csf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -700,7 +700,7 @@ alias gaa="git add --all"
 gb() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -741,7 +741,7 @@ gb() (
     git switch "$main_branch_name"
   fi
 
-  if git remote get-url upstream > /dev/null 2>&1; then
+  if git remote get-url upstream &> /dev/null; then
     gh-sync
   else
     git pull --rebase
@@ -764,7 +764,7 @@ gb() (
 gb_() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -793,7 +793,7 @@ gb_() (
     git switch "$main_branch_name"
   fi
 
-  if git remote get-url upstream > /dev/null 2>&1; then
+  if git remote get-url upstream &> /dev/null; then
     gh-sync
   else
     git pull --rebase
@@ -824,7 +824,7 @@ gbc() (
     fi
   done
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -849,7 +849,7 @@ gbc() (
   git branch -vv | awk "/: gone]/{print \$1}" | xargs --no-run-if-empty git branch --delete --force
 
   # Additionally, we want to delete branches from merged pull requests.
-  if git remote get-url upstream > /dev/null 2>&1; then
+  if git remote get-url upstream &> /dev/null; then
     gh-clean
   fi
 
@@ -861,7 +861,7 @@ gbc() (
 gbd() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -921,7 +921,7 @@ gbd() (
 gbdl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -973,7 +973,7 @@ gbdl() (
 gbl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1008,7 +1008,7 @@ gbl() (
 gblr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1032,7 +1032,7 @@ gblr() (
 gbr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1076,7 +1076,7 @@ gbr() (
 gbr_() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1102,7 +1102,7 @@ gbr_() (
 gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1150,7 +1150,7 @@ gbs() (
 gc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1178,7 +1178,7 @@ gc() (
   branch_name=$(git branch --show-current)
 
   local REPOSITORY_HAS_COMMITS="false"
-  git rev-parse --verify HEAD > /dev/null 2>&1 && REPOSITORY_HAS_COMMITS="true"
+  git rev-parse --verify HEAD &> /dev/null && REPOSITORY_HAS_COMMITS="true"
 
   # Only check for the remote branch existing if there are one or more commits. (For brand-new
   # repositories, the remote branch will not yet exist.)
@@ -1232,7 +1232,7 @@ gca() (
     local edit="false"
   fi
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1260,7 +1260,7 @@ gca() (
   branch_name=$(git branch --show-current)
 
   local REPOSITORY_HAS_COMMITS="false"
-  git rev-parse --verify HEAD > /dev/null 2>&1 && REPOSITORY_HAS_COMMITS="true"
+  git rev-parse --verify HEAD &> /dev/null && REPOSITORY_HAS_COMMITS="true"
 
   # Only check for the remote branch existing if there are one or more commits. (For brand-new
   # repositories, the remote branch will not yet exist.)
@@ -1321,7 +1321,7 @@ gcam() (
 gcs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1386,12 +1386,12 @@ alias gd="git diff"
 gh-sync() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
-  if ! git remote get-url upstream > /dev/null 2>&1; then
+  if ! git remote get-url upstream &> /dev/null; then
     echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
     return 1
   fi
@@ -1430,12 +1430,12 @@ gh-sync() (
 gh-clean() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
 
-  if ! git remote get-url upstream > /dev/null 2>&1; then
+  if ! git remote get-url upstream &> /dev/null; then
     echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
     return 1
   fi
@@ -1456,12 +1456,12 @@ gh-clean() (
     return 1
   fi
 
-  if ! command -v gh > /dev/null 2>&1; then
+  if ! command -v gh &> /dev/null; then
     echo "Error: GitHub CLI (gh) is not installed or not in PATH." >&2
     return 1
   fi
 
-  if ! gh auth status > /dev/null 2>&1; then
+  if ! gh auth status &> /dev/null; then
     echo "Error: Not authenticated with GitHub. Run: gh auth login" >&2
     return 1
   fi
@@ -1511,7 +1511,7 @@ alias gp="git pull --rebase"
 gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1665,7 +1665,7 @@ alias grba="git rebase --abort"
 grbc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1678,7 +1678,7 @@ grbc() (
 grbm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1712,7 +1712,7 @@ alias grsh="git reset --hard"
 grshm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1742,7 +1742,7 @@ grshm() (
 grv() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1764,7 +1764,7 @@ alias grva="git revert --abort"
 grvc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1777,7 +1777,7 @@ grvc() (
 grvl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1796,7 +1796,7 @@ alias gs="git status --porcelain"
 gsq() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1835,7 +1835,7 @@ alias gstp="git stash pop"
 gsw() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1879,7 +1879,7 @@ alias gswc="git switch -c"
 gswm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
@@ -1902,7 +1902,7 @@ gswm() (
     git switch "$main_branch_name"
   fi
 
-  if git remote get-url upstream > /dev/null 2>&1; then
+  if git remote get-url upstream &> /dev/null; then
     gh-sync
   else
     git pull --rebase
@@ -1918,7 +1918,7 @@ gswm() (
 gtc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
