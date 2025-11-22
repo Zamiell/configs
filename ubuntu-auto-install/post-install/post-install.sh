@@ -322,6 +322,7 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # System Settings --> Appearance --> Cursors --> Change "Breeze" to "PRA-DMZ".
   # This changes the cursors to Windows 10 cursors.
   # From: https://store.kde.org/p/1258818
+  # TODO: Does not work, makes bugged 3 dots.
   if [[ ! -d "$HOME/.icons/Win10OS-cursors" ]]; then
     mkdir --parents "$HOME/.icons"
     tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C "$HOME/.icons/"
