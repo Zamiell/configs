@@ -245,45 +245,6 @@ get_num_commits_on_branch() (
   git rev-list --count "$merge_base..$branch_name"
 )
 
-get_num_github_repository_commits() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ -z "${1:-}" ]]; then
-    echo "Error: Repository owner is required. Usage: get_num_github_repository_commits <repository_owner> <repository_name>" >&2
-    return 1
-  fi
-  local repository_owner="$1"
-
-  if [[ -z "${2:-}" ]]; then
-    echo "Error: Repository name is required. Usage: get_num_github_repository_commits <repository_owner> <repository_name>" >&2
-    return 1
-  fi
-  local repository_name="$2"
-
-  local response
-  response=$(curl \
-    --silent \
-    --fail \
-    --show-error \
-    --head \
-    "https://api.github.com/repos/$repository_owner/$repository_name/commits?per_page=1")
-
-  if echo "$response" | grep --quiet "404"; then
-    echo "Error: Repository \"$repository_owner/$repository_name\" was not found." >&2
-    return 1
-  fi
-
-  local commit_count
-  commit_count=$(echo "$response" | grep -i 'link:' | grep -o 'page=[0-9]*' | tail -1 | cut -d= -f2)
-
-  if [ -n "$commit_count" ]; then
-    echo "$commit_count"
-  else
-    # No pagination implies one page of commits.
-    echo "1"
-  fi
-)
-
 is_git_bash() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -311,16 +272,6 @@ remove_leading_and_trailing_whitespace() {
   # Removes trailing spaces or tabs: s/[ \t]*$//
   sed 's/^[ \t]*//;s/[ \t]*$//'
 }
-
-# -------
-# Version
-# -------
-
-BASH_PROFILE_VERSION=$(get_num_github_repository_commits Zamiell configs)
-export BASH_PROFILE_VERSION
-version() (
-  echo "Remote Bash profile version: $BASH_PROFILE_VERSION"
-)
 
 # ---------------------
 # Environment Variables
@@ -1172,12 +1123,23 @@ gc() (
   local branch_name
   branch_name=$(git branch --show-current)
 
-  local REPOSITORY_HAS_COMMITS="false"
-  git rev-parse --verify HEAD &> /dev/null && REPOSITORY_HAS_COMMITS="true"
+  if git rev-parse --verify HEAD &> /dev/null; then
+    local repository_has_commits="true"
+  else
+    local repository_has_commits="false"
+  fi
 
-  # Only check for the remote branch existing if there are one or more commits. (For brand-new
-  # repositories, the remote branch will not yet exist.)
-  if [[ "$REPOSITORY_HAS_COMMITS" == "true" ]]; then
+  if [[ -n "$(git config branch."$branch_name".merge)" ]]; then
+    local has_upstream_config="true"
+  else
+    local has_upstream_config="false"
+  fi
+
+  # Only check for the remote branch existing if:
+  # 1) There are one or more commits. (For brand-new repositories, the remote branch will not yet
+  #    exist.)
+  # 2) This is not a repository from: `gh pr checkout 123`
+  if [[ "$repository_has_commits" == "true" ]] && [[ "$has_upstream_config" == "false" ]]; then
     local remote_branch_info
     remote_branch_info=$(git ls-remote --heads origin "$branch_name")
 
