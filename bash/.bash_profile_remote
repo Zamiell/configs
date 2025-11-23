@@ -1556,28 +1556,31 @@ gpr() (
   fi
 
   # Second, use the Azure DevOps API to open a new pull request.
-  local pull_request_title
-  local pull_request_description
-
+  local pull_request_text
   if [[ $# -eq 0 ]]; then
     if [[ -z "${GEMINI_API_KEY:-}" ]]; then
       # If the user does not have an API key, use a generic pull request title and description.
-      pull_request_title=$(get_first_branch_commit_description)
-      pull_request_description="n/a"
+      echo "Using the first commit description as the pull request title & description."
+      pull_request_text=$(get_first_branch_commit_description)
     else
-      local pull_request_text
       if [[ $(get_num_commits_on_branch) == "1" ]]; then
-        echo "Using the commit description as the pull request title."
+        echo "Using the only commit description as the pull request title & description."
         pull_request_text=$(get_first_branch_commit_description)
       else
         echo "Getting the pull request title & description from an LLM..."
         pull_request_text=$(get_llm_pull_request_text)
       fi
-      pull_request_title=$(echo "$pull_request_text" | head -n 1)
-      pull_request_description=$(echo "$pull_request_text" | tail -n +2 | remove_leading_and_trailing_whitespace)
     fi
   else
-    pull_request_title="$*"
+    pull_request_text="$*"
+  fi
+
+  local pull_request_title
+  pull_request_title=$(echo "$pull_request_text" | head -n 1)
+
+  local pull_request_description
+  pull_request_description=$(echo "$pull_request_text" | tail -n +2 | remove_leading_and_trailing_whitespace)
+  if [[ -z "$pull_request_description" ]]; then
     pull_request_description="n/a"
   fi
 
