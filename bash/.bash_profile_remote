@@ -276,9 +276,7 @@ is_github_repository() (
 )
 
 remove_leading_and_trailing_whitespace() {
-  # Removes leading spaces or tabs: s/^[ \t]*//
-  # Removes trailing spaces or tabs: s/[ \t]*$//
-  sed 's/^[ \t]*//;s/[ \t]*$//'
+  sed -e '/[^[:space:]]/,$!d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
 }
 
 # ---------------------
@@ -1224,12 +1222,23 @@ gca() (
   local branch_name
   branch_name=$(git branch --show-current)
 
-  local REPOSITORY_HAS_COMMITS="false"
-  git rev-parse --verify HEAD &> /dev/null && REPOSITORY_HAS_COMMITS="true"
+  if git rev-parse --verify HEAD &> /dev/null; then
+    local repository_has_commits="true"
+  else
+    local repository_has_commits="false"
+  fi
 
-  # Only check for the remote branch existing if there are one or more commits. (For brand-new
-  # repositories, the remote branch will not yet exist.)
-  if [[ "$REPOSITORY_HAS_COMMITS" == "true" ]]; then
+  if [[ -n "$(git config branch."$branch_name".merge)" ]]; then
+    local has_upstream_config="true"
+  else
+    local has_upstream_config="false"
+  fi
+
+  # Only check for the remote branch existing if:
+  # 1) There are one or more commits. (For brand-new repositories, the remote branch will not yet
+  #    exist.)
+  # 2) This is not a repository from: `gh pr checkout 123`
+  if [[ "$repository_has_commits" == "true" ]] && [[ "$has_upstream_config" == "false" ]]; then
     local remote_branch_info
     remote_branch_info=$(git ls-remote --heads origin "$branch_name")
 
@@ -1262,7 +1271,8 @@ gca() (
 
   if [[ "$edit" == "true" ]]; then
     # "--amend" amends the previous commit instead of making a new commit.
-    git commit --amend
+    # "--allow-empty" allows amending the commit message without changing any files.
+    git commit --amend --allow-empty
   else
     # "--amend" amends the previous commit instead of making a new commit.
     # "--no-edit" avoids prompting for a commit message and uses the default commit message.
@@ -1621,6 +1631,8 @@ gpr() (
     "$azdo_api_url" || {
     local err="$?"
     echo "curl failed on URL: $azdo_api_url" >&2
+    echo "data was:"
+    echo "$json_payload"
     return "$err"
   }
 
