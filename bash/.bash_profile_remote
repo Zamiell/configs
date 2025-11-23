@@ -379,20 +379,15 @@ if ! command -v msedge &> /dev/null && command -v microsoft-edge &> /dev/null; t
   alias msedge="microsoft-edge"
 fi
 
-# nvm
-# https://github.com/nvm-sh/nvm
-if [[ -d "$HOME/.nvm" ]]; then
-  # https://github.com/nvm-sh/nvm?tab=readme-ov-file#manual-install
-  export NVM_DIR="$HOME/.nvm"
-  # shellcheck source=/dev/null
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-  # shellcheck source=/dev/null
-  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
-fi
-
 # bun
 if [[ -d "$HOME/.bun" ]]; then
   export PATH="$PATH:$HOME/.bun/bin"
+fi
+
+# fnm
+# https://github.com/Schniz/fnm
+if command -v fnm &> /dev/null; then
+  eval "$(fnm env --shell bash)"
 fi
 
 # ----------------------
