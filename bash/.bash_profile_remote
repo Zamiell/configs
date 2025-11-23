@@ -1168,7 +1168,7 @@ gc() (
   fi
 
   git commit --message "$commit_message"
-  if [[ "$REPOSITORY_HAS_COMMITS" == "true" ]]; then
+  if [[ "$repository_has_commits" == "true" ]]; then
     git pull --rebase
   fi
   git push
