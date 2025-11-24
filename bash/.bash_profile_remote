@@ -32,7 +32,7 @@ add_logix_cert_to_requests_ca_bundle() (
     echo "Append this:"
     echo
     echo "# $certificate_name"
-    curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/$certificate_name.crt
+    curl --silent --fail --show-error --location "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/$certificate_name.crt"
     echo
     echo "To the end of this file:"
     echo
