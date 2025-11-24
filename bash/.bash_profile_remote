@@ -1,12 +1,36 @@
 # shellcheck shell=bash
 
 # Compatibility notes:
-# - `mkdir` does not support `--parents` on macOS.
-# - `sed` does not support `--quiet` on macOS.
+# - `mkdir` does not support `--parents` on macOS, so we use "-p" instead.
+# - `sed` does not support `--quiet` on macOS, so we use "-n" instead.
 
 # ----------------
 # Helper functions
 # ----------------
+
+add_logix_cert_to_requests_ca_bundle() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "$REQUESTS_CA_BUNDLE" ]]; then
+    return
+  fi
+
+  if [[ ! -s "$REQUESTS_CA_BUNDLE" ]]; then
+    echo "Error: The \"REQUESTS_CA_BUNDLE\" environment variable is set to \"$REQUESTS_CA_BUNDLE\", but this file does not exist or is 0 bytes." >&2
+    return 1
+  fi
+
+  if grep --quiet BEDROOTCA001 "$REQUESTS_CA_BUNDLE"; then
+    return
+  fi
+
+  ROOT_CA_CONTENTS=$(curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/BEDROOTCA001.crt)
+  {
+    echo
+    echo "# BEDROOTCA001.crt"
+    echo "$ROOT_CA_CONTENTS"
+  } >> "$REQUESTS_CA_BUNDLE"
+)
 
 get_first_branch_commit_description() (
   set -euo pipefail # Exit on errors and undefined variables.
@@ -268,7 +292,7 @@ is_github_repository() (
   local remote_url
   remote_url=$(git remote get-url origin)
 
-  if echo "$remote_url" | grep -q "github.com"; then
+  if echo "$remote_url" | grep --quiet "github.com"; then
     return 0 # True
   else
     return 1 # False
@@ -308,6 +332,7 @@ elif [[ -s "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/c
 elif [[ -s "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/opt/az/lib/python3.13/site-packages/certifi/cacert.pem"
 fi
+add_logix_cert_to_requests_ca_bundle
 
 # Get the username in an operating system agnostic way.
 if [[ -n "$USER" ]]; then
@@ -857,7 +882,7 @@ gbd() (
     echo "Warning: Branch \"$branch_name\" does not exist locally."
   fi
 
-  if git ls-remote --heads origin "$branch_name" | grep -q .; then
+  if git ls-remote --heads origin "$branch_name" | grep --quiet .; then
     git push origin ":$branch_name"
     echo "Deleted branch \"$branch_name\" remotely."
   else
@@ -1316,7 +1341,7 @@ gcs() (
     echo "${tmp##*/}"
   )
 
-  if echo "$remote_url" | grep -q "github.com"; then
+  if echo "$remote_url" | grep --quiet "github.com"; then
     if [[ "$remote_url" == git@* ]]; then
       # SSH URL format: git@github.com:alice/my-repo.git
       local repository_owner
@@ -1327,19 +1352,19 @@ gcs() (
       repository_owner=$(echo "$remote_url" | sed -E 's|https://github\.com/([^/]+)/.*\.git|\1|')
     fi
     local commit_url="https://github.com/$repository_owner/$repository_name/commit/$commit_sha1"
-  elif echo "$remote_url" | grep -q "dev.azure.com"; then
+  elif echo "$remote_url" | grep --quiet "dev.azure.com"; then
     local organization_name
     organization_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
     local project_name
     project_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
     local commit_url="https://dev.azure.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
-  elif echo "$remote_url" | grep -q "azuredevops.logixhealth.com"; then
+  elif echo "$remote_url" | grep --quiet "azuredevops.logixhealth.com"; then
     local organization_name
     organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
     local project_name
     project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
     local commit_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
-  elif echo "$remote_url" | grep -q "dev.azure.com"; then
+  elif echo "$remote_url" | grep --quiet "dev.azure.com"; then
     local commit_url="https://dev.azure.com/logixhealth/Main/_git/$repository_name/commit/$commit_sha1"
   else
     echo "Failed to parse the remote URL for this repository." >&2
