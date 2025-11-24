@@ -8,30 +8,6 @@
 # Helper functions
 # ----------------
 
-add_logix_cert_to_requests_ca_bundle() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ -z "$REQUESTS_CA_BUNDLE" ]]; then
-    return
-  fi
-
-  if [[ ! -s "$REQUESTS_CA_BUNDLE" ]]; then
-    echo "Error: The \"REQUESTS_CA_BUNDLE\" environment variable is set to \"$REQUESTS_CA_BUNDLE\", but this file does not exist or is 0 bytes." >&2
-    return 1
-  fi
-
-  if grep --quiet BEDROOTCA001 "$REQUESTS_CA_BUNDLE"; then
-    return
-  fi
-
-  ROOT_CA_CONTENTS=$(curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/BEDROOTCA001.crt)
-  {
-    echo
-    echo "# BEDROOTCA001.crt"
-    echo "$ROOT_CA_CONTENTS"
-  } >> "$REQUESTS_CA_BUNDLE"
-)
-
 get_first_branch_commit_description() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -332,7 +308,21 @@ elif [[ -s "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/c
 elif [[ -s "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/opt/az/lib/python3.13/site-packages/certifi/cacert.pem"
 fi
-add_logix_cert_to_requests_ca_bundle
+if [[ -n "$REQUESTS_CA_BUNDLE" ]]; then
+  if [[ ! -s "$REQUESTS_CA_BUNDLE" ]]; then
+    echo "Error: The \"REQUESTS_CA_BUNDLE\" environment variable is set to \"$REQUESTS_CA_BUNDLE\", but this file does not exist or is 0 bytes." >&2
+    return 1
+  fi
+
+  if ! grep --quiet BEDROOTCA001 "$REQUESTS_CA_BUNDLE"; then
+    ROOT_CA_CONTENTS=$(curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/BEDROOTCA001.crt)
+    {
+      echo
+      echo "# BEDROOTCA001.crt"
+      echo "$ROOT_CA_CONTENTS"
+    } >> "$REQUESTS_CA_BUNDLE"
+  fi
+fi
 
 # Get the username in an operating system agnostic way.
 if [[ -n "$USER" ]]; then
