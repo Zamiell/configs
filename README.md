@@ -17,7 +17,7 @@ curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/conf
 ### macOS
 
 ```sh
-curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.zshrc
+curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.zprofile
 ```
 
 ### Linux (Ubuntu)
