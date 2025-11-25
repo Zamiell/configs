@@ -11,7 +11,7 @@
 add_logix_cert_to_requests_ca_bundle() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if [[ -z "$REQUESTS_CA_BUNDLE" ]]; then
+  if [[ -z "${REQUESTS_CA_BUNDLE:-}" ]]; then
     return
   fi
 
