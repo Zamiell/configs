@@ -375,6 +375,10 @@ fi
 if [[ -d "$HOME/.bun" ]]; then
   export PATH="$PATH:$HOME/.bun/bin"
 fi
+if [[ -s "$HOME/.bun/_bun" ]]; then
+  # shellcheck source=/dev/null
+  source "$HOME/.bun/_bun"
+fi
 
 # fnm
 # https://github.com/Schniz/fnm
