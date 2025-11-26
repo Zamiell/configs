@@ -1776,7 +1776,29 @@ grt() (
     return 1
   fi
 
-  # TODO
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    local main_branch_name="main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    local main_branch_name="master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    return 1
+  fi
+
+  if [[ "$branch_name" == "$main_branch_name" ]]; then
+    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  if [ -z "${1-}" ]; then
+    echo "Error: One or more file paths are required." >&2
+    return 1
+  fi
+
+  git restore --source "$main_branch_name" "$@"
 )
 
 # "grv" is short for "git revert".
