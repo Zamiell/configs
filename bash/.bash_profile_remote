@@ -42,6 +42,20 @@ add_logix_cert_to_requests_ca_bundle() (
   fi
 )
 
+# If we use a subshell, the changes to PATH would be lost.
+append_path() {
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The path is required. Usage: ${FUNCNAME[0]} <path>" >&2
+    return 1
+  fi
+  local directory="$1"
+
+  # Check if the directory exists and is not already in the PATH.
+  if [[ -d "$directory" ]] && [[ ":$PATH:" != *":$directory:"* ]]; then
+    export PATH="$PATH:$directory"
+  fi
+}
+
 get_first_branch_commit_description() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -159,13 +173,13 @@ get_llm_output_git_diff() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: The git diff is required. Usage: get_llm_output_git_diff <git_diff> <noun>" >&2
+    echo "Error: The git diff is required. Usage: ${FUNCNAME[0]} <git_diff> <noun>" >&2
     return 1
   fi
   local git_diff="$1"
 
   if [[ -z "${2:-}" ]]; then
-    echo "Error: The noun is required. Usage: get_llm_output_git_diff <git_diff> <noun>" >&2
+    echo "Error: The noun is required. Usage: ${FUNCNAME[0]} <git_diff> <noun>" >&2
     return 1
   fi
   local noun="$2"
@@ -187,13 +201,13 @@ get_llm_output() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: The system prompt is required. Usage: get_llm_output <system_prompt> <prompt>" >&2
+    echo "Error: The system prompt is required. Usage: ${FUNCNAME[0]} <system_prompt> <prompt>" >&2
     return 1
   fi
   local system_prompt="$1"
 
   if [[ -z "${2:-}" ]]; then
-    echo "Error: The prompt is required. Usage: get_llm_output <system_prompt> <prompt>" >&2
+    echo "Error: The prompt is required. Usage: ${FUNCNAME[0]} <system_prompt> <prompt>" >&2
     return 1
   fi
   local prompt="$2"
@@ -372,17 +386,14 @@ if ! command -v msedge &> /dev/null && command -v microsoft-edge &> /dev/null; t
 fi
 
 # bun
-if [[ -d "$HOME/.bun" ]]; then
-  export PATH="$PATH:$HOME/.bun/bin"
-fi
-if [[ -s "$HOME/.bun/_bun" ]]; then
-  # shellcheck source=/dev/null
-  source "$HOME/.bun/_bun"
-fi
+# https://bun.com/
+append_path "$HOME/.bun"
 
 # fnm
 # https://github.com/Schniz/fnm
-if command -v fnm &> /dev/null; then
+append_path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
+
+if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
   eval "$(fnm env --shell bash)"
 fi
 
@@ -394,7 +405,7 @@ ai() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ $# -eq 0 ]]; then
-    echo "Error: The prompt is required. Usage: ai <prompt>" >&2
+    echo "Error: The prompt is required. Usage: ${FUNCNAME[0]} <prompt>" >&2
     return 1
   fi
   local prompt="$*"
@@ -466,7 +477,7 @@ o() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: URL is required. Usage: o <url>" >&2
+    echo "Error: URL is required. Usage: ${FUNCNAME[0]} <url>" >&2
     return 1
   fi
   local url="$1"
@@ -858,7 +869,7 @@ gbd() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name or number is required. Usage: gbd <branch-name-or-number>" >&2
+    echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
     return 1
   fi
 
@@ -918,7 +929,7 @@ gbdl() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name or number is required. Usage: gbdl <branch-name-or-number>" >&2
+    echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
     return 1
   fi
 
@@ -1029,7 +1040,7 @@ gbr() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Application name is required. Usage: gbr <application-name> [description]" >&2
+    echo "Error: Application name is required. Usage: ${FUNCNAME[0]} <application-name> [description]" >&2
     return 1
   fi
   local new_app_name="$1"
@@ -1073,7 +1084,7 @@ gbr_() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name is required. Usage: gbr_ <branch-name>" >&2
+    echo "Error: Branch name is required. Usage: ${FUNCNAME[0]} <branch-name>" >&2
     return 1
   fi
   local new_branch_name="$1"
@@ -1811,7 +1822,7 @@ grv() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Commit SHA1 is required. Usage: grv <commit_sha1>" >&2
+    echo "Error: Commit SHA1 is required. Usage: ${FUNCNAME[0]} <commit_sha1>" >&2
     return 1
   fi
   local commit_sha1="$1"
@@ -1913,7 +1924,7 @@ gsw() (
   fi
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name or number is required. Usage: gsw <branch-name-or-number>" >&2
+    echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
     return 1
   fi
 
