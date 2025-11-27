@@ -528,8 +528,10 @@ fi
 if [[ -n "$REPOSITORIES_DIRECTORY" ]]; then
   alias r='builtin cd $REPOSITORIES_DIRECTORY'
 
-  # Only automatically change directories if the shell is interactive.
-  if [[ $- == *i* ]]; then
+  # By default, it is useful for shells to open in the repositories directory instead of the home
+  # directory. (But only do this if the shell is interactive and we are actually starting in the
+  # home directory.)
+  if [[ $- == *i* ]] && [[ "$PWD" == "$HOME" ]]; then
     builtin cd "$REPOSITORIES_DIRECTORY"
   fi
 fi
