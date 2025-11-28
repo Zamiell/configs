@@ -73,14 +73,8 @@ get_first_branch_commit_description() (
   local branch_name
   branch_name=$(git branch --show-current)
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
     echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
@@ -135,17 +129,11 @@ get_llm_pull_request_text() (
 
   assert_git_repository
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
-
   local branch_name
   branch_name=$(git branch --show-current)
+
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
     echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
@@ -266,6 +254,19 @@ get_llm_output() (
   echo "$llm_output"
 )
 
+get_main_branch_name() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    echo "main"
+  elif git show-ref --verify --quiet refs/heads/master; then
+    echo "master"
+  else
+    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
+    return 1
+  fi
+)
+
 get_num_commits_on_branch() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -274,14 +275,8 @@ get_num_commits_on_branch() (
   local branch_name
   branch_name=$(git branch --show-current)
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
     echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
@@ -757,14 +752,8 @@ gb() (
     git stash push --message "Auto-stash before creating a new git branch"
   fi
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
     git switch "$main_branch_name"
@@ -806,14 +795,8 @@ gb_() (
     git stash push --message "Auto-stash before creating a new git branch"
   fi
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
     git switch "$main_branch_name"
@@ -852,14 +835,8 @@ gbc() (
 
   assert_git_repository
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
     git switch "$main_branch_name"
@@ -1109,14 +1086,8 @@ gbs() (
 
   assert_git_repository
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   local branch_name
   branch_name=$(git branch --show-current)
@@ -1409,14 +1380,8 @@ gh-sync() (
     return 1
   fi
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   local current_branch
   current_branch=$(git branch --show-current)
@@ -1450,14 +1415,8 @@ gh-clean() (
     return 1
   fi
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   local current_branch
   current_branch=$(git branch --show-current)
@@ -1523,14 +1482,8 @@ gpr() (
 
   assert_git_repository
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   local branch_name
   branch_name=$(git branch --show-current)
@@ -1699,22 +1652,16 @@ grbm() (
 
   assert_git_repository
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ "$(git branch --show-current)" == "$main_branch_name" ]]; then
     echo "You are on the \"$main_branch_name\" branch, so you cannot rebase this branch on itself." >&2
     return 1
   fi
 
-  git fetch origin $main_branch_name
-  git rebase origin/$main_branch_name
+  git fetch origin "$main_branch_name"
+  git rebase "origin/$main_branch_name"
   git push --force
 )
 
@@ -1730,14 +1677,8 @@ grshm() (
 
   assert_git_repository
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   local branch_name
   branch_name=$(git branch --show-current)
@@ -1760,14 +1701,8 @@ grt() (
   local branch_name
   branch_name=$(git branch --show-current)
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There was not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
     echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
@@ -1869,14 +1804,8 @@ gsw() (
 
   assert_git_repository
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
@@ -1910,14 +1839,8 @@ gswm() (
 
   assert_git_repository
 
-  if git show-ref --verify --quiet refs/heads/main; then
-    local main_branch_name="main"
-  elif git show-ref --verify --quiet refs/heads/master; then
-    local main_branch_name="master"
-  else
-    echo "Error: There is not a \"main\" branch or \"master\" branch in this repository." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if [[ -n "$(git status --porcelain)" ]]; then
     echo "The repository is not clean. Stashing all of your existing changes."
