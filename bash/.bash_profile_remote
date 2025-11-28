@@ -553,6 +553,20 @@ o() (
   echo "$url"
 )
 
+prompt() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ $# -eq 0 ]]; then
+    echo "Error: The prompt message is required. Usage: ${FUNCNAME[0]} <prompt-message>" >&2
+    return 1
+  fi
+  local prompt_message="$*"
+
+  local system_prompt="You will be asked a question. You should answer with only the word \"yes\" or \"no\". Do not include any preamble, explanation, or markdown."
+
+  get_llm_output "$system_prompt" "$prompt_message"
+)
+
 # "r" is short for switching to the repositories directory.
 if [[ -d "/c/Users/$OS_USERNAME/Repositories" ]]; then # Generic Windows
   REPOSITORIES_DIRECTORY="/c/Users/$OS_USERNAME/Repositories"
