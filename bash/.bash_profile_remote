@@ -80,6 +80,21 @@ assert_feature_branch() (
   fi
 )
 
+assert_main_branch() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
+
+  if [[ "$branch_name" != "$main_branch_name" ]]; then
+    echo "Error: This command is intended to be run on the \"$main_branch_name\" branch and you are currently on the \"$branch_name\" branch." >&2
+    return 1
+  fi
+)
+
 get_first_branch_commit_description() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -641,11 +656,6 @@ run_package_script() (
 
   local package_manager
   package_manager="$(get_package_manager)"
-  if [ -z "$package_manager" ]; then
-    echo "Error: Failed to find the package manager." >&2
-    return 1
-  fi
-
   "$package_manager" run "$@"
 )
 
@@ -1140,7 +1150,7 @@ gc() (
   if is_github_repository; then
     local user_email
     user_email=$(git config user.email)
-    if [[ "$user_email" == *@logixhealth.com ]]; then
+    if [[ "$user_email" == *logixhealth.com ]]; then
       echo "Error: You are trying to commit to a GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
       return 1
     fi
@@ -1376,6 +1386,7 @@ gh-sync() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
+  assert_main_branch
 
   if ! git remote get-url upstream &> /dev/null; then
     echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
@@ -1384,13 +1395,6 @@ gh-sync() (
 
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
-
-  local current_branch
-  current_branch=$(git branch --show-current)
-  if [[ "$current_branch" != "$main_branch_name" ]]; then
-    echo "You can only sync the \"$main_branch_name\" branch. Right now, you currently on branch: $current_branch" >&2
-    return 1
-  fi
 
   git fetch origin
   git fetch upstream
@@ -1411,6 +1415,7 @@ gh-clean() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
+  assert_main_branch
 
   if ! git remote get-url upstream &> /dev/null; then
     echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
@@ -1419,13 +1424,6 @@ gh-clean() (
 
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
-
-  local current_branch
-  current_branch=$(git branch --show-current)
-  if [[ "$current_branch" != "$main_branch_name" ]]; then
-    echo "You can only clean up branches up from the \"$main_branch_name\" branch. Right now, you currently on branch: $current_branch" >&2
-    return 1
-  fi
 
   if ! command -v gh &> /dev/null; then
     echo "Error: GitHub CLI (gh) is not installed or not in PATH." >&2
@@ -1483,17 +1481,13 @@ gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
-
-  local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  assert_feature_branch
 
   local branch_name
   branch_name=$(git branch --show-current)
 
-  if [[ "$branch_name" == "$main_branch_name" ]]; then
-    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
-    return 1
-  fi
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   if is_github_repository; then
     gh pr create --fill-first --web
@@ -1653,14 +1647,10 @@ grbm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
+  assert_feature_branch
 
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
-
-  if [[ "$(git branch --show-current)" == "$main_branch_name" ]]; then
-    echo "You are on the \"$main_branch_name\" branch, so you cannot rebase this branch on itself." >&2
-    return 1
-  fi
 
   git fetch origin "$main_branch_name"
   git rebase "origin/$main_branch_name"
@@ -1678,17 +1668,10 @@ grshm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
+  assert_feature_branch
 
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
-
-  local branch_name
-  branch_name=$(git branch --show-current)
-
-  if [[ "$branch_name" == "$main_branch_name" ]]; then
-    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
-    return 1
-  fi
 
   git reset --hard "origin/$main_branch_name"
   git push --force
@@ -1699,17 +1682,10 @@ grt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
-
-  local branch_name
-  branch_name=$(git branch --show-current)
+  assert_feature_branch
 
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
-
-  if [[ "$branch_name" == "$main_branch_name" ]]; then
-    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
-    return 1
-  fi
 
   if [ -z "${1-}" ]; then
     echo "Error: One or more file paths are required." >&2
@@ -1949,7 +1925,7 @@ if [[ $- == *i* ]]; then
       source "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh"
     else
       echo "Error: Cannot find the \"__git_ps1\" function declared." >&2
-      return
+      return 1
     fi
   fi
 
