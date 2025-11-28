@@ -28,16 +28,10 @@ add_logix_cert_to_requests_ca_bundle() (
       file_path=$(cygpath --windows "$file_path")
     fi
 
-    echo
-    echo "Append this:"
-    echo
-    echo "# $certificate_name"
-    curl --silent --fail --show-error --location "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/$certificate_name.crt"
-    echo
-    echo "To the end of this file:"
-    echo
-    echo "$file_path"
-
+    echo >&2
+    echo "Run this command to fix it:" >&2
+    echo >&2
+    echo "{ echo; echo \"# $certificate_name\"; curl --silent --fail --show-error --location \"https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/$certificate_name.crt\"; } >> \"$REQUESTS_CA_BUNDLE\"" >&2
     return 1
   fi
 )
@@ -1112,6 +1106,29 @@ gbs() (
 gc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
+  local amend="false"
+  local edit_commit_message="false"
+  local commit_message_args=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --amend)
+        amend="true"
+        shift
+        ;;
+      --edit-commit-message)
+        edit_commit_message="true"
+        shift
+        ;;
+      *)
+        commit_message_args+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  local commit_message="${commit_message_args[*]}"
+
   assert_git_repository
 
   if [[ -z "$(git config user.name)" ]]; then
@@ -1160,29 +1177,60 @@ gc() (
     fi
   fi
 
+  if [[ "$amend" == "true" ]]; then
+    # Validate that we are at the remote tip so that we do not accidentally blow away commits.
+    git fetch origin "$branch_name" --quiet
+    local latest_commit_local
+    latest_commit_local=$(git rev-parse HEAD)
+    local latest_commit_remote
+    latest_commit_remote=$(git rev-parse "origin/$branch_name")
+
+    if [[ "$latest_commit_local" != "$latest_commit_remote" ]] && ! git merge-base --is-ancestor "$latest_commit_remote" HEAD; then
+      echo "Error: Remote branch has commits are not present locally. Do a \"git pull\" first or use a different approach." >&2
+      return 1
+    fi
+  fi
+
   git add --all
-  if git diff --cached --quiet; then
+
+  # Validate that we have one or more new changes to commit. (But allow 0 change commits if we are
+  # only editing the commit message.)
+  if [[ "$edit_commit_message" == "false" ]] && git diff --cached --quiet; then
     echo "Error: There are no changes to commit."
     return 1
   fi
 
-  local commit_message
-  if [[ $# -eq 0 ]]; then
-    if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-      commit_message="chore: update something"
+  if [[ "$amend" == "true" ]]; then
+    if [[ "$edit_commit_message" == "true" ]]; then
+      # "--amend" amends the previous commit instead of making a new commit.
+      # "--allow-empty" allows amending the commit message without changing any files.
+      git commit --amend --allow-empty
     else
-      echo "Getting the commit message from an LLM..."
-      commit_message=$(get_llm_commit_message)
+      # "--amend" amends the previous commit instead of making a new commit.
+      # "--no-edit" avoids prompting for a commit message and uses the default commit message.
+      git commit --amend --no-edit
     fi
-  else
-    commit_message="$*"
-  fi
 
-  git commit --message "$commit_message"
-  if [[ "$repository_has_commits" == "true" ]]; then
-    git pull --rebase
+    # We do not need to `git pull` because we already verified above that we are on the remote tip.
+    git push --force-with-lease
+  else
+    if [[ -z "$commit_message" ]]; then
+      if [[ -z "${GEMINI_API_KEY:-}" ]]; then
+        commit_message="chore: update something"
+      else
+        echo "Getting the commit message from an LLM..."
+        commit_message=$(get_llm_commit_message)
+      fi
+    fi
+
+    git commit --message "$commit_message"
+
+    if [[ "$repository_has_commits" == "true" ]]; then
+      git pull --rebase
+    fi
+
+    git push
   fi
-  git push
 
   gcs
 )
@@ -1192,101 +1240,13 @@ gc() (
 # will use the previous commit message, but you can use "gca edit" (or "gcam") to edit the commit
 # message before pushing.
 gca() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  local edit="false"
-  if [[ "${1:-}" == "--edit" ]]; then
-    edit="true"
-  fi
-
-  assert_git_repository
-
-  if [[ -z "$(git config user.name)" ]]; then
-    echo "Error: Git user name not set. Run: git config --global user.name \"Your Name\"" >&2
-    return 1
-  fi
-
-  if [[ -z "$(git config user.email)" ]]; then
-    echo "Error: Git user email not set. Run: git config --global user.email you@example.com" >&2
-    return 1
-  fi
-
-  if is_github_repository; then
-    local user_email
-    user_email=$(git config user.email)
-    if [[ "$user_email" == *@logixhealth.com ]]; then
-      echo "Error: You are trying to commit to a GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
-      return 1
-    fi
-  fi
-
-  local branch_name
-  branch_name=$(git branch --show-current)
-
-  local repository_has_commits="false"
-  if git rev-parse --verify HEAD &> /dev/null; then
-    repository_has_commits="true"
-  fi
-
-  local has_upstream_config="false"
-  if [[ -n "$(git config branch."$branch_name".merge)" ]]; then
-    has_upstream_config="true"
-  fi
-
-  # Only check for the remote branch existing if:
-  # 1) There are one or more commits. (For brand-new repositories, the remote branch will not yet
-  #    exist.)
-  # 2) This is not a repository from: `gh pr checkout 123`
-  if [[ "$repository_has_commits" == "true" ]] && [[ "$has_upstream_config" == "false" ]]; then
-    local remote_branch_info
-    remote_branch_info=$(git ls-remote --heads origin "$branch_name")
-
-    if [[ -z "$remote_branch_info" ]]; then
-      echo "Error: The remote branch of \"$branch_name\" does not yet exist." >&2
-      return 1
-    fi
-  fi
-
-  # Validate that we are at the remote tip so that we do not accidentally blow away commits.
-  git fetch origin "$branch_name" --quiet
-  local latest_commit_local
-  latest_commit_local=$(git rev-parse HEAD)
-  local latest_commit_remote
-  latest_commit_remote=$(git rev-parse "origin/$branch_name")
-
-  if [[ "$latest_commit_local" != "$latest_commit_remote" ]] && ! git merge-base --is-ancestor "$latest_commit_remote" HEAD; then
-    echo "Error: Remote branch has commits are not present locally. Do a \"git pull\" first or use a different approach." >&2
-    return 1
-  fi
-
-  git add --all
-
-  # Validate that we have one or more new changes to commit. (But allow 0 change commits if we are
-  # editing the commit message.)
-  if [[ "$edit" != "true" ]] && git diff --cached --quiet; then
-    echo "Error: There are no changes to commit."
-    return 1
-  fi
-
-  if [[ "$edit" == "true" ]]; then
-    # "--amend" amends the previous commit instead of making a new commit.
-    # "--allow-empty" allows amending the commit message without changing any files.
-    git commit --amend --allow-empty
-  else
-    # "--amend" amends the previous commit instead of making a new commit.
-    # "--no-edit" avoids prompting for a commit message and uses the default commit message.
-    git commit --amend --no-edit
-  fi
-
-  # We do not need to `git pull` because we already verified above that we are on the remote tip.
-  git push --force-with-lease
-  gcs
+  gc --amend
 )
 
 # "gcam" is short for "git commit amend message". This is similar to "gca", but it will also allow
 # you to change the commit message.
 gcam() (
-  gca --edit
+  gc --amend --edit-commit-message
 )
 
 # "gcs" is short for "git commit show", which will open a browser to view the last commit.
