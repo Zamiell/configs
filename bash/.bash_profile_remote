@@ -355,9 +355,11 @@ print_files_and_branches() (
   if command -v cygpath &> /dev/null; then
     # "/c/Repositories/foo" --> "C:\Repositories\configs"
     current_dir=$(cygpath --windows "$current_dir")
+    current_dir=$(to_lowercase "$current_dir")
 
     # "C:/Repositories/foo" --> "C:\Repositories\foo"
     git_top_dir=$(cygpath --windows "$git_top_dir")
+    git_top_dir=$(to_lowercase "$git_top_dir")
   fi
 
   if [[ "$current_dir" = "$git_top_dir" ]]; then
@@ -369,6 +371,18 @@ print_files_and_branches() (
 remove_leading_and_trailing_whitespace() {
   sed --expression '/[^[:space:]]/,$!d' --expression 's/^[[:space:]]*//' --expression 's/[[:space:]]*$//'
 }
+
+to_lowercase() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ $# -eq 0 ]]; then
+    echo "Error: At least one string argument is required. Usage: ${FUNCNAME[0]} <string> ..." >&2
+    return 1
+  fi
+
+  # https://stackoverflow.com/questions/41166026/what-does-2-commas-after-variable-name-mean-in-bash
+  echo "${@,,}"
+)
 
 # ---------------------
 # Environment Variables
