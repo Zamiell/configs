@@ -8,6 +8,6 @@
   "devDependencies": {
     "complete-cli": "1.5.7",
     "complete-lint": "5.1.1",
-    "prettier-plugin-sh": "0.18.0"
+    "prettier-plugin-sh": "0.17.4"
   }
 }

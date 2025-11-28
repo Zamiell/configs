@@ -59,11 +59,11 @@
 
   // Automatically run the formatter when certain files are saved.
   "[shellscript]": {
-    "editor.defaultFormatter": "complete.prettier-vscode-community",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
   },
   "[css][html][json][jsonc][markdown][postcss][yaml]": {
-    "editor.defaultFormatter": "complete.prettier-vscode-community",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
   },
 }
