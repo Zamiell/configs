@@ -53,9 +53,6 @@
   // Use Prettier to format "cspell.config.jsonc".
   "cSpell.autoFormatConfigFile": true,
 
-  // TODO: Remove
-  "prettier.enableDebugLogs": true,
-
   // -----------------
   // Language settings
   // -----------------

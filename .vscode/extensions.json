@@ -2,7 +2,7 @@
 // repository: https://go.microsoft.com/fwlink/?LinkId=827846
 {
   "recommendations": [
-    "complete.prettier-vscode", // The Bash formatter
+    "complete.prettier-vscode-community", // The formatter
     "streetsidesoftware.code-spell-checker", // A spell-checker extension based on CSpell
   ],
 }

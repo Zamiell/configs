@@ -56,13 +56,19 @@ append_path() {
   fi
 }
 
-get_first_branch_commit_description() (
+assert_git_repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo "Error: Not inside a Git repository." >&2
     return 1
   fi
+)
+
+get_first_branch_commit_description() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert_git_repository
 
   local branch_name
   branch_name=$(git branch --show-current)
@@ -102,10 +108,7 @@ get_first_branch_commit_description() (
 get_llm_commit_message() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "${GEMINI_API_KEY:-}" ]]; then
     # If the user does not have an API key, return a generic commit message.
@@ -130,10 +133,7 @@ get_llm_commit_message() (
 get_llm_pull_request_text() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if git show-ref --verify --quiet refs/heads/main; then
     local main_branch_name="main"
@@ -269,10 +269,7 @@ get_llm_output() (
 get_num_commits_on_branch() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   local branch_name
   branch_name=$(git branch --show-current)
@@ -330,6 +327,8 @@ is_github_repository() (
 # When we "cd" to a Git repository, we want to show the branches. Otherwise, can we show the list of
 # files in the directory.
 print_files_and_branches() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
   ll
 
   # On Git Gash, the "git rev-parse" command will show a directory in the format of:
@@ -452,8 +451,7 @@ ai() (
 
 # Only create this alias if the shell is interactive.
 if [[ $- == *i* ]]; then
-  # Automatically list the contents of a directory after changing to it.
-  # (We have to use braces instead of parenthesis here.)
+  # We have to use braces instead of parenthesis here.
   cd() {
     builtin cd "$@" && print_files_and_branches
   }
@@ -466,11 +464,7 @@ alias claude="claude --permission-mode acceptEdits"
 csf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
-
+  assert_git_repository
   bunx cspell-check-unused-words --fix
 
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -738,10 +732,7 @@ alias gaa="git add --all"
 gb() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "${1:-}" ]]; then
     local description="misc"
@@ -802,10 +793,7 @@ gb() (
 gb_() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "${1:-}" ]]; then
     local new_branch_name="misc"
@@ -862,10 +850,7 @@ gbc() (
     fi
   done
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if git show-ref --verify --quiet refs/heads/main; then
     local main_branch_name="main"
@@ -899,10 +884,7 @@ gbc() (
 gbd() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
@@ -959,10 +941,7 @@ gbd() (
 gbdl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
@@ -1011,10 +990,7 @@ gbdl() (
 gbl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   local local_branches
   local_branches=$(git branch --format="%(refname:short)" | sort)
@@ -1046,10 +1022,7 @@ gbl() (
 gblr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   git fetch --prune --quiet
 
@@ -1070,10 +1043,7 @@ gblr() (
 gbr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Application name is required. Usage: ${FUNCNAME[0]} <application-name> [description]" >&2
@@ -1114,10 +1084,7 @@ gbr() (
 gbr_() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Branch name is required. Usage: ${FUNCNAME[0]} <branch-name>" >&2
@@ -1140,10 +1107,7 @@ gbr_() (
 gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if git show-ref --verify --quiet refs/heads/main; then
     local main_branch_name="main"
@@ -1188,10 +1152,7 @@ gbs() (
 gc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "$(git config user.name)" ]]; then
     echo "Error: Git user name not set. Run: git config --global user.name \"Your Name\"" >&2
@@ -1281,10 +1242,7 @@ gca() (
     local edit="false"
   fi
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "$(git config user.name)" ]]; then
     echo "Error: Git user name not set. Run: git config --global user.name \"Your Name\"" >&2
@@ -1382,10 +1340,7 @@ gcam() (
 gcs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
   local commit_sha1
@@ -1447,10 +1402,7 @@ alias gd="git diff"
 gh-sync() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if ! git remote get-url upstream &> /dev/null; then
     echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
@@ -1491,10 +1443,7 @@ gh-sync() (
 gh-clean() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if ! git remote get-url upstream &> /dev/null; then
     echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
@@ -1572,10 +1521,7 @@ alias gp="git pull --rebase"
 gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if git show-ref --verify --quiet refs/heads/main; then
     local main_branch_name="main"
@@ -1741,10 +1687,7 @@ alias grba="git rebase --abort"
 grbc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   git add --all
   git rebase --continue
@@ -1754,10 +1697,7 @@ grbc() (
 grbm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if git show-ref --verify --quiet refs/heads/main; then
     local main_branch_name="main"
@@ -1788,10 +1728,7 @@ alias grsh="git reset --hard"
 grshm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if git show-ref --verify --quiet refs/heads/main; then
     local main_branch_name="main"
@@ -1818,10 +1755,7 @@ grshm() (
 grt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   local branch_name
   branch_name=$(git branch --show-current)
@@ -1852,10 +1786,7 @@ grt() (
 grv() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Commit SHA1 is required. Usage: ${FUNCNAME[0]} <commit_sha1>" >&2
@@ -1874,10 +1805,7 @@ alias grva="git revert --abort"
 grvc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   git add --all
   git revert --continue
@@ -1887,10 +1815,7 @@ grvc() (
 grvl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   # "--no-edit" avoids prompting for a commit message and uses the default commit message.
   git revert HEAD --no-edit
@@ -1906,10 +1831,7 @@ alias gs="git status --porcelain"
 gsq() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: You must provide the number of commits to squash." >&2
@@ -1945,10 +1867,7 @@ alias gstp="git stash pop"
 gsw() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if git show-ref --verify --quiet refs/heads/main; then
     local main_branch_name="main"
@@ -1989,10 +1908,7 @@ alias gswc="git switch -c"
 gswm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   if git show-ref --verify --quiet refs/heads/main; then
     local main_branch_name="main"
@@ -2028,10 +1944,7 @@ gswm() (
 gtc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
+  assert_git_repository
 
   git tag -l | xargs git tag -d
   git fetch --tags
