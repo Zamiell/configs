@@ -365,7 +365,7 @@ print_files_and_branches() (
 )
 
 remove_leading_and_trailing_whitespace() {
-  sed -e '/[^[:space:]]/,$!d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+  sed --expression '/[^[:space:]]/,$!d' --expression 's/^[[:space:]]*//' --expression 's/[[:space:]]*$//'
 }
 
 # ---------------------
