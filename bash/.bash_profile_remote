@@ -1288,7 +1288,7 @@ gca() (
 gcam() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  gca edit
+  gca --edit
 )
 
 # "gcs" is short for "git commit show", which will open a browser to view the last commit.
