@@ -1286,8 +1286,6 @@ gca() (
 # "gcam" is short for "git commit amend message". This is similar to "gca", but it will also allow
 # you to change the commit message.
 gcam() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
   gca --edit
 )
 
