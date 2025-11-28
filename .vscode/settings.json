@@ -53,17 +53,20 @@
   // Use Prettier to format "cspell.config.jsonc".
   "cSpell.autoFormatConfigFile": true,
 
+  // TODO: Remove
+  "prettier.enableDebugLogs": true,
+
   // -----------------
   // Language settings
   // -----------------
 
   // Automatically run the formatter when certain files are saved.
   "[shellscript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "complete.prettier-vscode-community",
     "editor.formatOnSave": true,
   },
   "[css][html][json][jsonc][markdown][postcss][yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "complete.prettier-vscode-community",
     "editor.formatOnSave": true,
   },
 }

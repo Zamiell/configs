@@ -312,14 +312,45 @@ is_git_bash() (
 is_github_repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
+    return 1 # False
+  fi
+
   # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
   local remote_url
   remote_url=$(git remote get-url origin)
 
   if echo "$remote_url" | grep --quiet "github.com"; then
     return 0 # True
-  else
-    return 1 # False
+  fi
+
+  return 1 # False
+)
+
+# When we "cd" to a Git repository, we want to show the branches. Otherwise, can we show the list of
+# files in the directory.
+print_files_and_branches() (
+  ll
+
+  # On Git Gash, the "git rev-parse" command will show a directory in the format of:
+  # D:/Repositories/configs
+  # Thus, we have to made some modifications
+  local current_dir
+  current_dir=$(pwd)
+  local git_top_dir
+  git_top_dir=$(git rev-parse --show-toplevel 2> /dev/null)
+
+  if command -v cygpath &> /dev/null; then
+    # "/c/Repositories/foo" --> "C:\Repositories\configs"
+    current_dir=$(cygpath --windows "$current_dir")
+
+    # "C:/Repositories/foo" --> "C:\Repositories\foo"
+    git_top_dir=$(cygpath --windows "$git_top_dir")
+  fi
+
+  if [ "$current_dir" = "$git_top_dir" ]; then
+    echo
+    gbl
   fi
 )
 
@@ -424,9 +455,7 @@ if [[ $- == *i* ]]; then
   # Automatically list the contents of a directory after changing to it.
   # (We have to use braces instead of parenthesis here.)
   cd() {
-    # We use the same flags as the "ll" alias.
-    # (We do not use the alias directly for compatibility reasons.)
-    builtin cd "$@" && ls -a -h -l -F --color=auto
+    builtin cd "$@" && print_files_and_branches
   }
 fi
 
@@ -535,7 +564,7 @@ if [[ -n "$REPOSITORIES_DIRECTORY" ]]; then
   # By default, it is useful for shells to open in the repositories directory instead of the home
   # directory. (But only do this if the shell is interactive and we are actually starting in the
   # home directory.)
-  if [[ $- == *i* ]] && [[ "$PWD" == "$HOME" ]]; then
+  if [[ $- == *i* ]] && [[ "$(pwd)" == "$HOME" ]]; then
     builtin cd "$REPOSITORIES_DIRECTORY"
   fi
 fi
@@ -573,7 +602,8 @@ alias kgp="kubectl get pod"
 get_package_manager() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local current_dir="$PWD"
+  local current_dir
+  current_dir="$(pwd)"
 
   # Search upward through directories, looking for package lock files.
   # (We deliberately use "-f" over "-s" to be as conservative as possible.)
@@ -2097,7 +2127,9 @@ if [[ $- == *i* ]]; then
     PS1="$PS1"'\n'                         # new line
     PS1="$PS1"'\[\033[32m\]'               # change to green
     PS1="$PS1"'\u@\h '                     # user@host<space>
-    # We don't need to show the system, so the next two lines are omitted.
+    # We don't need to show the system, so the next two lines are commented out.
+    #PS1="$PS1"'\[\033[35m\]' # change to purple
+    #PS1="$PS1"'$MSYSTEM '    # show MSYSTEM
     PS1="$PS1"'\[\033[33m\]' # change to brownish yellow
     PS1="$PS1"'\w'           # current working directory
     GIT_EXEC_PATH="$(git --exec-path 2> /dev/null)"

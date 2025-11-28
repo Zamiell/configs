@@ -1,8 +1,0 @@
-{
-  "devDependencies": {
-    "prettier-plugin-sh": {
-      "lock-version": true,
-      "lock-reason": "https://github.com/un-ts/prettier/issues/489"
-    }
-  }
-}
