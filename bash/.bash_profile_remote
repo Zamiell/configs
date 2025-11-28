@@ -340,7 +340,9 @@ is_github_repository() (
 print_files_and_branches() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  ll
+  # We use the same flags as the "ll" alias. (We cannot use the alias directly as the subshell does
+  # not have access to it.
+  ls -a -h -l -F --color=auto
 
   # On Git Gash, the "git rev-parse" command will show a directory in the format of:
   # D:/Repositories/configs
