@@ -1276,17 +1276,17 @@ gcs() (
     local repository_owner
     if [[ "$remote_url" == git@* ]]; then
       # SSH URL format: git@github.com:alice/my-repo.git
-      repository_owner=$(echo "$remote_url" | sed -E 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
+      repository_owner=$(echo "$remote_url" | sed --regexp-extended 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
     else
       # HTTPS URL format: https://github.com/alice/my-repo.git
-      repository_owner=$(echo "$remote_url" | sed -E 's|https://github\.com/([^/]+)/.*\.git|\1|')
+      repository_owner=$(echo "$remote_url" | sed --regexp-extended 's|https://github\.com/([^/]+)/.*\.git|\1|')
     fi
     commit_url="https://github.com/$repository_owner/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep --quiet "dev.azure.com"; then
     local organization_name
-    organization_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
+    organization_name=$(echo "$remote_url" | sed --regexp-extended 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
     local project_name
-    project_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
+    project_name=$(echo "$remote_url" | sed --regexp-extended 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
     commit_url="https://dev.azure.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep --quiet "azuredevops.logixhealth.com"; then
     local organization_name
