@@ -65,10 +65,8 @@ assert_git_repository() (
   fi
 )
 
-get_first_branch_commit_description() (
+assert_feature_branch() (
   set -euo pipefail # Exit on errors and undefined variables.
-
-  assert_git_repository
 
   local branch_name
   branch_name=$(git branch --show-current)
@@ -80,13 +78,22 @@ get_first_branch_commit_description() (
     echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
     return 1
   fi
+)
+
+get_first_branch_commit_description() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert_git_repository
+  assert_feature_branch
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  local main_branch_name
+  main_branch_name=$(get_main_branch_name)
 
   local merge_base
-  merge_base=$(git merge-base "$main_branch_name" "$branch_name")
-  if [[ -z "$merge_base" ]]; then
-    echo "Error: Could not find a common ancestor with the \"$main_branch_name\" branch." >&2
-    return 1
-  fi
+  merge_base=$(get_merge_base)
 
   local first_commit_hash
   first_commit_hash=$(git rev-list --reverse "$merge_base..$branch_name" | head -n 1)
@@ -105,7 +112,6 @@ get_llm_commit_message() (
   assert_git_repository
 
   if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-    # If the user does not have an API key, return a generic commit message.
     echo "Error: The \"GEMINI_API_KEY\" environment variable is not set." >&2
     return 1
   fi
@@ -128,17 +134,10 @@ get_llm_pull_request_text() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
-
-  local branch_name
-  branch_name=$(git branch --show-current)
+  assert_feature_branch
 
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
-
-  if [[ "$branch_name" == "$main_branch_name" ]]; then
-    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
-    return 1
-  fi
 
   if [[ -z "${GEMINI_API_KEY:-}" ]]; then
     # If the user does not have an API key, return a generic commit message.
@@ -267,10 +266,8 @@ get_main_branch_name() (
   fi
 )
 
-get_num_commits_on_branch() (
+get_merge_base() (
   set -euo pipefail # Exit on errors and undefined variables.
-
-  assert_git_repository
 
   local branch_name
   branch_name=$(git branch --show-current)
@@ -278,17 +275,27 @@ get_num_commits_on_branch() (
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
 
-  if [[ "$branch_name" == "$main_branch_name" ]]; then
-    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
-    return 1
-  fi
-
   local merge_base
   merge_base=$(git merge-base "$main_branch_name" "$branch_name")
   if [[ -z "$merge_base" ]]; then
     echo "Error: Could not find a common ancestor with the \"$main_branch_name\" branch." >&2
     return 1
   fi
+
+  echo "$merge_base"
+)
+
+get_num_commits_on_branch() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert_git_repository
+  assert_feature_branch
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  local merge_base
+  merge_base=$(get_merge_base)
 
   git rev-list --count "$merge_base..$branch_name"
 )
@@ -313,7 +320,7 @@ is_github_repository() (
   remote_url=$(git remote get-url origin)
 
   if echo "$remote_url" | grep --quiet "github.com"; then
-    return 0 # True
+    return # True
   fi
 
   return 1 # False
@@ -508,14 +515,14 @@ o() (
     # We remove the output to prevent the "Opening in existing browser session." text from appearing
     # on Linux.
     msedge "$url" > /dev/null
-    return 0
+    return
   fi
 
   if command -v chrome &> /dev/null; then
     # We remove the output to prevent the "Opening in existing browser session." text from appearing
     # on Linux.
     chrome "$url" > /dev/null
-    return 0
+    return
   fi
 
   # macOS and Linux have the "open" command:
@@ -524,7 +531,7 @@ o() (
     # We remove the output to prevent the "Opening in existing browser session." text from appearing
     # on Linux.
     open "$url" > /dev/null
-    return 0
+    return
   fi
 
   echo "Git commit URL is at:"
@@ -599,16 +606,22 @@ get_package_manager() (
   while [ "$current_dir" != "/" ]; do
     if [ -f "$current_dir/package-lock.json" ]; then
       echo "npm"
-      return 0
-    elif [ -f "$current_dir/yarn.lock" ]; then
+      return
+    fi
+
+    if [ -f "$current_dir/yarn.lock" ]; then
       echo "yarn"
-      return 0
-    elif [ -f "$current_dir/pnpm-lock.yaml" ]; then
+      return
+    fi
+
+    if [ -f "$current_dir/pnpm-lock.yaml" ]; then
       echo "pnpm"
-      return 0
-    elif [ -f "$current_dir/bun.lock" ]; then
+      return
+    fi
+
+    if [ -f "$current_dir/bun.lock" ]; then
       echo "bun"
-      return 0
+      return
     fi
 
     current_dir="$(dirname "$current_dir")"
@@ -1085,31 +1098,20 @@ gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
-
-  local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  assert_feature_branch
 
   local branch_name
   branch_name=$(git branch --show-current)
 
-  if [[ "$branch_name" == "$main_branch_name" ]]; then
-    echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
-    return 1
-  fi
-
   local merge_base
-  merge_base=$(git merge-base "$main_branch_name" "$branch_name")
-  if [[ -z "$merge_base" ]]; then
-    echo "Error: Could not find a common ancestor with the \"$main_branch_name\" branch." >&2
-    return 1
-  fi
+  merge_base=$(get_merge_base)
 
   local num_branch_commits
   num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
 
   if [[ "$num_branch_commits" -eq 1 ]]; then
     echo "There is only 1 commit on this branch, so no squashing is needed."
-    return 0
+    return
   fi
 
   git reset --soft "HEAD~$num_branch_commits"
