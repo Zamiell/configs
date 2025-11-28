@@ -1126,7 +1126,7 @@ gbs() (
 
   git reset --soft "HEAD~$num_branch_commits"
   git commit --message "chore: squashed $num_branch_commits commits"
-  git push --force
+  git push --force-with-lease
 )
 
 # "gc" is short for "git commit", which will perform all the steps involved in making a new commit
@@ -1307,7 +1307,7 @@ gca() (
   fi
 
   # We do not need to `git pull` because we already verified above that we are on the remote tip.
-  git push --force
+  git push --force-with-lease
   gcs
 )
 
@@ -1654,7 +1654,7 @@ grbm() (
 
   git fetch origin "$main_branch_name"
   git rebase "origin/$main_branch_name"
-  git push --force
+  git push --force-with-lease
 )
 
 # "grs" is short for "git reset".
@@ -1674,7 +1674,7 @@ grshm() (
   main_branch_name=$(get_main_branch_name)
 
   git reset --hard "origin/$main_branch_name"
-  git push --force
+  git push --force-with-lease
 )
 
 # "grt" is short for "git restore --source main".
@@ -1760,7 +1760,7 @@ gsq() (
 
   git reset --soft "HEAD~$number_of_commits"
   git commit --message "$commit_message"
-  git push --force
+  git push --force-with-lease
 )
 
 # "gst" is short for "git stash".
@@ -1858,8 +1858,8 @@ gtc() (
 # "gu" is short for "git push".
 alias gu="git push"
 
-# "guf" is short for "git push --force".
-alias guf="git push --force"
+# "guf" is short for "git push --force-with-lease".
+alias guf="git push --force-with-lease"
 
 # ---------------
 # Pulumi Commands
