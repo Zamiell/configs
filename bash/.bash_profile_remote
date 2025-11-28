@@ -753,22 +753,25 @@ gb() (
 
   assert_git_repository
 
+  local description
   if [[ -z "${1:-}" ]]; then
-    local description="misc"
+    description="misc"
   else
-    local description="$1"
+    description="$1"
   fi
 
+  local application_name
   if [[ -z "${2:-}" ]]; then
-    local application_name="misc"
+    application_name="misc"
   else
-    local application_name="$2"
+    application_name="$2"
   fi
 
+  local new_branch_name
   if is_github_repository; then
-    local new_branch_name="$description"
+    new_branch_name="$description"
   else
-    local new_branch_name="feature/$application_name/$OS_USERNAME/$description"
+    new_branch_name="feature/$application_name/$OS_USERNAME/$description"
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -808,10 +811,11 @@ gb_() (
 
   assert_git_repository
 
+  local new_branch_name
   if [[ -z "${1:-}" ]]; then
-    local new_branch_name="misc"
+    new_branch_name="misc"
   else
-    local new_branch_name="$1"
+    new_branch_name="$1"
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -1037,10 +1041,11 @@ gbr() (
   local branch_username="${branch_parts[2]}" # e.g. "alice"
   local old_description="${branch_parts[3]}" # e.g. "fix-bug-1"
 
+  local new_description
   if [[ -z "${2:-}" ]]; then
-    local new_description="$old_description"
+    new_description="$old_description"
   else
-    local new_description="$2"
+    new_description="$2"
   fi
 
   local new_branch_name="$branch_type/$new_app_name/$branch_username/$new_description"
@@ -1131,16 +1136,14 @@ gc() (
   local branch_name
   branch_name=$(git branch --show-current)
 
+  local repository_has_commits="false"
   if git rev-parse --verify HEAD &> /dev/null; then
-    local repository_has_commits="true"
-  else
-    local repository_has_commits="false"
+    repository_has_commits="true"
   fi
 
+  local has_upstream_config="false"
   if [[ -n "$(git config branch."$branch_name".merge)" ]]; then
-    local has_upstream_config="true"
-  else
-    local has_upstream_config="false"
+    has_upstream_config="true"
   fi
 
   # Only check for the remote branch existing if:
@@ -1191,10 +1194,9 @@ gc() (
 gca() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if [[ "${1:-}" == "edit" ]]; then
-    local edit="true"
-  else
-    local edit="false"
+  local edit="false"
+  if [[ "${1:-}" == "--edit" ]]; then
+    edit="true"
   fi
 
   assert_git_repository
@@ -1221,16 +1223,14 @@ gca() (
   local branch_name
   branch_name=$(git branch --show-current)
 
+  local repository_has_commits="false"
   if git rev-parse --verify HEAD &> /dev/null; then
-    local repository_has_commits="true"
-  else
-    local repository_has_commits="false"
+    repository_has_commits="true"
   fi
 
+  local has_upstream_config="false"
   if [[ -n "$(git config branch."$branch_name".merge)" ]]; then
-    local has_upstream_config="true"
-  else
-    local has_upstream_config="false"
+    has_upstream_config="true"
   fi
 
   # Only check for the remote branch existing if:
@@ -1312,31 +1312,31 @@ gcs() (
     echo "${tmp##*/}"
   )
 
+  local commit_url
   if echo "$remote_url" | grep --quiet "github.com"; then
+    local repository_owner
     if [[ "$remote_url" == git@* ]]; then
       # SSH URL format: git@github.com:alice/my-repo.git
-      local repository_owner
       repository_owner=$(echo "$remote_url" | sed -E 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
     else
       # HTTPS URL format: https://github.com/alice/my-repo.git
-      local repository_owner
       repository_owner=$(echo "$remote_url" | sed -E 's|https://github\.com/([^/]+)/.*\.git|\1|')
     fi
-    local commit_url="https://github.com/$repository_owner/$repository_name/commit/$commit_sha1"
+    commit_url="https://github.com/$repository_owner/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep --quiet "dev.azure.com"; then
     local organization_name
     organization_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
     local project_name
     project_name=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
-    local commit_url="https://dev.azure.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
+    commit_url="https://dev.azure.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep --quiet "azuredevops.logixhealth.com"; then
     local organization_name
     organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
     local project_name
     project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
-    local commit_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
+    commit_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
   elif echo "$remote_url" | grep --quiet "dev.azure.com"; then
-    local commit_url="https://dev.azure.com/logixhealth/Main/_git/$repository_name/commit/$commit_sha1"
+    commit_url="https://dev.azure.com/logixhealth/Main/_git/$repository_name/commit/$commit_sha1"
   else
     echo "Failed to parse the remote URL for this repository." >&2
     return 1
@@ -1724,10 +1724,11 @@ gsq() (
   fi
   local number_of_commits="$1"
 
+  local commit_message
   if [[ -z "${2:-}" ]]; then
-    local commit_message="chore: squash $number_of_commits commits"
+    commit_message="chore: squash $number_of_commits commits"
   else
-    local commit_message="$2"
+    commit_message="$2"
   fi
 
   git reset --soft "HEAD~$number_of_commits"
@@ -1762,11 +1763,11 @@ gsw() (
     return 1
   fi
 
+  local branch_name
   if [[ "$1" =~ ^[0-9]+$ ]]; then
     local branch_number="$1"
     local local_branches
     local_branches=$(git branch --format="%(refname:short)" | sort)
-    local branch_name
     branch_name=$(echo "$local_branches" | sed -n "${branch_number}p")
 
     if [[ -z "$branch_name" ]]; then
@@ -1774,7 +1775,7 @@ gsw() (
       return 1
     fi
   else
-    local branch_name="$1"
+    branch_name="$1"
   fi
 
   git switch "$branch_name"
