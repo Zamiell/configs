@@ -360,7 +360,7 @@ print_files_and_branches() (
     git_top_dir=$(cygpath --windows "$git_top_dir")
   fi
 
-  if [ "$current_dir" = "$git_top_dir" ]; then
+  if [[ "$current_dir" = "$git_top_dir" ]]; then
     echo
     gbl
   fi
@@ -617,22 +617,22 @@ get_package_manager() (
   # Search upward through directories, looking for package lock files.
   # (We deliberately use "-f" over "-s" to be as conservative as possible.)
   while [ "$current_dir" != "/" ]; do
-    if [ -f "$current_dir/package-lock.json" ]; then
+    if [[ -f "$current_dir/package-lock.json" ]]; then
       echo "npm"
       return
     fi
 
-    if [ -f "$current_dir/yarn.lock" ]; then
+    if [[ -f "$current_dir/yarn.lock" ]]; then
       echo "yarn"
       return
     fi
 
-    if [ -f "$current_dir/pnpm-lock.yaml" ]; then
+    if [[ -f "$current_dir/pnpm-lock.yaml" ]]; then
       echo "pnpm"
       return
     fi
 
-    if [ -f "$current_dir/bun.lock" ]; then
+    if [[ -f "$current_dir/bun.lock" ]]; then
       echo "bun"
       return
     fi
@@ -647,7 +647,7 @@ get_package_manager() (
 run_package_script() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if [ -z "${1-}" ]; then
+  if [[ -z "${1-}" ]]; then
     echo "Error: Script name is required." >&2
     return 1
   fi
@@ -1620,7 +1620,7 @@ grt() (
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
 
-  if [ -z "${1-}" ]; then
+  if [[ -z "${1-}" ]]; then
     echo "Error: One or more file paths are required." >&2
     return 1
   fi
