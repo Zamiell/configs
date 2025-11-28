@@ -1629,22 +1629,22 @@ grshm() (
   git push --force-with-lease
 )
 
-# "grt" is short for "git restore --source main".
+# "grt" is short for "git restore". It will the feature branch's merge base as the source.
 grt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
   assert_feature_branch
 
-  local main_branch_name
-  main_branch_name=$(get_main_branch_name)
-
   if [[ -z "${1-}" ]]; then
     echo "Error: One or more file paths are required." >&2
     return 1
   fi
 
-  git restore --source "$main_branch_name" "$@"
+  local merge_base
+  merge_base=$(get_merge_base)
+
+  git restore --source "$merge_base" "$@"
 )
 
 # "grv" is short for "git revert".
