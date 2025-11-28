@@ -452,6 +452,7 @@ fi
 # Miscellaneous Commands
 # ----------------------
 
+# Ask an LLM a question from the terminal.
 ai() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -461,7 +462,7 @@ ai() (
   fi
   local prompt="$*"
 
-  local system_prompt="You are an expert full-stack systems engineer. You will be given an English description of a Linux/Bash command. Your response must be a Linux/Bash command that matches the description, to the best of your ability. Only include the command, as it will be copy-pasted by the user. Do not include any preamble, explanation, or markdown. If the command includes flags, always include the long-form version of the flag, if available."
+  local system_prompt="You are being asked a question inside of a terminal. Be fairly brief in your response. For example, if you are being asked what the command is for something, format your response as just the command and a 1-2 sentence description."
 
   get_llm_output "$system_prompt" "$prompt"
 )
@@ -551,20 +552,6 @@ o() (
 
   echo "Git commit URL is at:"
   echo "$url"
-)
-
-prompt() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ $# -eq 0 ]]; then
-    echo "Error: The prompt message is required. Usage: ${FUNCNAME[0]} <prompt-message>" >&2
-    return 1
-  fi
-  local prompt_message="$*"
-
-  local system_prompt="You will be asked a question. You should answer with only the word \"yes\" or \"no\". Do not include any preamble, explanation, or markdown."
-
-  get_llm_output "$system_prompt" "$prompt_message"
 )
 
 # "r" is short for switching to the repositories directory.
