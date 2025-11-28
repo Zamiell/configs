@@ -550,28 +550,29 @@ o() (
 
 # "r" is short for switching to the repositories directory.
 if [[ -d "/c/Users/$OS_USERNAME/Repositories" ]]; then # Generic Windows
-  REPOSITORIES_DIRECTORY="/c/Users/$OS_USERNAME/Repositories"
+  REPOSITORIES_DIR="/c/Users/$OS_USERNAME/Repositories"
 elif [[ -d "/Users/$OS_USERNAME/repositories" ]]; then # Generic MacOS (1/2)
-  REPOSITORIES_DIRECTORY="/Users/$OS_USERNAME/repositories"
+  REPOSITORIES_DIR="/Users/$OS_USERNAME/repositories"
 elif [[ -d "/Users/$OS_USERNAME/Repositories" ]]; then # Generic MacOS (2/2)
-  REPOSITORIES_DIRECTORY="/Users/$OS_USERNAME/Repositories"
+  REPOSITORIES_DIR="/Users/$OS_USERNAME/Repositories"
 elif [[ -d "/home/$OS_USERNAME/repositories" ]]; then # Generic Linux (1/2)
-  REPOSITORIES_DIRECTORY="/home/$OS_USERNAME/repositories"
+  REPOSITORIES_DIR="/home/$OS_USERNAME/repositories"
 elif [[ -d "/home/$OS_USERNAME/Repositories" ]]; then # Generic Linux (2/2)
-  REPOSITORIES_DIRECTORY="/home/$OS_USERNAME/Repositories"
+  REPOSITORIES_DIR="/home/$OS_USERNAME/Repositories"
 elif [[ -d "/c/Repositories" ]]; then # Windows C drive
-  REPOSITORIES_DIRECTORY="/c/Repositories"
+  REPOSITORIES_DIR="/c/Repositories"
 elif [[ -d "/d/Repositories" ]]; then # Windows D drive
-  REPOSITORIES_DIRECTORY="/d/Repositories"
+  REPOSITORIES_DIR="/d/Repositories"
 fi
-if [[ -n "$REPOSITORIES_DIRECTORY" ]]; then
-  alias r='builtin cd $REPOSITORIES_DIRECTORY'
+if [[ -n "$REPOSITORIES_DIR" ]]; then
+  export REPOSITORIES_DIR
+  alias r='builtin cd $REPOSITORIES_DIR'
 
   # By default, it is useful for shells to open in the repositories directory instead of the home
   # directory. (But only do this if the shell is interactive and we are actually starting in the
   # home directory.)
   if [[ $- == *i* ]] && [[ "$(pwd)" == "$HOME" ]]; then
-    builtin cd "$REPOSITORIES_DIRECTORY"
+    builtin cd "$REPOSITORIES_DIR"
   fi
 fi
 
