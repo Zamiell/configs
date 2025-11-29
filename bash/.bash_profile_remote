@@ -1326,8 +1326,24 @@ gcs() (
 )
 
 # "gcu" is short for "git commit undo", which will undo the last commit locally (but not on the
-# remote).
-alias gcu="git reset HEAD~1 --soft"
+# remote). You can also provide a number argument to undo the last N commits.
+gcu() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert_git_repository
+
+  local num_commits=1
+  if [[ -n "${1:-}" ]]; then
+    if [[ "$1" =~ ^[0-9]+$ ]]; then
+      num_commits="$1"
+    else
+      echo "Error: The argument of \"$1\" is not a number." >&2
+      return 1
+    fi
+  fi
+
+  git reset "HEAD~$num_commits" --soft
+)
 
 # "gd" is short for "git diff".
 alias gd="git diff"
