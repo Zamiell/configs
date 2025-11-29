@@ -866,7 +866,7 @@ gb() (
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -n|--no-convention)
+      -n | --no-convention)
         use_logixhealth_convention="false"
         shift
         ;;
@@ -1091,7 +1091,7 @@ gbr() (
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -n|--no-convention)
+      -n | --no-convention)
         use_logixhealth_convention="false"
         shift
         ;;
