@@ -50,15 +50,6 @@ append_path() {
   fi
 }
 
-assert_git_repository() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
-    return 1
-  fi
-)
-
 assert_feature_branch() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -70,6 +61,24 @@ assert_feature_branch() (
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
     echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+)
+
+assert_git_repository() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
+    echo "Error: Not inside a Git repository." >&2
+    return 1
+  fi
+)
+
+assert_jq_installed() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! command -v jq &> /dev/null; then
+    echo "Error: jq is required to use this command. If you are on Windows, you can install it with: winget install --exact --id jqlang.jq" >&2
     return 1
   fi
 )
@@ -87,6 +96,35 @@ assert_main_branch() (
     echo "Error: This command is intended to be run on the \"$main_branch_name\" branch and you are currently on the \"$branch_name\" branch." >&2
     return 1
   fi
+)
+
+# This will echo back the same input if the input is not a number,
+get_branch_name_from_number() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The branch name or number is required. Usage: ${FUNCNAME[0]} <branch_name_or_number>" >&2
+    return 1
+  fi
+  local branch_name_or_number="$1"
+
+  local branch_name
+  if [[ "$branch_name_or_number" =~ ^[0-9]+$ ]]; then
+    local branch_number="$branch_name_or_number"
+
+    local local_branches
+    local_branches=$(git branch --format="%(refname:short)" | sort)
+
+    branch_name=$(echo "$local_branches" | sed -n "${branch_number}p")
+    if [[ -z "$branch_name" ]]; then
+      echo "Error: Branch number $branch_number does not exist." >&2
+      return 1
+    fi
+  else
+    branch_name="$branch_name_or_number"
+  fi
+
+  echo "$branch_name"
 )
 
 get_first_branch_commit_description() (
@@ -112,6 +150,70 @@ get_first_branch_commit_description() (
   fi
 
   printf "%s" "$(git show --no-patch --format="%B" "$first_commit_hash")"
+)
+
+get_git_remote_details() (
+  set -euo pipefail
+
+  local remote_url
+  remote_url=$(git remote get-url origin)
+
+  local clean_url="${remote_url%.git}" # Remove the trailing ".git".
+
+  local repository="${clean_url##*/}" # Everything after the final slash.
+  if [[ -z "$repository" ]]; then
+    echo "Error: Unable to parse the repository from the git remote: $remote_url" >&2
+    return 1
+  fi
+
+  if echo "$remote_url" | grep --quiet "github.com"; then
+    local host="github"
+
+    local author
+    if [[ "$remote_url" == git@* ]]; then
+      # HTTPS URL format: https://github.com/alice/my-repo.git
+      author=$(echo "$remote_url" | sed --regexp-extended 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
+    else
+      # SSH URL format: git@github.com:alice/my-repo.git
+      author=$(echo "$remote_url" | sed --regexp-extended 's|https://github\.com/([^/]+)/.*\.git|\1|')
+    fi
+
+    echo "$host $author $repository"
+    return
+  fi
+
+  if echo "$remote_url" | grep --quiet "dev.azure.com"; then
+    local host="azure-devops-services"
+
+    local organization
+    local project
+    if [[ "$remote_url" == git@ssh* ]]; then
+      # git@ssh.dev.azure.com:v3/organization/project/repository
+      organization=$(echo "$remote_url" | sed --regexp-extended 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
+      project=$(echo "$remote_url" | sed --regexp-extended 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
+    else
+      # https://dev.azure.com/organization/project/_git/repository
+      organization=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
+      project=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
+    fi
+
+    echo "$host $organization $project $repository"
+    return
+  fi
+
+  if echo "$remote_url" | grep --quiet "azuredevops.logixhealth.com"; then
+    local host="azure-devops-server"
+    local organization
+    organization=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
+    local project
+    project=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
+
+    echo "$host $organization $project $repository"
+    return
+  fi
+
+  echo "Error: Unable to parse the host from the git remote: $remote_url" >&2
+  return 1
 )
 
 # This will return a descriptive commit message based on the currently staged files.
@@ -149,7 +251,6 @@ get_llm_pull_request_text() (
   main_branch_name=$(get_main_branch_name)
 
   if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-    # If the user does not have an API key, return a generic commit message.
     echo "Error: The \"GEMINI_API_KEY\" environment variable is not set." >&2
     return 1
   fi
@@ -180,10 +281,7 @@ get_llm_output_git_diff() (
   fi
   local noun="$2"
 
-  if ! command -v jq &> /dev/null; then
-    echo "Error: jq is required to use the automated commit message feature. If you are on Windows, you can install it with: winget install --exact --id jqlang.jq" >&2
-    return 1
-  fi
+  assert_jq_installed
 
   local system_prompt="You are an expert git commit message generator. You will be given a git diff. Your response must be only the commit message; do not include any preamble, explanation, or markdown. Be concise and descriptive. The commit message is allowed to be more than one line, but only if the changes are complicated. Follow the 50/72 rule. Follow conventional commit standards (e.g. \"feat: add new feature\", \"fix: correct bug\", \"chore: update build\"). Pay particular attention to removed lines, since if a block of code is moved from one place to another, the commit message should not say \"add\", it should say \"move\". If the file being modified is in the \"3_Applications/kubernetes\" directory, then add a commit message scope like \"feat(kubernetes): add variable\". Additionally, the subdirectories of \"3_Applications/containers\" should be scoped to their directory name in the same way. For example, modifying a file in the \"3_Applications/containers/logix-ci-cd-tasks\" directory should result in a commit message like \"feat(logix-ci-cd-tasks): add variable\"."
 
@@ -362,7 +460,7 @@ print_files_and_branches() (
     git_top_dir=$(to_lowercase "$git_top_dir")
   fi
 
-  if [[ "$current_dir" = "$git_top_dir" ]]; then
+  if [[ "$current_dir" == "$git_top_dir" ]]; then
     echo
     gbl
   fi
@@ -759,76 +857,43 @@ alias gaa="git add --all"
 #   branch naming convention.
 # - Doing a push is important after creating a new branch because it prevents subsequent `git pull`
 #   calls from failing.
+# - You can use the "-n" or "--no-convention" flag to omit the LogixHealth naming convention.
 gb() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  local use_logixhealth_convention="true"
+  local positional_args=()
 
-  local description
-  if [[ -z "${1:-}" ]]; then
-    description="misc"
-  else
-    description="$1"
-  fi
-
-  local application_name
-  if [[ -z "${2:-}" ]]; then
-    application_name="misc"
-  else
-    application_name="$2"
-  fi
-
-  local new_branch_name
-  if is_github_repository; then
-    new_branch_name="$description"
-  else
-    new_branch_name="feature/$application_name/$OS_USERNAME/$description"
-  fi
-
-  if [[ -n "$(git status --porcelain)" ]]; then
-    echo "The repository is not clean. Stashing all of your existing changes."
-    git stash push --message "Auto-stash before creating a new git branch"
-  fi
-
-  local main_branch_name
-  main_branch_name=$(get_main_branch_name)
-
-  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
-    git switch "$main_branch_name"
-  fi
-
-  if git remote get-url upstream &> /dev/null; then
-    gh-sync
-  else
-    git pull --rebase
-  fi
-
-  git switch --create "$new_branch_name"
-  git push
-
-  if [[ $(git stash list | wc -l) -gt 0 ]]; then
-    echo "A previous git stash exists. Applying it to this new branch."
-    git stash pop
-  fi
-
-  echo
-  gbl
-)
-
-# "gb_" is the same thing as "gb", but if the remote repository is not GitHub, it will omit the
-# branch naming logic.
-gb_() (
-  set -euo pipefail # Exit on errors and undefined variables.
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -n | --no-convention)
+        use_logixhealth_convention="false"
+        shift
+        ;;
+      *)
+        positional_args+=("$1")
+        shift
+        ;;
+    esac
+  done
+  set -- "${positional_args[@]}" # Restore positional parameters.
 
   assert_git_repository
 
-  local new_branch_name
-  if [[ -z "${1:-}" ]]; then
-    new_branch_name="misc"
-  else
+  local new_branch_name="misc"
+  if [[ -n "${1:-}" ]]; then
     new_branch_name="$1"
   fi
 
+  if [[ "$use_logixhealth_convention" == "true" ]] && ! is_github_repository; then
+    local application_name="misc"
+    if [[ -n "${2:-}" ]]; then
+      application_name="$2"
+    fi
+
+    new_branch_name="feature/$application_name/$OS_USERNAME/$new_branch_name"
+  fi
+
   if [[ -n "$(git status --porcelain)" ]]; then
     echo "The repository is not clean. Stashing all of your existing changes."
     git stash push --message "Auto-stash before creating a new git branch"
@@ -858,6 +923,9 @@ gb_() (
   echo
   gbl
 )
+
+# "gb_" is an alias for "gb --no-convention".
+alias gb_="gb --no-convention"
 
 # "gbc" is short for "git branch clean", which will remove all local branches that do not exist on
 # the remote repository.
@@ -902,36 +970,24 @@ gbd() (
 
   assert_git_repository
 
-  local branch_arg=""
+  local branch_name_or_number=""
   local only_local="false"
 
   for arg in "$@"; do
     if [[ "$arg" == "--only-local" ]]; then
       only_local="true"
     else
-      branch_arg="$arg"
+      branch_name_or_number="$arg"
     fi
   done
 
-  if [[ -z "$branch_arg" ]]; then
+  if [[ -z "$branch_name_or_number" ]]; then
     echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number> [--only-local]" >&2
     return 1
   fi
 
   local branch_name
-  if [[ "$branch_arg" =~ ^[0-9]+$ ]]; then
-    local branch_number="$branch_arg"
-    local local_branches
-    local_branches=$(git branch --format="%(refname:short)" | sort)
-    branch_name=$(echo "$local_branches" | sed -n "${branch_number}p")
-
-    if [[ -z "$branch_name" ]]; then
-      echo "Error: Branch number $branch_number does not exist." >&2
-      return 1
-    fi
-  else
-    branch_name="$branch_arg"
-  fi
+  branch_name=$(get_branch_name_from_number "$branch_name_or_number")
 
   if [[ "$branch_name" == "main" ]] || [[ "$branch_name" == "master" ]]; then
     echo "Error: You cannot use this command to delete the \"$branch_name\" branch. Are you sure you want to delete that?" >&2
@@ -1025,71 +1081,75 @@ gblr() (
   done <<< "$remote_branches"
 )
 
-# "gbr" is short for "git branch rename", which will rename the application and/or description
-# portion of a LogixHealth branch name.
+# "gbr" is short for "git branch rename".
+# - You can use the "-n" or "--no-convention" flag to omit the LogixHealth naming convention.
 gbr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  local use_logixhealth_convention="true"
+  local positional_args=()
 
-  if [[ -z "${1:-}" ]]; then
-    echo "Error: Application name is required. Usage: ${FUNCNAME[0]} <application-name> [description]" >&2
-    return 1
-  fi
-  local new_app_name="$1"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -n | --no-convention)
+        use_logixhealth_convention="false"
+        shift
+        ;;
+      *)
+        positional_args+=("$1")
+        shift
+        ;;
+    esac
+  done
+  set -- "${positional_args[@]}" # Restore positional parameters.
+
+  assert_git_repository
 
   local old_branch_name
   old_branch_name=$(git branch --show-current) # e.g. "feature/misc/alice/fix-bug-1"
-  echo "Old branch name: $old_branch_name"
 
-  IFS='/' read -ra branch_parts <<< "$old_branch_name"
-  if [[ ${#branch_parts[@]} -ne 4 ]]; then
-    echo "Error: Branch name must have exactly 4 parts separated by a forward slash. The current branch name is: $old_branch_name" >&2
-    return 1
-  fi
+  local new_branch_name
+  if [[ "$use_logixhealth_convention" == "true" ]]; then
+    if [[ -z "${1:-}" ]]; then
+      echo "Error: Application name is required. Usage: ${FUNCNAME[0]} <application-name> [description]" >&2
+      return 1
+    fi
+    local new_app_name="$1"
 
-  local branch_type="${branch_parts[0]}"     # e.g. "feature"
-  local branch_username="${branch_parts[2]}" # e.g. "alice"
-  local old_description="${branch_parts[3]}" # e.g. "fix-bug-1"
+    IFS='/' read -ra branch_parts <<< "$old_branch_name"
+    if [[ ${#branch_parts[@]} -ne 4 ]]; then
+      echo "Error: Branch name must have exactly 4 parts separated by a forward slash. The current branch name is: $old_branch_name" >&2
+      return 1
+    fi
 
-  local new_description
-  if [[ -z "${2:-}" ]]; then
-    new_description="$old_description"
+    local branch_type="${branch_parts[0]}"     # e.g. "feature"
+    local branch_username="${branch_parts[2]}" # e.g. "alice"
+    local old_description="${branch_parts[3]}" # e.g. "fix-bug-1"
+    local new_description="$old_description"
+    if [[ -n "${2:-}" ]]; then
+      new_description="$2"
+    fi
+
+    new_branch_name="$branch_type/$new_app_name/$branch_username/$new_description"
   else
-    new_description="$2"
+    if [[ -z "${1:-}" ]]; then
+      echo "Error: Branch name is required. Usage: ${FUNCNAME[0]} <branch-name>" >&2
+      return 1
+    fi
+    new_branch_name="$1"
   fi
 
-  local new_branch_name="$branch_type/$new_app_name/$branch_username/$new_description"
-  echo "New branch name: $new_branch_name"
-
-  git switch --create "$new_branch_name"
-  git push
-  git push origin ":$old_branch_name"            # Delete the old branch on the remote.
-  git branch --delete --force "$old_branch_name" # Delete the old branch locally.
-)
-
-# "gbr_" is the same as "gbr", but it will omit the branch naming logic.
-gbr_() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  assert_git_repository
-
-  if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name is required. Usage: ${FUNCNAME[0]} <branch-name>" >&2
-    return 1
-  fi
-  local new_branch_name="$1"
-
-  local old_branch_name
-  old_branch_name=$(git branch --show-current) # e.g. "feature/app1/alice/fix-bug"
   echo "Old branch name: $old_branch_name"
   echo "New branch name: $new_branch_name"
 
   git switch --create "$new_branch_name"
   git push
-  git branch --delete --force "$old_branch_name" # Delete the old branch locally.
   git push origin ":$old_branch_name"            # Delete the old branch on the remote.
+  git branch --delete --force "$old_branch_name" # Delete the old branch locally.
 )
+
+# "gbr_" is an alias for "gbr --no-convention".
+alias gbr_="gbr --no-convention"
 
 # "gbs" is short for "git branch squash", which squash all commits on the branch.
 gbs() (
@@ -1281,44 +1341,20 @@ gcs() (
   local commit_sha1
   commit_sha1=$(git rev-parse HEAD)
 
-  # e.g. "git@github.com:alice/my-repo.git" or "https://github.com/alice/my-repo.git"
-  local remote_url
-  remote_url=$(git remote get-url origin)
-
-  # Remove the trailing ".git" (if present) and then match after the final forward slash.
-  local repository_name
-  repository_name=$(
-    local tmp="${remote_url%.git}"
-    echo "${tmp##*/}"
-  )
+  read -r host _2 _3 _4 <<< "$(get_git_remote_details)"
 
   local commit_url
-  if echo "$remote_url" | grep --quiet "github.com"; then
-    local repository_owner
-    if [[ "$remote_url" == git@* ]]; then
-      # SSH URL format: git@github.com:alice/my-repo.git
-      repository_owner=$(echo "$remote_url" | sed --regexp-extended 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
-    else
-      # HTTPS URL format: https://github.com/alice/my-repo.git
-      repository_owner=$(echo "$remote_url" | sed --regexp-extended 's|https://github\.com/([^/]+)/.*\.git|\1|')
-    fi
-    commit_url="https://github.com/$repository_owner/$repository_name/commit/$commit_sha1"
-  elif echo "$remote_url" | grep --quiet "dev.azure.com"; then
-    local organization_name
-    organization_name=$(echo "$remote_url" | sed --regexp-extended 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
-    local project_name
-    project_name=$(echo "$remote_url" | sed --regexp-extended 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
-    commit_url="https://dev.azure.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
-  elif echo "$remote_url" | grep --quiet "azuredevops.logixhealth.com"; then
-    local organization_name
-    organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
-    local project_name
-    project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
-    commit_url="https://azuredevops.logixhealth.com/$organization_name/$project_name/_git/$repository_name/commit/$commit_sha1"
-  elif echo "$remote_url" | grep --quiet "dev.azure.com"; then
-    commit_url="https://dev.azure.com/logixhealth/Main/_git/$repository_name/commit/$commit_sha1"
+  if [[ "$host" == "github" ]]; then
+    read -r host author repository <<< "$(get_git_remote_details)"
+    commit_url="https://github.com/$author/$repository/commit/$commit_sha1"
+  elif [[ "$host" == "azure-devops-services" ]]; then
+    read -r host organization project repository <<< "$(get_git_remote_details)"
+    commit_url="https://dev.azure.com/$organization/$project/_git/$repository/commit/$commit_sha1"
+  elif [[ "$host" == "azure-devops-server" ]]; then
+    read -r host organization project repository <<< "$(get_git_remote_details)"
+    commit_url="https://azuredevops.logixhealth.com/$organization/$project/_git/$repository/commit/$commit_sha1"
   else
-    echo "Failed to parse the remote URL for this repository." >&2
+    echo "Unknown git remote host: $host" >&2
     return 1
   fi
 
@@ -1467,35 +1503,20 @@ gpr() (
     return 1
   fi
 
-  if ! command -v jq &> /dev/null; then
-    echo "Error: jq is required to automatically open pull requests to Azure DevOps. If you are on Windows, you can install it with: winget install --exact --id jqlang.jq" >&2
-    return 1
-  fi
+  assert_jq_installed
 
   local domain="azuredevops.logixhealth.com"
   local api_version="7.0"
 
-  # e.g. "ssh://azuredevops.logixhealth.com:22/someOrganization/someProject/_git/someRepository"
-  # or "https://azuredevops.logixhealth.com/someOrganization/someProject/_git/someRepository"
-  local remote_url
-  remote_url=$(git remote get-url origin)
-
-  local organization_name
-  organization_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
-
-  local project_name
-  project_name=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
-
-  # Remove the trailing ".git" (if present) and then match after the final forward slash.
-  local repository_name
-  repository_name=$(
-    local tmp="${remote_url%.git}"
-    echo "${tmp##*/}"
-  )
+  read -r host organization project repository <<< "$(get_git_remote_details)"
+  if [[ "$host" != "azure-devops-server" ]]; then
+    echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
+    return 1
+  fi
 
   # First, check for an existing pull request.
-  local azdo_project_url="https://$domain/$organization_name/$project_name"
-  local azdo_api_url="$azdo_project_url/_apis/git/repositories/$repository_name/pullrequests?api-version=$api_version"
+  local azdo_project_url="https://$domain/$organization/$project"
+  local azdo_api_url="$azdo_project_url/_apis/git/repositories/$repository/pullrequests?api-version=$api_version"
   local azdo_api_url_check="$azdo_api_url&searchCriteria.sourceRefName=refs/heads/$branch_name&searchCriteria.status=active"
 
   local api_response_check
@@ -1515,7 +1536,7 @@ gpr() (
   local pull_request_count
   pull_request_count=$(echo "$api_response_check" | jq -r '.count')
 
-  local azdo_pull_request_url_prefix="$azdo_project_url/_git/$repository_name/pullrequest"
+  local azdo_pull_request_url_prefix="$azdo_project_url/_git/$repository/pullrequest"
 
   if [[ "$pull_request_count" != "0" ]]; then
     local existing_pull_request_id
@@ -1758,21 +1779,10 @@ gsw() (
     echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
     return 1
   fi
+  local branch_name_or_number="$1"
 
   local branch_name
-  if [[ "$1" =~ ^[0-9]+$ ]]; then
-    local branch_number="$1"
-    local local_branches
-    local_branches=$(git branch --format="%(refname:short)" | sort)
-    branch_name=$(echo "$local_branches" | sed -n "${branch_number}p")
-
-    if [[ -z "$branch_name" ]]; then
-      echo "Error: Branch number $branch_number does not exist." >&2
-      return 1
-    fi
-  else
-    branch_name="$1"
-  fi
+  branch_name=$(get_branch_name_from_number "$branch_name_or_number")
 
   git switch "$branch_name"
 )
