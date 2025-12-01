@@ -1,5 +1,3 @@
-# shellcheck shell=bash
-
 # Compatibility notes:
 # - `mkdir` does not support `--parents` on macOS, so we use "-p" instead.
 # - `sed` does not support `--quiet` on macOS, so we use "-n" instead.
@@ -769,7 +767,7 @@ get_package_manager() (
 
   # Search upward through directories, looking for package lock files.
   # (We deliberately use "-f" over "-s" to be as conservative as possible.)
-  while [ "$current_dir" != "/" ]; do
+  while [[ "$current_dir" != "/" ]]; do
     if [[ -f "$current_dir/package-lock.json" ]]; then
       echo "npm"
       return
@@ -821,26 +819,6 @@ alias tpr="run_package_script test-pr"
 alias u="run_package_script update || bunx complete-cli@latest update"
 
 alias cu="bunx cspell-check-unused-words --fix"
-
-# "ua" is short for "update all", which will recursively update all "package.json" files from the
-# current working directory.
-ua() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  local package_json_files
-  package_json_files="$(find . -name node_modules -prune -o -name package.json -print)"
-
-  while IFS= read -r package_json; do
-    if [[ -n "$package_json" ]]; then
-      local package_json_dir
-      package_json_dir="$(dirname "$package_json")"
-      echo
-      echo "Updating packages in: $package_json_dir"
-      echo
-      (cd "$package_json_dir" && u)
-    fi
-  done <<< "$package_json_files"
-)
 
 # ----------
 # Git Config
