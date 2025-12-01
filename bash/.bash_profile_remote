@@ -1,5 +1,4 @@
 # shellcheck shell=bash
-# shellcheck enable=require-variable-braces
 
 # Compatibility notes:
 # - `mkdir` does not support `--parents` on macOS, so we use "-p" instead.
@@ -156,7 +155,8 @@ get_first_branch_commit_description() (
 get_git_remote_details() (
   set -euo pipefail
 
-  local directory=$(pwd)
+  local directory
+  directory=$(pwd)
   if [[ -n "${1-}" ]]; then
     directory="$1"
   fi
@@ -182,10 +182,10 @@ get_git_remote_details() (
 
     local author
     if [[ "$remote_url" == git@* ]]; then
-      # HTTPS URL format: https://github.com/alice/my-repo.git
+      # SSH URL format: git@github.com:alice/my-repo.git
       author=$(echo "$remote_url" | sed --regexp-extended 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
     else
-      # SSH URL format: git@github.com:alice/my-repo.git
+      # HTTPS URL format: https://github.com/alice/my-repo.git
       author=$(echo "$remote_url" | sed --regexp-extended 's|https://github\.com/([^/]+)/.*\.git|\1|')
     fi
 
@@ -603,7 +603,7 @@ azdo-history() (
   local file_directory
   file_directory=$(dirname "$file_path")
 
-  read -r host organization project repository <<< "$(get_git_remote_details $file_directory)"
+  read -r host organization project repository <<< "$(get_git_remote_details "$file_directory")"
   if [[ "$host" != "azure-devops-server" ]]; then
     echo "Error: This command can only be used in a repository hosted on Azure DevOps server." >&2
     return 1
