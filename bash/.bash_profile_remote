@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# shellcheck enable=require-variable-braces
 
 # Compatibility notes:
 # - `mkdir` does not support `--parents` on macOS, so we use "-p" instead.
@@ -24,7 +25,7 @@ add_logix_cert_to_requests_ca_bundle() (
   if ! grep --quiet "$certificate_name" "$REQUESTS_CA_BUNDLE"; then
     echo "Error: The \"REQUESTS_CA_BUNDLE\" environment variable is set to \"$REQUESTS_CA_BUNDLE\", but this file does not have the \"$certificate_name\" certificate in it." >&2
     local file_path="$REQUESTS_CA_BUNDLE"
-    if is_git_bash; then
+    if command -v cygpath &> /dev/null; then
       file_path=$(cygpath --windows "$file_path")
     fi
 
@@ -98,7 +99,7 @@ assert_main_branch() (
   fi
 )
 
-# This will echo back the same input if the input is not a number,
+# This will echo back the same input if the input is not a number.
 get_branch_name_from_number() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -155,8 +156,18 @@ get_first_branch_commit_description() (
 get_git_remote_details() (
   set -euo pipefail
 
+  local directory=$(pwd)
+  if [[ -n "${1-}" ]]; then
+    directory="$1"
+  fi
+
+  if [[ ! -d "$directory" ]]; then
+    echo "Error: The provided directory does not exist: $directory" >&2
+    return 1
+  fi
+
   local remote_url
-  remote_url=$(git remote get-url origin)
+  remote_url=$(git -C "$directory" remote get-url origin)
 
   local clean_url="${remote_url%.git}" # Remove the trailing ".git".
 
@@ -573,6 +584,36 @@ ai() (
   local system_prompt="You are being asked a question inside of a terminal. Be fairly brief in your response. For example, if you are being asked what the command is for something, format your response as just the command and a 1-2 sentence description."
 
   get_llm_output "$system_prompt" "$prompt"
+)
+
+# Opens the Azure DevOps URL for the "History" tab of the corresponding file.
+azdo-history() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The file path is required. Usage: ${FUNCNAME[0]} <file_path>" >&2
+    return 1
+  fi
+  local file_path="$1"
+
+  if command -v cygpath &> /dev/null; then
+    file_path=$(cygpath --unix "$file_path")
+  fi
+
+  local file_directory
+  file_directory=$(dirname "$file_path")
+
+  read -r host organization project repository <<< "$(get_git_remote_details $file_directory)"
+  if [[ "$host" != "azure-devops-server" ]]; then
+    echo "Error: This command can only be used in a repository hosted on Azure DevOps server." >&2
+    return 1
+  fi
+
+  local relative_path
+  relative_path=$(git -C "$file_directory" ls-files --full-name "$file_path")
+
+  # e.g. https://azuredevops.logixhealth.com/LogixHealth/Infrastructure/_git/infrastructure?path=/infrastructure.code-workspace&_a=history
+  o "https://azuredevops.logixhealth.com/$organization/$project/_git/$repository?path=/$relative_path&_a=history"
 )
 
 # Only create this alias if the shell is interactive.
