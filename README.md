@@ -11,13 +11,13 @@ Currently, the configs have [LogixHealth](https://www.logixhealth.com)-specific 
 On Windows, ".bash_profile" is automatically loaded, but not ".profile".
 
 ```sh
-curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.bash_profile
+echo >> ~/.bash_profile && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.bash_profile
 ```
 
 ### macOS
 
 ```sh
-curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.zprofile
+echo >> ~/.zprofile && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.zprofile
 ```
 
 ### Linux (Ubuntu)
@@ -25,5 +25,5 @@ curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/conf
 On Linux, both ".profile" and ".bash_profile" are automatically loaded, but ".profile" is preferred. However, ".profile" is not executed in terminals started by a GUI. Thus, the configs should be loaded from the ".bashrc" file.
 
 ```sh
-curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.bashrc
+echo >> ~/.bashrc && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.bashrc
 ```
