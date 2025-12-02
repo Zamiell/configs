@@ -1311,9 +1311,14 @@ gc() (
     git push --force-with-lease
   else
     if [[ -n "$commit_message" ]]; then
-      # A commit message was provided at the command-line. Spell check it using CSpell.
+      # A commit message was provided at the command-line. Spell check it using CSpell. However,
+      # allow users to disable this feature via an environment variable.
+      {
+        # https://cspell.org/docs/Configuration/document-settings#ignore
+        echo "# cSpell:ignore knip,yamlfix"
+        echo "$commit_message"
+      } | bunx cspell stdin --no-progress --no-summary
       # - "--no-progress" and "--no-summary" make it only output errors.
-      echo "$commit_message" | bunx cspell stdin --no-progress --no-summary
     else
       # A commit message was not provided at the command-line.
       if [[ -z "${GEMINI_API_KEY:-}" ]]; then
