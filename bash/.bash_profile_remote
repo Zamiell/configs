@@ -553,7 +553,7 @@ fi
 
 # bun
 # https://bun.com/
-append_path "$HOME/.bun"
+append_path "$HOME/.bun/bin"
 
 # Claude Code
 # https://www.claude.com/product/claude-code
@@ -562,9 +562,14 @@ append_path "$HOME/.local/bin"
 # fnm
 # https://github.com/Schniz/fnm
 append_path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
-
 if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
   eval "$(fnm env --shell bash)"
+fi
+
+# Homebrew
+# https://brew.sh/
+if [[ -s "/opt/homebrew/bin/brew" ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
 # ----------------------
