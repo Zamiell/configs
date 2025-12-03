@@ -1,6 +1,8 @@
 # Compatibility notes:
 # - `mkdir` does not support `--parents` on macOS, so we use "-p" instead.
+# - `sed` does not support `--expression` on macOS, so we use "-e" instead.
 # - `sed` does not support `--quiet` on macOS, so we use "-n" instead.
+# - `sed` does not support `--regexp-extended` on macOS, so we use "-E" instead.
 
 # ----------------
 # Helper functions
@@ -181,10 +183,10 @@ get_git_remote_details() (
     local author
     if [[ "$remote_url" == git@* ]]; then
       # SSH URL format: git@github.com:alice/my-repo.git
-      author=$(echo "$remote_url" | sed --regexp-extended 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
+      author=$(echo "$remote_url" | sed -E 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
     else
       # HTTPS URL format: https://github.com/alice/my-repo.git
-      author=$(echo "$remote_url" | sed --regexp-extended 's|https://github\.com/([^/]+)/.*\.git|\1|')
+      author=$(echo "$remote_url" | sed -E 's|https://github\.com/([^/]+)/.*\.git|\1|')
     fi
 
     echo "$host $author $repository"
@@ -198,8 +200,8 @@ get_git_remote_details() (
     local project
     if [[ "$remote_url" == git@ssh* ]]; then
       # git@ssh.dev.azure.com:v3/organization/project/repository
-      organization=$(echo "$remote_url" | sed --regexp-extended 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
-      project=$(echo "$remote_url" | sed --regexp-extended 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
+      organization=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/([^/]+)/.*|\1|')
+      project=$(echo "$remote_url" | sed -E 's|^git@ssh\.dev\.azure\.com:v3/[^/]+/([^/]+)/.*|\1|')
     else
       # https://dev.azure.com/organization/project/_git/repository
       organization=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
@@ -476,7 +478,7 @@ print_files_and_branches() (
 )
 
 remove_leading_and_trailing_whitespace() {
-  sed --expression '/[^[:space:]]/,$!d' --expression 's/^[[:space:]]*//' --expression 's/[[:space:]]*$//'
+  sed -e '/[^[:space:]]/,$!d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
 }
 
 to_lowercase() (
