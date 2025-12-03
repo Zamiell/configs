@@ -625,12 +625,12 @@ fi
 # It is annoying that Claude Code requires permission to edit files on every invocation.
 alias claude="claude --permission-mode acceptEdits"
 
-# "csf" is short for "bunx cspell-check-unused-words --fix".
+# "csf" is short for "CSpell fix", which will invoke "cspell-check-unused-words --fix".
 csf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert_git_repository
-  bunx cspell-check-unused-words --fix
+  exec_package cspell-check-unused-words --fix
 
   if [[ -n "$(git status --porcelain)" ]]; then
     gc "chore: removing unused words from the CSpell configuration file"
@@ -759,6 +759,40 @@ alias kgp="kubectl get pod"
 # npm Commands
 # ------------
 
+exec_package() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1-}" ]]; then
+    echo "Error: The package name is required. Usage: ${FUNCNAME[0]} <package_name>" >&2
+    return 1
+  fi
+
+  local package_manager
+  package_manager="$(get_package_manager)"
+
+  local exec_command
+  case $package_manager in
+    npm)
+      exec_command="npx"
+      ;;
+    yarn)
+      exec_command="npx"
+      ;;
+    pnpm)
+      exec_command="pnpm exec"
+      ;;
+    bun)
+      exec_command="bunx"
+      ;;
+    *)
+      echo "Error: Not able to determine the exec command for the package manager of: $package_manager" >&2
+      return 1
+      ;;
+  esac
+
+  "$exec_command" "$@"
+)
+
 get_package_manager() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -799,7 +833,7 @@ run_package_script() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1-}" ]]; then
-    echo "Error: Script name is required." >&2
+    echo "Error: The script name is required. Usage: ${FUNCNAME[0]} <script_name>" >&2
     return 1
   fi
 
@@ -816,9 +850,7 @@ alias p="run_package_script publish"
 alias s="run_package_script start"
 alias t="run_package_script test"
 alias tpr="run_package_script test-pr"
-alias u="run_package_script update || bunx complete-cli@latest update"
-
-alias cu="bunx cspell-check-unused-words --fix"
+alias u="run_package_script update || exec_package complete-cli@latest update"
 
 # ----------
 # Git Config
@@ -1317,7 +1349,7 @@ gc() (
         # https://cspell.org/docs/Configuration/document-settings#ignore
         echo "# cSpell:ignore knip,yamlfix"
         echo "$commit_message"
-      } | bunx cspell stdin --no-progress --no-summary
+      } | exec_package cspell stdin --no-progress --no-summary
       # - "--no-progress" and "--no-summary" make it only output errors.
     else
       # A commit message was not provided at the command-line.
