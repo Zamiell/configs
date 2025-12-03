@@ -458,8 +458,8 @@ print_files_and_branches() (
   # Thus, we have to made some modifications
   local current_dir
   current_dir=$(pwd)
-  local git_top_dir
-  git_top_dir=$(git rev-parse --show-toplevel 2> /dev/null)
+  local git_root_dir
+  git_root_dir=$(git rev-parse --show-toplevel 2> /dev/null)
 
   if command -v cygpath &> /dev/null; then
     # "/c/Repositories/foo" --> "C:\Repositories\configs"
@@ -467,11 +467,11 @@ print_files_and_branches() (
     current_dir=$(to_lowercase "$current_dir")
 
     # "C:/Repositories/foo" --> "C:\Repositories\foo"
-    git_top_dir=$(cygpath --windows "$git_top_dir")
-    git_top_dir=$(to_lowercase "$git_top_dir")
+    git_root_dir=$(cygpath --windows "$git_root_dir")
+    git_root_dir=$(to_lowercase "$git_root_dir")
   fi
 
-  if [[ "$current_dir" == "$git_top_dir" ]]; then
+  if [[ "$current_dir" == "$git_root_dir" ]]; then
     echo
     gbl
   fi
@@ -628,6 +628,22 @@ if [[ $- == *i* ]]; then
     builtin cd "$@" && print_files_and_branches
   }
 fi
+
+# "cdg" stands for "change directory git", which will change the working directory to the root of
+# the current git repository. If used in a directory that is not part of a Git repository, it will
+# throw an error.
+cdg() {
+  assert_git_repository
+
+  local git_root_dir
+  git_root_dir=$(git rev-parse --show-toplevel 2> /dev/null)
+  if [[ -z "$git_root_dir" ]]; then
+    echo "Error: Failed to get the root of the current git repository." >&2
+    return 1
+  fi
+
+  cd "$git_root_dir"
+}
 
 # It is annoying that Claude Code requires permission to edit files on every invocation.
 alias claude="claude --permission-mode acceptEdits"
