@@ -572,6 +572,14 @@ if [[ -s "/opt/homebrew/bin/brew" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
+# zoxide
+# https://github.com/ajeetdsouza/zoxide
+if command -v zoxide &> /dev/null; then
+  # We can use "zoxide init bash --cmd cd" to replace the "cd" command, but we don't need to do this
+  # because we overwrite the cd command above anyway.
+  eval "$(zoxide init bash)"
+fi
+
 # ----------------------
 # Miscellaneous Commands
 # ----------------------
@@ -625,7 +633,12 @@ azdo-history() (
 if [[ $- == *i* ]]; then
   # We have to use braces instead of parenthesis here.
   cd() {
-    builtin cd "$@" && print_files_and_branches
+    if command -v z; then
+      # Use "zoxide" if it is available.
+      z "$@" && print_files_and_branches
+    else
+      builtin cd "$@" && print_files_and_branches
+    fi
   }
 fi
 
@@ -745,8 +758,8 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
   alias r='builtin cd $REPOSITORIES_DIR'
 
   # By default, it is useful for shells to open in the repositories directory instead of the home
-  # directory. (But only do this if the shell is interactive and we are actually starting in the
-  # home directory.)
+  # directory. (But only do this if the shell is interactive and we are starting in the home
+  # directory.)
   if [[ $- == *i* ]] && [[ "$(pwd)" == "$HOME" ]]; then
     builtin cd "$REPOSITORIES_DIR"
   fi
