@@ -589,6 +589,11 @@ if command -v zoxide &> /dev/null; then
   eval "$(zoxide init bash)"
 fi
 
+# Change fzf's "Alt + C" hotkey to use zoxide.
+if command -v fzf &> /dev/null && command -v zoxide &> /dev/null; then
+  bind '"\ec": "zi\n"'
+fi
+
 # ----------------------
 # Miscellaneous Commands
 # ----------------------
