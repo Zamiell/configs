@@ -566,6 +566,15 @@ if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
   eval "$(fnm env --shell bash)"
 fi
 
+# fzf
+# https://github.com/junegunn/fzf
+if command -v fzf &> /dev/null; then
+  eval "$(fzf --bash)"
+
+  # The default completion trigger is "**", but we want to use `fzf` to replace the normal tab menu.
+  export FZF_COMPLETION_TRIGGER=""
+fi
+
 # Homebrew
 # https://brew.sh/
 if [[ -s "/opt/homebrew/bin/brew" ]]; then
@@ -836,24 +845,23 @@ get_package_manager() (
   current_dir="$(pwd)"
 
   # Search upward through directories, looking for package lock files.
-  # (We deliberately use "-f" over "-s" to be as conservative as possible.)
   while [[ "$current_dir" != "/" ]]; do
-    if [[ -f "$current_dir/package-lock.json" ]]; then
+    if [[ -s "$current_dir/package-lock.json" ]]; then
       echo "npm"
       return
     fi
 
-    if [[ -f "$current_dir/yarn.lock" ]]; then
+    if [[ -s "$current_dir/yarn.lock" ]]; then
       echo "yarn"
       return
     fi
 
-    if [[ -f "$current_dir/pnpm-lock.yaml" ]]; then
+    if [[ -s "$current_dir/pnpm-lock.yaml" ]]; then
       echo "pnpm"
       return
     fi
 
-    if [[ -f "$current_dir/bun.lock" ]]; then
+    if [[ -s "$current_dir/bun.lock" ]]; then
       echo "bun"
       return
     fi
@@ -861,8 +869,8 @@ get_package_manager() (
     current_dir="$(dirname "$current_dir")"
   done
 
-  echo "Error: Not able to determine the package manager for the current project." >&2
-  return 1
+  # If no lock file was found, default to npm.
+  echo "npm"
 )
 
 run_package_script() (
