@@ -633,7 +633,7 @@ azdo-history() (
 if [[ $- == *i* ]]; then
   # We have to use braces instead of parenthesis here.
   cd() {
-    if command -v z; then
+    if command -v z &> /dev/null; then
       # Use "zoxide" if it is available.
       z "$@" && print_files_and_branches
     else
