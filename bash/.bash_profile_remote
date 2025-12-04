@@ -1580,6 +1580,10 @@ alias gl="git log"
 # "glg" is short for "git log --graph" with specific formatting.
 alias glg="git log --graph --pretty=format:'%C(yellow)%h%Creset %C(cyan)%d%Creset %C(white)%s%Creset %C(green)(%an)%Creset%n%w(0,8,8)%b%Creset' --all --decorate"
 
+# "gmc" is short for "git merge conflicts", which will show the files that need to be resolved
+# before the merge/rebase/whatever can proceed.
+alias gmc="git diff --name-only --diff-filter=U"
+
 # "gp" is short for "git pull --rebase".
 alias gp="git pull --rebase"
 
