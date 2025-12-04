@@ -1584,6 +1584,10 @@ alias glg="git log --graph --pretty=format:'%C(yellow)%h%Creset %C(cyan)%d%Crese
 # before the merge/rebase/whatever can proceed.
 alias gmc="git diff --name-only --diff-filter=U"
 
+# "gmco" is short for "git merge conflicts open", which is similar to "gmc", but will open all of
+# the files that need to be resolved in Visual Studio Code.
+alias gmco="git diff --name-only --diff-filter=U | xargs code"
+
 # "gp" is short for "git pull --rebase".
 alias gp="git pull --rebase"
 
