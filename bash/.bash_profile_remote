@@ -1781,7 +1781,8 @@ grt() (
   local merge_base
   merge_base=$(get_merge_base)
 
-  git restore --source "$merge_base" "$@"
+  # We use "git checkout" instead of "git restore" since it works in more situations.
+  git checkout "$merge_base" -- "$@"
 )
 
 # "grv" is short for "git revert".
