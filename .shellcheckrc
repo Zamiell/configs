@@ -1,3 +1,6 @@
+# This is the configuration file for shellcheck, a Bash linter:
+# https://github.com/koalaman/shellcheck
+
 shell=bash
 
 # Optional rules can be enumerated with: shellcheck --list
