@@ -537,6 +537,13 @@ fi
 # Path
 # ----
 
+# Homebrew
+# https://brew.sh/
+# (Homebrew must come first so that other programs can enter the PATH.)
+if [[ -s "/opt/homebrew/bin/brew" ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
 # Add browsers to the path, which is necessary for the GitHub CLI.
 if ! command -v chrome &> /dev/null && [[ -s "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
   export PATH="$PATH:/c/Program Files/Google/Chrome/Application"
@@ -573,12 +580,6 @@ if command -v fzf &> /dev/null; then
 
   # The default completion trigger is "**", but we want to use `fzf` to replace the normal tab menu.
   export FZF_COMPLETION_TRIGGER=""
-fi
-
-# Homebrew
-# https://brew.sh/
-if [[ -s "/opt/homebrew/bin/brew" ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
 # zoxide
