@@ -19,7 +19,7 @@ echo >> ~/.bash_profile && curl --silent --fail --show-error https://raw.githubu
 First, [change the default shell from `zsh` to `bash`](https://stackoverflow.com/questions/77052638/changing-default-shell-from-zsh-to-bash-on-macos-catalina-and-beyond). Then:
 
 ```sh
-echo >> ~/.zprofile && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.zprofile
+echo >> ~/.bashrc && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.bashrc
 ```
 
 ### Linux (Ubuntu)
