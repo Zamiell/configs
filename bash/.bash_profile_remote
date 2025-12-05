@@ -4,6 +4,12 @@
 # - `sed` does not support `--quiet` on macOS, so we use "-n" instead.
 # - `sed` does not support `--regexp-extended` on macOS, so we use "-E" instead.
 
+# ---------
+# Constants
+# ---------
+
+CSPELL_IGNORED_WORDS="knip,mypy,yamlfix"
+
 # ----------------
 # Helper functions
 # ----------------
@@ -1394,11 +1400,10 @@ gc() (
     git push --force-with-lease
   else
     if [[ -n "$commit_message" ]]; then
-      # A commit message was provided at the command-line. Spell check it using CSpell. However,
-      # allow users to disable this feature via an environment variable.
+      # A commit message was provided at the command-line. Spell check it using CSpell.
       {
         # https://cspell.org/docs/Configuration/document-settings#ignore
-        echo "# cSpell:ignore knip,yamlfix"
+        echo "# cSpell:ignore $CSPELL_IGNORED_WORDS"
         echo "$commit_message"
       } | exec_package cspell stdin --no-progress --no-summary
       # - "--no-progress" and "--no-summary" make it only output errors.
@@ -1690,6 +1695,14 @@ gpr() (
     fi
   else
     pull_request_text="$*"
+
+    # A pull request title was provided at the command-line. Spell check it using CSpell.
+    {
+      # https://cspell.org/docs/Configuration/document-settings#ignore
+      echo "# cSpell:ignore $CSPELL_IGNORED_WORDS"
+      echo "$pull_request_text"
+    } | exec_package cspell stdin --no-progress --no-summary
+    # - "--no-progress" and "--no-summary" make it only output errors.
   fi
 
   local pull_request_title
