@@ -46,14 +46,14 @@ bitwarden_login() {
   if [[ -z "${BW_CLIENTSECRET:-}" ]]; then
     BITWARDEN_API_CLIENT_SECRET_PATH="/post-install/bitwarden_api_client_secret"
     if [[ -s "$BITWARDEN_API_CLIENT_SECRET_PATH" ]]; then
-      BW_CLIENTSECRET=$(cat $BITWARDEN_API_CLIENT_SECRET_PATH)
+      BW_CLIENTSECRET=$(cat "$BITWARDEN_API_CLIENT_SECRET_PATH")
     fi
   fi
 
   if [[ -z "${BW_PASSWORD:-}" ]]; then
     BITWARDEN_MASTER_PASSWORD_PATH="/post-install/bitwarden_master_password"
     if [[ -s "$BITWARDEN_MASTER_PASSWORD_PATH" ]]; then
-      BW_PASSWORD=$(cat $BITWARDEN_MASTER_PASSWORD_PATH)
+      BW_PASSWORD=$(cat "$BITWARDEN_MASTER_PASSWORD_PATH")
     else
       # "-s" is for silent mode, which hides the input.
       # "-r" is recommended by shellcheck.
@@ -511,6 +511,7 @@ if ! command -v code &> /dev/null; then
 fi
 
 # Install nvm.
+# TODO: Replace this with fnm.
 if ! command -v nvm &> /dev/null; then
   curl --silent --fail --show-error --location https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
@@ -520,9 +521,9 @@ if ! command -v nvm &> /dev/null; then
   # We temporarily disable command echoing since the nvm script is noisy.
   set +x
   # shellcheck source=/dev/null
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+  [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh" # This loads nvm
   # shellcheck source=/dev/null
-  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+  [[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
   set -e
 fi
 

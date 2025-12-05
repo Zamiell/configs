@@ -13,7 +13,8 @@ REPO="$(basename "$DIR")"
 cd "$DIR"
 
 bunx prettier --log-level=warn --check .
-shellcheck ./*.sh ./bash/.bash_profile_remote
+find . -type f -name "*.sh" -exec shellcheck {} +
+shellcheck ./bash/.bash_profile_remote # The main config file does not have a ".sh" extension.
 bunx cspell --no-progress --no-summary
 bunx cspell-check-unused-words
 
