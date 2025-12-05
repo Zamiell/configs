@@ -16,10 +16,10 @@ echo >> ~/.bash_profile && curl --silent --fail --show-error https://raw.githubu
 
 ### macOS
 
-First, [change the default shell from `zsh` to `bash`](https://stackoverflow.com/questions/77052638/changing-default-shell-from-zsh-to-bash-on-macos-catalina-and-beyond). Then:
+First, [change the default shell from `zsh` to `bash`](https://stackoverflow.com/questions/77052638/changing-default-shell-from-zsh-to-bash-on-macos-catalina-and-beyond) using homebrew. The ".bashrc" is not automatically loaded, so we use ".profile" instead.
 
 ```sh
-echo >> ~/.bashrc && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.bashrc
+echo >> ~/.profile && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.profile
 ```
 
 ### Linux (Ubuntu)
