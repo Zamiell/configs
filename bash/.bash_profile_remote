@@ -1607,6 +1607,14 @@ gpr() (
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
 
+  local git_diff
+  git_diff=$(git diff "$main_branch_name"...HEAD)
+
+  if [[ -z "$git_diff" ]]; then
+    echo "Error: There are no changes between this branch and the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
   if is_github_repository; then
     gh pr create --fill-first --web
     return
