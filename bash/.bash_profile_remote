@@ -10,6 +10,17 @@
 
 CSPELL_IGNORED_WORDS="knip,mypy,yamlfix"
 
+# --------
+# Builtins
+# --------
+
+# Make writing to Bash command history immediate:
+# https://askubuntu.com/questions/67283/is-it-possible-to-make-writing-to-bash-history-immediate
+# This fixes the bug where closing one terminal window will remove the command history that was
+# written by other terminal windows.
+shopt -s histappend # This is "off" by default.
+PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+
 # ----------------
 # Helper functions
 # ----------------
@@ -71,7 +82,7 @@ assert_feature_branch() (
   fi
 )
 
-assert_git_repository() (
+assert_in_git_repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree &> /dev/null; then
@@ -136,7 +147,7 @@ get_branch_name_from_number() (
 get_first_branch_commit_description() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_feature_branch
 
   local branch_name
@@ -237,7 +248,7 @@ get_git_remote_details() (
 get_llm_commit_message() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   if [[ -z "${GEMINI_API_KEY:-}" ]]; then
     echo "Error: The \"GEMINI_API_KEY\" environment variable is not set." >&2
@@ -261,7 +272,7 @@ get_llm_commit_message() (
 get_llm_pull_request_text() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_feature_branch
 
   local main_branch_name
@@ -412,7 +423,7 @@ get_merge_base() (
 get_num_commits_on_branch() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_feature_branch
 
   local branch_name
@@ -464,8 +475,8 @@ print_files_and_branches() (
   # Thus, we have to made some modifications
   local current_dir
   current_dir=$(pwd)
-  local git_root_dir
-  git_root_dir=$(git rev-parse --show-toplevel 2> /dev/null)
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
 
   if command -v cygpath &> /dev/null; then
     # "/c/Repositories/foo" --> "C:\Repositories\configs"
@@ -473,11 +484,11 @@ print_files_and_branches() (
     current_dir=$(to_lowercase "$current_dir")
 
     # "C:/Repositories/foo" --> "C:\Repositories\foo"
-    git_root_dir=$(cygpath --windows "$git_root_dir")
-    git_root_dir=$(to_lowercase "$git_root_dir")
+    repo_root=$(cygpath --windows "$repo_root")
+    repo_root=$(to_lowercase "$repo_root")
   fi
 
-  if [[ "$current_dir" == "$git_root_dir" ]]; then
+  if [[ "$current_dir" == "$repo_root" ]]; then
     echo
     gbl
   fi
@@ -639,17 +650,17 @@ azdo-history() (
     file_path=$(cygpath --unix "$file_path")
   fi
 
-  local file_directory
-  file_directory=$(dirname "$file_path")
+  local repo_root
+  repo_root=$(git -C "$(dirname "$file_path")" rev-parse --show-toplevel)
 
-  read -r host organization project repository <<< "$(get_git_remote_details "$file_directory")"
+  local relative_path
+  relative_path=$(realpath --relative-to="$repo_root" "$file_path")
+
+  read -r host organization project repository <<< "$(get_git_remote_details "$repo_root")"
   if [[ "$host" != "azure-devops-server" ]]; then
     echo "Error: This command can only be used in a repository hosted on Azure DevOps server." >&2
     return 1
   fi
-
-  local relative_path
-  relative_path=$(git -C "$file_directory" ls-files --full-name "$file_path")
 
   # e.g. https://azuredevops.logixhealth.com/LogixHealth/Infrastructure/_git/infrastructure?path=/infrastructure.code-workspace&_a=history
   o "https://azuredevops.logixhealth.com/$organization/$project/_git/$repository?path=/$relative_path&_a=history"
@@ -672,16 +683,16 @@ fi
 # the current git repository. If used in a directory that is not part of a Git repository, it will
 # throw an error.
 cdg() {
-  assert_git_repository
+  assert_in_git_repository
 
-  local git_root_dir
-  git_root_dir=$(git rev-parse --show-toplevel 2> /dev/null)
-  if [[ -z "$git_root_dir" ]]; then
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
+  if [[ -z "$repo_root" ]]; then
     echo "Error: Failed to get the root of the current git repository." >&2
     return 1
   fi
 
-  cd "$git_root_dir"
+  cd "$repo_root"
 }
 
 # It is annoying that Claude Code requires permission to edit files on every invocation.
@@ -691,7 +702,7 @@ alias claude="claude --permission-mode acceptEdits"
 csf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   exec_package cspell-check-unused-words --fix
 
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -699,7 +710,8 @@ csf() (
   fi
 )
 
-# Alias "explorer" to "open" on macOS and "xdg-open" on Linux.
+# Alias "explorer" to "open" on macOS and "xdg-open" on Linux. (Note that we could also use "start"
+# instead of "explorer".
 explorer() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -781,7 +793,7 @@ elif [[ -d "/d/Repositories" ]]; then # Windows D drive
 fi
 if [[ -n "$REPOSITORIES_DIR" ]]; then
   export REPOSITORIES_DIR
-  alias r='builtin cd $REPOSITORIES_DIR'
+  alias cdr='builtin cd $REPOSITORIES_DIR'
 
   # By default, it is useful for shells to open in the repositories directory instead of the home
   # directory. (But only do this if the shell is interactive and we are starting in the home
@@ -990,7 +1002,7 @@ gb() (
   done
   set -- "${positional_args[@]}" # Restore positional parameters.
 
-  assert_git_repository
+  assert_in_git_repository
 
   local new_branch_name="misc"
   if [[ -n "${1:-}" ]]; then
@@ -1052,7 +1064,7 @@ gbc() (
     fi
   done
 
-  assert_git_repository
+  assert_in_git_repository
 
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
@@ -1080,7 +1092,7 @@ gbc() (
 gbd() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   local branch_name_or_number=""
   local only_local="false"
@@ -1145,7 +1157,7 @@ gbdl() (
 gbl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   local local_branches
   local_branches=$(git branch --format="%(refname:short)" | sort)
@@ -1177,7 +1189,7 @@ gbl() (
 gblr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   git fetch --prune --quiet
 
@@ -1215,7 +1227,7 @@ gbr() (
   done
   set -- "${positional_args[@]}" # Restore positional parameters.
 
-  assert_git_repository
+  assert_in_git_repository
 
   local old_branch_name
   old_branch_name=$(git branch --show-current) # e.g. "feature/misc/alice/fix-bug-1"
@@ -1267,7 +1279,7 @@ alias gbr_="gbr --no-convention"
 gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_feature_branch
 
   local branch_name
@@ -1318,7 +1330,7 @@ gc() (
 
   local commit_message="${commit_message_args[*]}"
 
-  assert_git_repository
+  assert_in_git_repository
 
   if [[ -z "$(git config user.name)" ]]; then
     echo "Error: Git user name not set. Run: git config --global user.name \"Your Name\"" >&2
@@ -1451,7 +1463,7 @@ gcam() (
 gcs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
   local commit_sha1
@@ -1482,7 +1494,7 @@ gcs() (
 gcu() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   local num_commits=1
   if [[ -n "${1:-}" ]]; then
@@ -1505,7 +1517,7 @@ alias gd="git diff"
 gh-sync() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_main_branch
 
   if ! git remote get-url upstream &> /dev/null; then
@@ -1534,7 +1546,7 @@ gh-sync() (
 gh-clean() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_main_branch
 
   if ! git remote get-url upstream &> /dev/null; then
@@ -1608,7 +1620,7 @@ alias gp="git pull --rebase"
 gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_feature_branch
 
   local branch_name
@@ -1765,7 +1777,7 @@ alias grba="git rebase --abort"
 grbc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   git add --all
   git rebase --continue
@@ -1775,7 +1787,7 @@ grbc() (
 grbm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_feature_branch
 
   local main_branch_name
@@ -1796,7 +1808,7 @@ alias grsh="git reset --hard"
 grshm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_feature_branch
 
   local main_branch_name
@@ -1810,7 +1822,7 @@ grshm() (
 grt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
   assert_feature_branch
 
   if [[ -z "${1-}" ]]; then
@@ -1829,7 +1841,7 @@ grt() (
 grv() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Commit SHA1 is required. Usage: ${FUNCNAME[0]} <commit_sha1>" >&2
@@ -1848,7 +1860,7 @@ alias grva="git revert --abort"
 grvc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   git add --all
   git revert --continue
@@ -1858,7 +1870,7 @@ grvc() (
 grvl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   # "--no-edit" avoids prompting for a commit message and uses the default commit message.
   git revert HEAD --no-edit
@@ -1874,7 +1886,7 @@ alias gs="git status --porcelain"
 gsq() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: You must provide the number of commits to squash." >&2
@@ -1911,7 +1923,7 @@ alias gstp="git stash pop"
 gsw() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
@@ -1935,7 +1947,7 @@ alias gswc="git switch -c"
 gswm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
@@ -1965,7 +1977,7 @@ gswm() (
 gtc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_git_repository
+  assert_in_git_repository
 
   git tag -l | xargs git tag -d
   git fetch --tags

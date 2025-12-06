@@ -74,6 +74,7 @@
     "gstp",
     "gswc",
     "gswm",
+    "histappend",
     "hushlogin",
     "ignorecase",
     "inputmethod",
