@@ -594,6 +594,10 @@ if command -v zoxide &> /dev/null; then
   # We can use "zoxide init bash --cmd cd" to replace the "cd" command, but we don't need to do this
   # because we overwrite the cd command above anyway.
   eval "$(zoxide init bash)"
+
+  zi() {
+    __zoxide_zi "$@" && print_files_and_branches
+  }
 fi
 
 # Change fzf's "Alt + C" hotkey to use zoxide. We also require an interactive terminal since `bind`
