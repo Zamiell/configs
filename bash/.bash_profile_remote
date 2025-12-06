@@ -646,12 +646,13 @@ azdo-history() (
   fi
   local file_path="$1"
 
-  if command -v cygpath &> /dev/null; then
-    file_path=$(cygpath --unix "$file_path")
-  fi
-
   local repo_root
   repo_root=$(git -C "$(dirname "$file_path")" rev-parse --show-toplevel)
+
+  if command -v cygpath &> /dev/null; then
+    file_path=$(cygpath --unix "$file_path")
+    repo_root=$(cygpath --unix "$repo_root")
+  fi
 
   local relative_path
   relative_path=$(realpath --relative-to="$repo_root" "$file_path")
