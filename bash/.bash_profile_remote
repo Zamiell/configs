@@ -8,7 +8,7 @@
 # Constants
 # ---------
 
-CSPELL_IGNORED_WORDS="knip,mypy,shellcheck,sqlfluff,yamlfix"
+CSPELL_IGNORED_WORDS="knip,mypy,pyright,shellcheck,sqlfluff,yamlfix"
 
 # --------
 # Builtins
