@@ -595,7 +595,12 @@ fi
 if command -v fzf &> /dev/null; then
   eval "$(fzf --bash)"
 
-  # The default completion trigger is "**", but we want to use `fzf` to replace the normal tab menu.
+  # https://github.com/junegunn/fzf?tab=readme-ov-file#advanced-topics
+  # "--scheme=path" - Optimize the scoring for file paths.
+  export FZF_COMPLETION_OPTS="--scheme=path"
+
+  # The default completion trigger is "**", but we want to use `fzf` to replace the normal Bash tab
+  # menu.
   export FZF_COMPLETION_TRIGGER=""
 fi
 
