@@ -139,6 +139,7 @@
     "shellcheck",
     "shellenv",
     "shopt",
+    "sqlfluff",
     "subshell",
     "switchdesktop",
     "systemtray",
