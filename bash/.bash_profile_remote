@@ -604,6 +604,9 @@ if command -v fzf &> /dev/null; then
   export FZF_COMPLETION_TRIGGER=""
 fi
 
+# gitleaks
+append_path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/gitleaks/gitleaks_8.28.0_windows_x64"
+
 # zoxide
 # https://github.com/ajeetdsouza/zoxide
 if command -v zoxide &> /dev/null; then
