@@ -59,11 +59,17 @@
 
   // Automatically run the formatter when certain files are saved.
   "[shellscript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true,
   },
-  "[css][html][json][jsonc][markdown][postcss][yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // TODO: Restore the standard combined languages block.
+  // https://github.com/prettier/prettier-vscode/issues/3891
+  "[markdown][yaml]": {
+    "editor.defaultFormatter": "prettier.prettier-vscode",
+    "editor.formatOnSave": true,
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true,
   },
 }
