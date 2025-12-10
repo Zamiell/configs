@@ -1392,7 +1392,7 @@ gc() (
 
   if [[ "$amend" == "true" ]]; then
     # Validate that we are at the remote tip so that we do not accidentally blow away commits.
-    git fetch origin "$branch_name" --quiet
+    git fetch origin "$branch_name" --prune --quiet
     local latest_commit_local
     latest_commit_local=$(git rev-parse HEAD)
     local latest_commit_remote
@@ -1540,8 +1540,8 @@ gh-sync() (
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
 
-  git fetch origin
-  git fetch upstream
+  git fetch origin --prune --quiet
+  git fetch upstream --prune --quiet
 
   local local_head
   local_head=$(git rev-parse HEAD)
@@ -1625,6 +1625,38 @@ alias gmco="git diff --name-only --diff-filter=U | xargs code"
 
 # "gp" is short for "git pull --rebase".
 alias gp="git pull --rebase"
+
+# "gpm" is short for "git pull mine", which will fetch all remote branches that start with
+# "feature/misc/[username]/" and create local tracking branches for them if they do not already
+# exist.
+gpm() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert_in_git_repository
+
+  git fetch origin --prune --quiet
+
+  local prefix="feature/misc/$OS_USERNAME/"
+
+  # We use "--list" to filter the branches directly via Git.
+  local remote_branches
+  remote_branches=$(git branch --remotes --format="%(refname:short)" --list "origin/$prefix*")
+
+  if [[ -z "$remote_branches" ]]; then
+    return
+  fi
+
+  echo "$remote_branches" | while IFS= read -r remote_branch; do
+    local local_branch="${remote_branch#origin/}"
+
+    if git show-ref --verify --quiet "refs/heads/$local_branch"; then
+      # Mimic the output of "git branch --track".
+      echo "branch '$local_branch' also exists locally."
+    else
+      git branch --track "$local_branch" "$remote_branch"
+    fi
+  done
+)
 
 # "gpr" is short for "git pull request", to start a new pull request based on the current branch.
 # The arguments that are provided will be the pull request title. If no arguments are provided, then
@@ -1805,7 +1837,7 @@ grbm() (
   local main_branch_name
   main_branch_name=$(get_main_branch_name)
 
-  git fetch origin "$main_branch_name"
+  git fetch origin "$main_branch_name" --prune --quiet
   git rebase "origin/$main_branch_name"
   git push --force-with-lease
 )
