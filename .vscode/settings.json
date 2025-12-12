@@ -62,9 +62,8 @@
     "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true,
   },
-  // TODO: Restore the standard combined languages block.
-  // https://github.com/prettier/prettier-vscode/issues/3891
-  "[markdown][yaml]": {
+  // TODO: https://github.com/prettier/prettier-vscode/issues/3891
+  "[markdown]": {
     "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true,
   },
