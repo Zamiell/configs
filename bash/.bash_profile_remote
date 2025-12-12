@@ -740,6 +740,10 @@ explorer() (
   fi
 )
 
+# Get our ".env" file from BitWarden. (We must sync first because the BitWarden CLI uses a local
+# copy of the vault.)
+alias get-env='bw sync && bw get notes .env > $HOME/.env'
+
 # A better "ll" alias that shows human-readable file sizes.
 # (macOS does not support any of the long-form flags, so we use the short ones instead.)
 # - "-a" is short for "--all", which shows hidden files.
@@ -786,6 +790,44 @@ o() (
 
   echo "Git commit URL is at:"
   echo "$url"
+)
+
+put-env() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "$BW_SESSION" ]]; then
+    echo "Error: The \"BW_SESSION\" environment variable is not set. Run: bw unlock" >&2
+    return 1
+  fi
+
+  local env_path="$HOME/.env"
+  if [[ ! -s "$env_path" ]]; then
+    echo "Error: The \"$env_path\" file is missing or empty." >&2
+    return 1
+  fi
+
+  assert_jq_installed
+
+  local bw_item
+  bw_item=$(bw get item .env)
+  if [[ -z "$bw_item" ]]; then
+    echo "Error: Could not find a Bitwarden item named: .env"
+    return 1
+  fi
+
+  local bw_item_id
+  bw_item_id=$(jq --raw-output .id <<< "$bw_item")
+  if [[ -z "$bw_item_id" ]]; then
+    echo "Error: Failed to parse the \"id\" key from the Bitwarden item."
+    return 1
+  fi
+
+  local bw_item_updated
+  bw_item_updated=$(jq --arg notes "$(cat "$env_path")" '.notes = $notes' <<< "$bw_item")
+
+  # We get rid of the output to prevent passwords from appearing on the screen.
+  echo "$bw_item_updated" | bw encode | bw edit item "$bw_item_id" > /dev/null
+  echo "Successfully uploaded \"$env_path\" to Bitwarden."
 )
 
 # "r" is short for switching to the repositories directory.
