@@ -1868,6 +1868,7 @@ grbc() (
 
   git add --all
   git rebase --continue
+  git push --force-with-lease
 )
 
 # "grbm" is short for "git rebase main".
