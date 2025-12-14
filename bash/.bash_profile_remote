@@ -725,6 +725,8 @@ explorer() (
   fi
 )
 
+alias full-path="readlink -f"
+
 # Get our ".env" file from BitWarden. (We must sync first because the BitWarden CLI uses a local
 # copy of the vault.)
 alias get-env='bw sync && bw get notes .env > $HOME/.env'
