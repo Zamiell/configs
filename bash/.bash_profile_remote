@@ -633,21 +633,6 @@ fi
 # Miscellaneous Commands
 # ----------------------
 
-# Ask an LLM a question from the terminal.
-ai() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ $# -eq 0 ]]; then
-    echo "Error: The prompt is required. Usage: ${FUNCNAME[0]} <prompt>" >&2
-    return 1
-  fi
-  local prompt="$*"
-
-  local system_prompt="You are being asked a question inside of a terminal. Be fairly brief in your response. For example, if you are being asked what the command is for something, format your response as just the command and a 1-2 sentence description."
-
-  get_llm_output "$system_prompt" "$prompt"
-)
-
 # Opens the Azure DevOps URL for the "History" tab of the corresponding file.
 azdo-history() (
   set -euo pipefail # Exit on errors and undefined variables.
@@ -751,6 +736,21 @@ alias get-env='bw sync && bw get notes .env > $HOME/.env'
 # - "-F" is short for "--classify", which displays extra characters to signify the file type.
 # - "--color=auto" makes Ubuntu have the same colors that Git Bash for Windows does.
 alias ll="ls -a -h -l -F --color=auto"
+
+# Ask an LLM a question from the terminal.
+llm() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ $# -eq 0 ]]; then
+    echo "Error: The prompt is required. Usage: ${FUNCNAME[0]} <prompt>" >&2
+    return 1
+  fi
+  local prompt="$*"
+
+  local system_prompt="You are being asked a question inside of a terminal. Be fairly brief in your response. For example, if you are being asked what the command is for something, format your response as just the command and a 1-2 sentence description."
+
+  get_llm_output "$system_prompt" "$prompt"
+)
 
 # "n" is short for "nuke".
 alias n="npx complete-cli@latest nuke"
