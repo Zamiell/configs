@@ -42,9 +42,9 @@ cmd /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\NonEnum"
 # https://winaero.com/turn-on-or-off-transparency-effects-in-windows-10/
 cmd /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "EnableTransparency" /t REG_DWORD /d 0 /f
 
-# -------------
-# Miscellaneous
-# -------------
+# ------------------------------
+# Miscellaneous Windows Settings
+# ------------------------------
 
 # Right click "Recycle Bin" --> Properties --> Don't move files to the Recycle Bin. Remove files
 # immediately when deleted.
@@ -57,6 +57,14 @@ cmd /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
 # - This requires elevation because the "Policies" subkey is protected.
 # - This requires a restart of explorer to take effect.
 cmd /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v ConfirmFileDelete /t REG_DWORD /d 1 /f
+
+# --------------------
+# Application Settings
+# --------------------
+
+# Notepad++
+# whiteSpaceShow="hide" --> show
+# TODO: test to see if "C:\Users\james\AppData\Roaming\Notepad++\config.xml" is created before Notepad++ is run for the first time
 
 # --------
 # Unsorted
@@ -242,6 +250,14 @@ cmd /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
 # Note that this requires a restart of explorer in order to take effect, which we do at the end.
 # reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /f
 
+# -----
+# Other
+# -----
+
+# Set up the Bash configs.
+# TODO: idempotent
+# curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> "C:\Users\james\.bash_profile"
+
 # ---
 # End
 # ---
@@ -249,3 +265,11 @@ cmd /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
 # We restart the entire system instead of killing explorer and restarting it, since doing that
 # results in the start menu showing an error about indexing being disabled.
 shutdown /r /t 0
+
+# Steps that are not covered in this script:
+# - Settings --> Display --> Advanced display settings --> Display 1: VG248 -->
+#   Refresh rate: 164.917 Hz (the highest value)
+# - Settings --> Display --> Advanced display settings --> Display 2: VG248 -->
+#   Refresh rate: 164.917 Hz (the highest value)
+# - Settings --> Sounds --> Output --> Speakers (Scarlett Solo USB) --> Device properties -->
+#   Rename "Speakers" to "Headphones"

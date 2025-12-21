@@ -2097,6 +2097,14 @@ alias gu="git push"
 # "guf" is short for "git push --force-with-lease".
 alias guf="git push --force-with-lease"
 
+# ----------
+# npm Config
+# ----------
+
+if ! grep --quiet "save-exact=true" "$HOME/.npmrc"; then
+  npm config set save-exact=true
+fi
+
 # ---------------
 # Pulumi Commands
 # ---------------
