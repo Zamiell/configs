@@ -1023,6 +1023,11 @@ git config --global pull.rebase true
 # branch.
 git config --global push.autoSetupRemote true
 
+if [[ "$OS_USERNAME" == "james" || "$OS_USERNAME" == "jnesta" ]]; then
+  git config --global user.name "Zamiell"
+  git config --global user.email "5511220+Zamiell@users.noreply.github.com"
+fi
+
 # ------------
 # Git Commands
 # ------------
@@ -1399,11 +1404,16 @@ gc() (
     return 1
   fi
 
+  local user_email
+  user_email=$(git config user.email)
   if is_github_repository; then
-    local user_email
-    user_email=$(git config user.email)
     if [[ "$user_email" == *logixhealth.com ]]; then
       echo "Error: You are trying to commit to a GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
+      return 1
+    fi
+  else
+    if [[ "$user_email" == *github.com || "$user_email" == *gmail.com ]]; then
+      echo "Error: You are trying to commit to an non-GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
       return 1
     fi
   fi
