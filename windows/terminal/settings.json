@@ -3,44 +3,45 @@
   "$schema": "https://aka.ms/terminal-profiles-schema",
   "actions": [
     {
-      "id": "User.copy",
       "command": {
         "action": "copy",
         "singleLine": false
-      }
-    },
-    {
-      "id": "User.find",
-      "command": "find"
-    },
-    {
-      "id": "User.paste",
-      "command": "paste"
-    }
-  ],
-  "keybindings": [
-    {
-      "keys": "ctrl+c",
+      },
       "id": "User.copy"
     },
     {
-      "keys": "ctrl+f",
+      "command": "find",
       "id": "User.find"
     },
     {
-      "keys": "ctrl+v",
+      "command": "paste",
       "id": "User.paste"
     }
   ],
   "copyFormatting": "none",
   "copyOnSelect": false,
   "defaultProfile": "{2534e69d-4823-4626-8295-fa9d1dded4e3}",
+  "keybindings": [
+    {
+      "id": "User.copy",
+      "keys": "ctrl+c"
+    },
+    {
+      "id": "User.find",
+      "keys": "ctrl+f"
+    },
+    {
+      "id": "User.paste",
+      "keys": "ctrl+v"
+    }
+  ],
   "newTabMenu": [
     {
       "type": "remainingProfiles"
     }
   ],
   "profiles": {
+    "defaults": {},
     "list": [
       {
         "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
@@ -61,6 +62,7 @@
         "source": "Windows.Terminal.Azure"
       },
       {
+        "closeOnExit": "always",
         "commandline": "%PROGRAMFILES%/Git/usr/bin/bash.exe -i -l",
         "guid": "{2534e69d-4823-4626-8295-fa9d1dded4e3}",
         "icon": "%PROGRAMFILES%/Git/mingw64/share/git/git-for-windows.ico",
@@ -69,5 +71,6 @@
       }
     ]
   },
-  "schemes": []
+  "schemes": [],
+  "themes": []
 }
