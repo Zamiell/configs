@@ -6,7 +6,6 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 Set-PSDebug -Trace 1
 Start-Transcript -Path "C:\Windows\Setup\scripts\install.log" -Append
-$Debug = $true
 
 # -------------------
 # Settings --> System
@@ -15,6 +14,11 @@ $Debug = $true
 # Settings --> System --> Multitasking --> Snap windows --> Uncheck "When I snap a window, suggest what I can snap next to it"
 # https://www.tenforums.com/tutorials/4343-turn-off-aero-snap-windows-10-a.html
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v SnapAssist /t REG_DWORD /d 0 /f
+
+# Settings --> System --> Multitasking --> Snap windows --> Uncheck "Show snap layouts when I hover over a window's maximize button"
+# https://www.elevenforum.com/t/enable-or-disable-snap-layouts-for-maximize-button-in-windows-11.61/
+# - This requires a restart of explorer to take effect.
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v EnableSnapAssistFlyout /t REG_DWORD /d 0 /f
 
 # --------------------------------
 # Settings --> Bluetooth & devices
@@ -263,9 +267,6 @@ shutdown /r /t 0
 #   Refresh rate: 164.917 Hz (the highest value)
 # - Settings --> Sounds --> Output --> Speakers (Scarlett Solo USB) --> Device properties -->
 #   Rename "Speakers" to "Headphones"
-
-# TODO:
-# - AutoHotkey
-# - disable Aero Peek
-# - make all folders have "Details" view in File Explorer
-# - disable thing that appears when hovering over button next to minimize
+# - Install Windhawk mod "Disable Taskbar Thumbnails": https://windhawk.net/mods/taskbar-thumbnails
+#   It is not possible to programmatically install mods for Windhawk:
+#   https://github.com/ramensoftware/windhawk/issues/154
