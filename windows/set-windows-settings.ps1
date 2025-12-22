@@ -2,6 +2,11 @@
 
 # This script sets up a new Windows system with my personal settings.
 
+$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
+Start-Transcript -Path "C:\Windows\Setup\scripts\install.log" -Append
+$Debug = $true
+
 # ----
 # Prep
 # ----
@@ -59,11 +64,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Sh
 # https://github.com/ixi-your-face/Useful-Windows-11-Scripts/blob/main/Scripts/Functions/Set-TaskbarAlignment.ps1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAl /t REG_DWORD /d 0 /f
 
-# Settings --> Personalization --> Taskbar --> Taskbar behaviors --> Show my taskbar on all displays
+# Settings --> Personalization --> Taskbar --> Taskbar behaviors --> Uncheck "Show my taskbar on all displays"
 # https://www.tenforums.com/tutorials/104832-enable-disable-show-taskbar-all-displays-windows-10-a.html
 # - This requires elevation because the "Policies" subkey is protected.
-# reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v TaskbarNoMultimon /t REG_DWORD /d 1 /f
-# TODO: Check to see if this is necessary, cannot test it on a VM.
+reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v TaskbarNoMultimon /t REG_DWORD /d 1 /f
 
 # Settings --> Personalization --> Taskbar --> Taskbar behaviors --> Combine taskbar buttons and hide labels --> Never
 # https://ss64.com/nt/syntax-reghacks.html
@@ -198,7 +202,8 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v Co
 # - This requires elevation because users do not have permission to exempt themselves from system
 #   policy.
 if ($env:USERNAME -eq "james") {
-    Set-LocalUser -Name "james" -PasswordNeverExpires $True
+    # We must use the 64-bit version of PowerShell to invoke the "Set-LocalUser" command.
+	C:\Windows\sysnative\WindowsPowerShell\v1.0\powershell.exe -Command 'Set-LocalUser -Name james -PasswordNeverExpires $True'
 }
 
 # Restore the old right-click context menu.
@@ -237,18 +242,7 @@ if (-not (Test-Path $notepadConfigPath)) {
 # Windows Terminal
 $terminalAppDataPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
 New-Item -ItemType Directory -Force -Path $terminalAppDataPath | Out-Null
-$terminalSettingsPath = "$TerminalAppDataPath\settings.json"
-$terminalSettingsUrl = "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/terminal/settings.json"
-if (Test-Path $terminalSettingsPath) {
-    $OldHash = Get-FileHash -Path $terminalSettingsPath
-    Invoke-WebRequest -Uri $terminalSettingsUrl -OutFile $terminalSettingsPath
-    $NewHash = Get-FileHash -Path $terminalSettingsPath
-    if ($OldHash.Hash -ne $NewHash.Hash) {
-        Write-Host "Updated your Windows Terminal `"settings.json`" file. Restart the terminal for the settings to take effect."
-    }
-} else {
-    Invoke-WebRequest -Uri $terminalSettingsUrl -OutFile $terminalSettingsPath
-}
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/terminal/settings.json" -OutFile "$terminalAppDataPath\settings.json"
 
 # Bash
 $bashProfilePath = "$HOME/.bash_profile"
@@ -277,3 +271,7 @@ shutdown /r /t 0
 #   Refresh rate: 164.917 Hz (the highest value)
 # - Settings --> Sounds --> Output --> Speakers (Scarlett Solo USB) --> Device properties -->
 #   Rename "Speakers" to "Headphones"
+
+# TODO:
+# - Chrome default download directory
+# - AutoHotkey
