@@ -265,5 +265,6 @@ shutdown /r /t 0
 #   Rename "Speakers" to "Headphones"
 
 # TODO:
-# - Chrome default download directory
 # - AutoHotkey
+# - disable Aero Peek
+# - make all folders have "Details" view in File Explorer
