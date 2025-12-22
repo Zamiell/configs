@@ -4,6 +4,7 @@
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+Set-PSDebug -Trace 1
 Start-Transcript -Path "C:\Windows\Setup\scripts\install.log" -Append
 $Debug = $true
 
