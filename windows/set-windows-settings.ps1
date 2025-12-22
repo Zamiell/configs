@@ -7,15 +7,6 @@ Set-StrictMode -Version Latest
 Start-Transcript -Path "C:\Windows\Setup\scripts\install.log" -Append
 $Debug = $true
 
-# ----
-# Prep
-# ----
-
-# Writing settings to the registry can fail if explorer is open because when the computer is
-# restarted, explorer will re-write its current settings to the registry. Thus, we kill explorer
-# before modifying the registry.
-taskkill /f /im explorer.exe
-
 # -------------------
 # Settings --> System
 # -------------------
