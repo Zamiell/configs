@@ -3,27 +3,33 @@
   "$schema": "https://aka.ms/terminal-profiles-schema",
   "actions": [
     {
+      "id": "User.copy",
       "command": {
         "action": "copy",
         "singleLine": false
-      },
-      "keys": "ctrl+c"
+      }
     },
     {
-      "command": "paste",
-      "keys": "ctrl+v"
+      "id": "User.find",
+      "command": "find"
     },
     {
-      "command": {
-        "action": "splitPane",
-        "split": "auto",
-        "splitMode": "duplicate"
-      },
-      "keys": "alt+shift+d"
+      "id": "User.paste",
+      "command": "paste"
+    }
+  ],
+  "keybindings": [
+    {
+      "keys": "ctrl+c",
+      "id": "User.copy"
     },
     {
-      "command": "find",
-      "keys": "ctrl+shift+f"
+      "keys": "ctrl+f",
+      "id": "User.find"
+    },
+    {
+      "keys": "ctrl+v",
+      "id": "User.paste"
     }
   ],
   "copyFormatting": "none",
@@ -62,5 +68,6 @@
         "startingDirectory": "%USERPROFILE%"
       }
     ]
-  }
+  },
+  "schemes": []
 }

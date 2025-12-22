@@ -63,8 +63,33 @@ cmd /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
 # --------------------
 
 # Notepad++
-# whiteSpaceShow="hide" --> show
-# TODO: test to see if "C:\Users\james\AppData\Roaming\Notepad++\config.xml" is created before Notepad++ is run for the first time
+NOTEPAD_APP_DATA_PATH="$HOME/AppData/Roaming/Notepad++"
+mkdir --parents "$NOTEPAD_APP_DATA_PATH"
+# The config file is not created until Notepad++ is launched for the first time. If it does not
+# exist, we copy over the vanilla config.
+NOTEPAD_CONFIG_PATH="$NOTEPAD_APP_DATA_PATH/config.xml"
+if [[ ! -s "$NOTEPAD_CONFIG_PATH" ]]; then
+  curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/notepad++/config-vanilla.json > "$NOTEPAD_CONFIG_PATH"
+fi
+# View --> Show Symbol --> Show Space and Tab
+sed --in-place 's/whiteSpaceShow="hide"/whiteSpaceShow="show"/g' "$NOTEPAD_CONFIG_PATH"
+# Settings --> Preferences --> Margins/Border/Edge --> Uncheck "Display Change History"
+sed --in-place 's/isChangeHistoryEnabled="1"/isChangeHistoryEnabled="0"/g' "$NOTEPAD_CONFIG_PATH"
+
+# Windows Terminal
+TERMINAL_APP_DATA_PATH="$HOME/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState"
+mkdir --parents "$TERMINAL_APP_DATA_PATH"
+TERMINAL_SETTINGS_PATH="$TERMINAL_APP_DATA_PATH/settings.json"
+if [[ -s "$TERMINAL_SETTINGS_PATH" ]]; then
+  OLD_TERMINAL_SETTINGS_SHA1=$(sha1sum "$TERMINAL_SETTINGS_PATH")
+  curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/terminal/settings.json > "$TERMINAL_SETTINGS_PATH"
+  NEW_TERMINAL_SETTINGS_SHA1=$(sha1sum "$TERMINAL_SETTINGS_PATH")
+  if [[ "$OLD_TERMINAL_SETTINGS_SHA1" != "$NEW_TERMINAL_SETTINGS_SHA1" ]]; then
+    echo "Updated your Windows Terminal \"settings.json\" file. Restart the terminal for the settings to take effect."
+  fi
+else
+  curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/terminal/settings.json > "$TERMINAL_SETTINGS_PATH"
+fi
 
 # --------
 # Unsorted
@@ -249,6 +274,9 @@ cmd /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
 # From: https://www.tenforums.com/tutorials/3151-reset-clear-taskbar-pinned-apps-windows-10-a.html
 # Note that this requires a restart of explorer in order to take effect, which we do at the end.
 # reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /f
+
+# curl
+# reg import "$HOME\Restore_Windows_Photo_Viewer_CURRENT_USER.reg"
 
 # -----
 # Other

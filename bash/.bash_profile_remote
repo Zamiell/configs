@@ -360,6 +360,7 @@ get_llm_output() (
       --silent \
       --fail \
       --show-error \
+      --location \
       --request POST \
       --header "content-type: application/json" \
       --data @- \
@@ -627,6 +628,21 @@ fi
 # can cause bugs with agents.
 if [[ $- == *i* ]] && command -v fzf &> /dev/null && command -v zoxide &> /dev/null; then
   bind '"\ec": "zi\n"'
+fi
+
+# --------------------
+# Application Settings
+# --------------------
+
+# npm
+if command -v npm &> /dev/null; then
+  NPC_CONFIG_PATH="$HOME/.npmrc"
+  if [[ -s "$NPC_CONFIG_PATH" ]]; then
+    touch "$NPC_CONFIG_PATH"
+  fi
+  if ! grep --quiet "save-exact=true" "$NPC_CONFIG_PATH"; then
+    npm config set save-exact=true
+  fi
 fi
 
 # ----------------------
@@ -1770,6 +1786,7 @@ gpr() (
       --silent \
       --fail \
       --show-error \
+      --location \
       --user ":$AZDO_PERSONAL_ACCESS_TOKEN" \
       "$azdo_api_url_check" || {
       local err="$?"
@@ -1849,6 +1866,7 @@ gpr() (
     --silent \
     --fail \
     --show-error \
+    --location \
     --output "$response_body" \
     --user ":$AZDO_PERSONAL_ACCESS_TOKEN" \
     --header "Content-Type: application/json" \
@@ -2096,14 +2114,6 @@ alias gu="git push"
 
 # "guf" is short for "git push --force-with-lease".
 alias guf="git push --force-with-lease"
-
-# ----------
-# npm Config
-# ----------
-
-if ! grep --quiet "save-exact=true" "$HOME/.npmrc"; then
-  npm config set save-exact=true
-fi
 
 # ---------------
 # Pulumi Commands
