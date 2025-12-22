@@ -612,6 +612,9 @@ fi
 # gitleaks
 append_path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/gitleaks/gitleaks_8.28.0_windows_x64"
 
+# GnuWin32
+append_path "/c/Program Files (x86)/GnuWin32/bin"
+
 # terragrunt
 append_path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"
 

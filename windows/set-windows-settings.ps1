@@ -268,3 +268,4 @@ shutdown /r /t 0
 # - AutoHotkey
 # - disable Aero Peek
 # - make all folders have "Details" view in File Explorer
+# - disable thing that appears when hovering over button next to minimize
