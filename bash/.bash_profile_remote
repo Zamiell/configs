@@ -636,11 +636,11 @@ fi
 
 # npm
 if command -v npm &> /dev/null; then
-  NPC_CONFIG_PATH="$HOME/.npmrc"
-  if [[ -s "$NPC_CONFIG_PATH" ]]; then
-    touch "$NPC_CONFIG_PATH"
+  NPM_CONFIG_PATH="$HOME/.npmrc"
+  if [[ ! -s "$NPM_CONFIG_PATH" ]]; then
+    touch "$NPM_CONFIG_PATH"
   fi
-  if ! grep --quiet "save-exact=true" "$NPC_CONFIG_PATH"; then
+  if ! grep --quiet "save-exact=true" "$NPM_CONFIG_PATH"; then
     npm config set save-exact=true
   fi
 fi
@@ -1500,12 +1500,12 @@ gc() (
   else
     if [[ -n "$commit_message" ]]; then
       # A commit message was provided at the command-line. Spell check it using CSpell.
-      if [[ -z "${NO_SPELL_CHECK-}" ]]; then
+      if [[ -z "${NO_SPELL_CHECK-}" ]] && command -v bunx &> /dev/null; then
         {
           # https://cspell.org/docs/Configuration/document-settings#ignore
           echo "# cSpell:ignore $CSPELL_IGNORED_WORDS"
           echo "$commit_message"
-        } | exec_package cspell stdin --no-progress --no-summary
+        } | bunx cspell stdin --no-progress --no-summary
         # - "--no-progress" and "--no-summary" make it only output errors.
       fi
     else
@@ -1831,7 +1831,7 @@ gpr() (
     pull_request_text="$*"
 
     # A pull request title was provided at the command-line. Spell check it using CSpell.
-    if [[ -z "${NO_SPELL_CHECK-}" ]]; then
+    if [[ -z "${NO_SPELL_CHECK-}" ]] && command -v bunx &> /dev/null; then
       {
         # https://cspell.org/docs/Configuration/document-settings#ignore
         echo "# cSpell:ignore $CSPELL_IGNORED_WORDS"

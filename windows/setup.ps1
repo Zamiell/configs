@@ -251,7 +251,7 @@ if (Test-Path $terminalSettingsPath) {
 }
 
 # Bash
-$bashProfilePath = "$env:HOME/.bash_profile"
+$bashProfilePath = "$HOME/.bash_profile"
 if (-not (Test-Path -Path $bashProfilePath)) {
     New-Item -ItemType File -Path $bashProfilePath -Force | Out-Null
 }
