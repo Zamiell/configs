@@ -543,9 +543,9 @@ fi
 add_logix_cert_to_requests_ca_bundle
 
 # Get the username in an operating system agnostic way.
-if [[ -n "$USER" ]]; then
+if [[ -n "$USER" ]]; then # macOS/Linux
   export OS_USERNAME="$USER"
-elif [[ -n "$USERNAME" ]]; then
+elif [[ -n "$USERNAME" ]]; then # Windows
   export OS_USERNAME="$USERNAME"
 else
   echo "Failed to derive the operating system username." >&2
