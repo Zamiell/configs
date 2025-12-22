@@ -720,7 +720,7 @@ csf() (
   exec_package cspell-check-unused-words --fix
 
   if [[ -n "$(git status --porcelain)" ]]; then
-    gc "chore: removing unused words from the CSpell configuration file"
+    gc "chore: remove unused words from the CSpell configuration file"
   fi
 )
 
