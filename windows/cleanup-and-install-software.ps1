@@ -103,7 +103,11 @@ Install-WingetProgram "Mozilla.Firefox.ESR"
 # Programming
 Install-WingetProgram "Microsoft.WindowsTerminal"
 Install-WingetProgram "Git.Git"
+Install-WingetProgram "GitHub.cli"
 Install-WingetProgram "GnuWin32.Tree"
+Install-WingetProgram "Notepad++.Notepad++"
+
+# Visual Studio Code
 Install-WingetProgram "Microsoft.VisualStudioCode"
 # VSCode does not install to the right-click context menu by default, so we manually modify the
 # registry. (This is cleaner than invoking winget with custom arguments.)
@@ -112,12 +116,15 @@ $scriptName = "vscode-context-menu.reg"
 $scriptPath = "$scriptsPath\$scriptName"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/registry/$scriptName" -OutFile $scriptPath
 reg import $scriptPath
-Install-WingetProgram "Notepad++.Notepad++"
-Install-WingetProgram "GitHub.cli"
+
+# Node.js
 Install-WingetProgram "Schniz.fnm"
-# Installing Node.js LTS with this command is idempotent.
+# Installing with this command is idempotent.
 # cspell:disable-next-line
 & "$HOME\AppData\Local\Microsoft\WinGet\Packages\Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe\fnm.exe" install --lts
+
+# Bun
+powershell -c "irm bun.sh/install.ps1|iex"
 
 # Games
 Install-WingetProgram "Discord.Discord"
