@@ -160,6 +160,9 @@ Install-WingetProgram "RamenSoftware.Windhawk"
 # https://github.com/ramensoftware/windhawk/issues/154
 Install-WingetProgram "VideoLAN.VLC"
 
+# Windows Subsystem for Linux
+wsl --install
+
 # Desktop cleanup
 if (Test-Path "$HOME\Desktop\Google Chrome.lnk") {
   Remove-Item "$HOME\Desktop\Google Chrome.lnk"
