@@ -4,10 +4,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 Set-PSDebug -Trace 1
 $scriptsPath = "C:\Windows\Setup\scripts\"
-if (-not (Test-Path $scriptsPath)) {
-    New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
-}
-Start-Transcript -Path "$scriptsPath\install.log" -Append
+# The transcript has already started from the previous process.
 
 # Before invoking Windows Update and automatically restarting the system, set the next installation
 # script to run on the next boot.
