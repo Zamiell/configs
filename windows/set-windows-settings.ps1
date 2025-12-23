@@ -87,7 +87,8 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "
 # Settings --> Accessibility --> Visual effects --> Animation effects --> Off
 # https://www.ninjaone.com/blog/turn-off-animation-effects-in-windows-11/
 # - This requires a restart of explorer to take effect.
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" /v VisualFXSetting /t REG_SZ /d 2 /f
+# - The GUI will still show as this setting as being "On", but the animations when pressing e.g.
+#   "Flag + Left" will still be removed.
 reg add "HKCU\Control Panel\Desktop\WindowMetrics" /v MinAnimate /t REG_SZ /d 0 /f
 
 # Settings --> Accessibility --> Keyboard --> Sticky keys --> Keyboard shortcut for Sticky keys --> Off
@@ -165,6 +166,8 @@ $foldersToPin = @(
     "$HOME\Downloads"
 )
 foreach ($folderPath in $foldersToPin) {
+    # Work around the bug where only some of the elements get pinned.
+    Start-Sleep -Seconds 1
     $folder = $shell.Namespace($folderPath)
     $item = $folder.Self
     $item.InvokeVerb("pintohome")
