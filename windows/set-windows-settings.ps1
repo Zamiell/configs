@@ -41,7 +41,7 @@ reg add "HKCU\Control Panel\Mouse" /v MouseThreshold2 /t REG_SZ /d 0 /f
 # Settings --> Personalization
 # ----------------------------
 
-# Settings --> Personalization --> Colors --> Choose your mode
+# Settings --> Personalization --> Colors --> Choose your mode --> Dark
 # https://answers.microsoft.com/en-us/windows/forum/all/not-able-to-change-default-app-mode-settings/16ea2ab9-5c2c-41d1-8ecc-2e96f82ef62a
 # Choose your default Windows mode (1/2)
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "SystemUsesLightTheme" /t REG_DWORD /d 0 /f
@@ -87,6 +87,7 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "
 # Settings --> Accessibility --> Visual effects --> Animation effects --> Off
 # https://www.ninjaone.com/blog/turn-off-animation-effects-in-windows-11/
 # - This requires a restart of explorer to take effect.
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" /v VisualFXSetting /t REG_SZ /d 2 /f
 reg add "HKCU\Control Panel\Desktop\WindowMetrics" /v MinAnimate /t REG_SZ /d 0 /f
 
 # Settings --> Accessibility --> Keyboard --> Sticky keys --> Keyboard shortcut for Sticky keys --> Off

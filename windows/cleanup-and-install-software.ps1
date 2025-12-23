@@ -121,6 +121,8 @@ Install-WingetProgram "Schniz.fnm"
 
 # Games
 Install-WingetProgram "Discord.Discord"
+# Stop Discord from starting on boot.
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v Discord /f
 Install-WingetProgram "Valve.Steam"
 # Stop Steam from starting on boot.
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v Steam /f
