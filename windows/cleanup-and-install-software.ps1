@@ -67,6 +67,12 @@ function Install-WingetProgram {
     Write-Host "Successfully installed package: $Id"
 }
 
+# Download "pttb.exe" for pinning programs to the taskbar.
+$pttbPath = "$scriptsPath\pttb.exe"
+if (-not (Test-Path "$pttbPath")) {
+  Invoke-WebRequest -Uri "https://github.com/0x546F6D/pttb_-_Pin_To_TaskBar/releases/latest/download/pttb.exe" -OutFile $pttbPath
+}
+
 # Google Chrome
 # We use "Google.Chrome.EXE" instead of "Google.Chrome" because otherwise, installation can fail
 # with the following error:
@@ -96,6 +102,8 @@ Start-Sleep -Seconds 1
 Stop-Process -Id $chromeProcess.Id -Force -ErrorAction SilentlyContinue
 $preferences = Get-Content $preferencesPath -Raw
 $preferences -replace ',"extensions":',',"download":{"directory_upgrade":true,"default_directory":"C:\\Users\\james\\Desktop"},"extensions":' | Set-Content -Path $preferencesPath
+# Pin it to the taskbar.
+& $pttbPath "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
 
 # Other Browsers
 Install-WingetProgram "Mozilla.Firefox.ESR"

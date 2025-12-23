@@ -277,12 +277,14 @@ shutdown /r /t 0
 # Steps that are not covered in this script:
 # - Activate: irm https://get.activated.win | iex
 #   https://massgrave.dev/
-# - Settings --> Display --> Advanced display settings --> Display 1: VG248 -->
+# - Settings --> System --> Display --> Advanced display settings --> Display 1: VG248 -->
 #   Refresh rate: 164.917 Hz (the highest value)
-# - Settings --> Display --> Advanced display settings --> Display 2: VG248 -->
+# - Settings --> System --> Display --> Advanced display settings --> Display 2: VG248 -->
 #   Refresh rate: 164.917 Hz (the highest value)
-# - Settings --> System --> Sound --> Output --> Speakers (Scarlett Solo USB) --> Device properties -->
-#   Rename "Speakers" to "Headphones"
+# - Settings --> System --> Sound --> Output --> Speakers (Scarlett Solo USB) --> Device properties
+#   --> Rename "Speakers" to "Headphones"
+# - Settings --> System --> Notifications --> NVIDIA Container --> Off
+#   (to prevent the popup when using a KVM)
 # - Install Windhawk mod "Disable Taskbar Thumbnails": https://windhawk.net/mods/taskbar-thumbnails
 #   (The popups are distracting when hovering over multiple taskbar elements in a row.)
 # - Install Windhawk mod "Taskbar Labels for Windows 11": https://windhawk.net/mods/taskbar-labels
