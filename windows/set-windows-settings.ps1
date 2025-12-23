@@ -284,6 +284,9 @@ shutdown /r /t 0
 # - Settings --> System --> Sound --> Output --> Speakers (Scarlett Solo USB) --> Device properties -->
 #   Rename "Speakers" to "Headphones"
 # - Install Windhawk mod "Disable Taskbar Thumbnails": https://windhawk.net/mods/taskbar-thumbnails
-#   It is not possible to programmatically install mods for Windhawk:
+#   (The popups are distracting when hovering over multiple taskbar elements in a row.)
+# - Install Windhawk mod "Taskbar Labels for Windows 11": https://windhawk.net/mods/taskbar-labels
+#   (This prevents the dynamic taskbar element width that started happening in Windows 11.)
+# - It is not possible to programmatically install mods for Windhawk:
 #   https://github.com/ramensoftware/windhawk/issues/154
 # - Run "post-raid-array.ps1".
