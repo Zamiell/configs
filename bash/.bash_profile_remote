@@ -644,7 +644,7 @@ fi
 mkdir --parents "$HOME/.ssh" # The directory has to exist for the "ssh-keygen" command to work.
 if ! ssh-keygen -F github.com &> /dev/null; then
   # Install the public key for "github.com".
-  ssh-keyscan github.com >> "$HOME/.ssh/known_hosts"
+  ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
 fi
 
 # npm
@@ -765,7 +765,7 @@ alias get-env='bw sync && bw get notes .env > $HOME/.env'
 
 # The secret is "id_ed25519.key" instead of "id_ed25519" because otherwise, BitWarden will complain
 # that "More than one result was found".
-alias get-ssh-keys='mkdir --parents "$HOME/.ssh" && bw sync && bw get notes id_ed25519.key > "$HOME/.ssh/id_ed25519" && bw get notes id_ed25519.pub > "$HOME/.ssh/id_ed25519.pub"'
+alias get-ssh-keys='mkdir --parents "$HOME/.ssh" && bw sync && bw get notes id_ed25519.key > "$HOME/.ssh/id_ed25519" && chmod 600 "$HOME/.ssh/id_ed25519" && bw get notes id_ed25519.pub > "$HOME/.ssh/id_ed25519.pub"'
 
 # A better "ll" alias that shows human-readable file sizes.
 # (macOS does not support any of the long-form flags, so we use the short ones instead.)
