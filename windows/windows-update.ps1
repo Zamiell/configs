@@ -3,7 +3,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $scriptsPath = "C:\Windows\Setup\scripts"
-# The transcript has already started from the previous process.
+Start-Transcript -Path "$scriptsPath\install.log" -Append
 
 # Before invoking Windows Update and automatically restarting the system, set the next installation
 # script to run on the next boot.
