@@ -159,6 +159,7 @@
     "syspin",
     "systemtray",
     "Systray",
+    "taskkill",
     "taskmanager",
     "tfstate",
     "timedatectl",
