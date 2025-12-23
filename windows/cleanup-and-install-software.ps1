@@ -113,6 +113,7 @@ Install-WingetProgram "Microsoft.WindowsTerminal"
 Install-WingetProgram "Git.Git"
 Install-WingetProgram "GitHub.cli"
 Install-WingetProgram "GnuWin32.Tree"
+Install-WingetProgram "koalaman.shellcheck"
 Install-WingetProgram "Notepad++.Notepad++"
 
 # Visual Studio Code
