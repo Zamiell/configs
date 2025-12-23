@@ -67,9 +67,6 @@ function Install-WingetProgram {
     Write-Host "Successfully installed package: $Id"
 }
 
-# AutoHotkey is installed first because it is used to customize Chrome.
-Install-WingetProgram "AutoHotkey.AutoHotkey"
-
 # Google Chrome
 # We use "Google.Chrome.EXE" instead of "Google.Chrome" because otherwise, installation can fail
 # with the following error:
@@ -81,11 +78,22 @@ Install-WingetProgram "Google.Chrome.EXE"
 # In order to do this, we must edit the file:
 # C:\Users\james\AppData\Local\Google\Chrome\User Data\Default\Preferences
 # However, it will not exist until Chrome is started for the first time.
-$scriptName = "open-and-close-chrome.ahk"
-$scriptPath = "$scriptsPath\$scriptName"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/$scriptName" -OutFile $scriptPath
-Start-Process "$scriptPath" -Wait
+$chromePath = "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
 $preferencesPath = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Preferences"
+# The "-PassThru" flag is needed to get the process ID.
+$chromeProcess = Start-Process -FilePath $chromePath -PassThru
+$timeout = 30
+$timer = 0
+while (-not (Test-Path $preferencesPath)) {
+    if ($timer -ge $timeout) {
+        throw "Timed out waiting for Chrome to create the Preferences file."
+    }
+    Start-Sleep -Seconds 1
+    $timer++
+}
+# Wait another second in case the file is locked.
+Start-Sleep -Seconds 1
+Stop-Process -Id $chromeProcess.Id -Force -ErrorAction SilentlyContinue
 $preferences = Get-Content $preferencesPath -Raw
 $preferences -replace ',"extensions":',',"download":{"directory_upgrade":true,"default_directory":"C:\\Users\\james\\Desktop"},"extensions":' | Set-Content -Path $preferencesPath
 
@@ -118,6 +126,7 @@ Install-WingetProgram "Valve.Steam"
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v Steam /f
 
 # Miscellaneous
+Install-WingetProgram "AutoHotkey.AutoHotkey"
 Install-WingetProgram "7zip.7zip"
 Install-WingetProgram "qBittorrent.qBittorrent"
 Install-WingetProgram "RamenSoftware.Windhawk"
