@@ -3,6 +3,9 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $scriptsPath = "C:\Windows\Setup\scripts"
+if (-not (Test-Path $scriptsPath)) {
+    New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
+}
 Start-Transcript -Path "$scriptsPath\install.log" -Append
 
 # Before invoking Windows Update and automatically restarting the system, set the next installation
