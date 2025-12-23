@@ -1,0 +1,28 @@
+Windows Registry Editor Version 5.00
+
+; By default, when VSCode is installed from winget, it does not include context menus, so it must be
+; manually added afterwards.
+; https://thisdavej.com/right-click-on-windows-folder-and-open-with-visual-studio-code/
+
+; Open files
+[HKEY_CLASSES_ROOT\*\shell\Open with VS Code]
+@="Open with Code"
+"Icon"="C:\\Users\\james\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe,0"
+[HKEY_CLASSES_ROOT\*\shell\Open with VS Code\command]
+@="\"C:\\Users\\james\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%1\""
+
+; This will make it appear when you right click ON a folder
+; The "Icon" line can be removed if you don't want the icon to appear
+[HKEY_CLASSES_ROOT\Directory\shell\vscode]
+@="Open with Code"
+"Icon"="\"C:\\Users\\james\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\",0"
+[HKEY_CLASSES_ROOT\Directory\shell\vscode\command]
+@="\"C:\\Users\\james\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%1\""
+
+; This will make it appear when you right click INSIDE a folder
+; The "Icon" line can be removed if you don't want the icon to appear
+[HKEY_CLASSES_ROOT\Directory\Background\shell\vscode]
+@="Open with Code"
+"Icon"="\"C:\\Users\\james\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\",0"
+[HKEY_CLASSES_ROOT\Directory\Background\shell\vscode\command]
+@="\"C:\\Users\\james\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%V\""
