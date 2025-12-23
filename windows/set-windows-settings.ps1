@@ -269,13 +269,14 @@ Write-Output "Restarting at: $date"
 shutdown /r /t 0
 
 # Steps that are not covered in this script:
-# - Running "post-raid-array.ps1".
+# - Activate.
 # - Settings --> Display --> Advanced display settings --> Display 1: VG248 -->
 #   Refresh rate: 164.917 Hz (the highest value)
 # - Settings --> Display --> Advanced display settings --> Display 2: VG248 -->
 #   Refresh rate: 164.917 Hz (the highest value)
-# - Settings --> Sounds --> Output --> Speakers (Scarlett Solo USB) --> Device properties -->
+# - Settings --> System --> Sound --> Output --> Speakers (Scarlett Solo USB) --> Device properties -->
 #   Rename "Speakers" to "Headphones"
 # - Install Windhawk mod "Disable Taskbar Thumbnails": https://windhawk.net/mods/taskbar-thumbnails
 #   It is not possible to programmatically install mods for Windhawk:
 #   https://github.com/ramensoftware/windhawk/issues/154
+# - Run "post-raid-array.ps1".
