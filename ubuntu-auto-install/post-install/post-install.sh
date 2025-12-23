@@ -513,10 +513,15 @@ fi
 # Install fnm.
 if ! command -v fnm &> /dev/null; then
   curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash
+
+  # Add it to PATH.
+  FNM_PATH="$HOME/.local/share/fnm"
+  export PATH="$FNM_PATH:$PATH"
+  eval "$(fnm env --shell bash)"
 fi
 
 # Install Node.js
-if ! command -v node &> /dev/null; then
+if ! command -v node &> /dev/null && command -v fnm &> /dev/null; then
   fnm install --lts
 fi
 

@@ -590,9 +590,7 @@ append_path "$HOME/.local/bin"
 # fnm
 # https://github.com/Schniz/fnm
 append_path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
-if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
-  eval "$(fnm env --shell bash)"
-fi
+append_path "$HOME/.local/share/fnm"
 
 # fzf
 # https://github.com/junegunn/fzf
@@ -614,6 +612,11 @@ append_path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/gitleaks/gitlea
 
 # GnuWin32
 append_path "/c/Program Files (x86)/GnuWin32/bin"
+
+# Node.js (through fnm)
+if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
+  eval "$(fnm env --shell bash)"
+fi
 
 # terragrunt
 append_path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"
