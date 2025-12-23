@@ -259,6 +259,8 @@ if (-not $patternExists) {
 
 # We restart the entire system instead of restarting explorer, since doing that results in the start
 # menu showing an error about indexing being disabled.
+$date = Get-Date
+Write-Output "Restarting at: $date"
 shutdown /r /t 0
 
 # Steps that are not covered in this script:
