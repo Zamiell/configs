@@ -692,6 +692,9 @@ azdo-history() (
   o "https://azuredevops.logixhealth.com/$organization/$project/_git/$repository?path=/$relative_path&_a=history"
 )
 
+# "bwl" is short for "bw login --apikey". (This is the BitWarden CLI.)
+alias bwl="bw login --apikey"
+
 # Only create this alias if the shell is interactive.
 if [[ $- == *i* ]]; then
   # We have to use braces instead of parenthesis here.
@@ -758,6 +761,10 @@ alias full-path="readlink -f"
 # Get our ".env" file from BitWarden. (We must sync first because the BitWarden CLI uses a local
 # copy of the vault.)
 alias get-env='bw sync && bw get notes .env > $HOME/.env'
+
+# The secret is "id_ed25519.key" instead of "id_ed25519" because otherwise, BitWarden will complain
+# that "More than one result was found".
+alias get-ssh-keys='bw sync && bw get notes id_ed25519.key > $HOME/.ssh/id_ed25519 && bw get notes id_ed25519.pub > $HOME/.ssh/id_ed25519.pub'
 
 # A better "ll" alias that shows human-readable file sizes.
 # (macOS does not support any of the long-form flags, so we use the short ones instead.)

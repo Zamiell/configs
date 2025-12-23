@@ -131,6 +131,9 @@ Install-WingetProgram "Schniz.fnm"
 # cspell:disable-next-line
 & "$HOME\AppData\Local\Microsoft\WinGet\Packages\Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe\fnm.exe" install --lts
 
+# Bitwarden CLI
+npm install -g @bitwarden/cli
+
 # Bun
 # https://bun.com/
 if (-not (Test-Path "$HOME\.bun")) {
@@ -141,6 +144,8 @@ if (-not (Test-Path "$HOME\.bun")) {
 Install-WingetProgram "Discord.Discord"
 # Stop Discord from starting on boot.
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v Discord /f
+# It is not possible to customize Discord's settings from the command line because they are stored
+# in binary format.
 Install-WingetProgram "Valve.Steam"
 # Stop Steam from starting on boot.
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v Steam /f
