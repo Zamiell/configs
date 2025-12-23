@@ -3,7 +3,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 Set-PSDebug -Trace 1
-$scriptsPath = "C:\Windows\Setup\scripts\"
+$scriptsPath = "C:\Windows\Setup\scripts"
 if (-not (Test-Path $scriptsPath)) {
     New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
 }
