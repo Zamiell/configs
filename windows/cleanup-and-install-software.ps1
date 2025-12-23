@@ -138,6 +138,9 @@ if (Test-Path "$HOME\Desktop\Discord.lnk") {
 if (Test-Path "C:\Users\Public\Desktop\Steam.lnk") {
   Remove-Item "C:\Users\Public\Desktop\Steam.lnk"
 }
+if (Test-Path "C:\Users\Public\Desktop\Windhawk.lnk") {
+  Remove-Item "C:\Users\Public\Desktop\Windhawk.lnk"
+}
 if (Test-Path "C:\Users\Public\Desktop\VLC media player.lnk") {
   Remove-Item "C:\Users\Public\Desktop\VLC media player.lnk"
 }
