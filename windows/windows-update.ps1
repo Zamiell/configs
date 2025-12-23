@@ -2,7 +2,6 @@
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
-Set-PSDebug -Trace 1
 $scriptsPath = "C:\Windows\Setup\scripts"
 # The transcript has already started from the previous process.
 
