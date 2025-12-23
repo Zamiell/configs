@@ -264,6 +264,7 @@ Write-Output "Restarting at: $date"
 shutdown /r /t 0
 
 # Steps that are not covered in this script:
+# - Running "post-raid-array.ps1".
 # - Settings --> Display --> Advanced display settings --> Display 1: VG248 -->
 #   Refresh rate: 164.917 Hz (the highest value)
 # - Settings --> Display --> Advanced display settings --> Display 2: VG248 -->
