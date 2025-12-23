@@ -13,4 +13,6 @@ $scriptPath = "$scriptsPath\$scriptName"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/$scriptName" -OutFile $scriptPath
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce" -Name "$scriptName" -Value "powershell.exe -ExecutionPolicy Bypass -File $scriptPath"
 
-# shutdown /r /t 0
+# We do not need to restart the computer at this point because this script is executed by the
+# installer after the "specialize" configuration pass finishes, but before the "oobeSystem" pass
+# (and the Windows welcome screen) begins.
