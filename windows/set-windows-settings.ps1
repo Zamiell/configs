@@ -1,11 +1,13 @@
 #Requires -RunAsAdministrator
 
-# This script sets up a new Windows system with my personal settings.
-
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 Set-PSDebug -Trace 1
-Start-Transcript -Path "C:\Windows\Setup\scripts\install.log" -Append
+$scriptsPath = "C:\Windows\Setup\scripts\"
+if (-not (Test-Path $scriptsPath)) {
+    New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
+}
+Start-Transcript -Path "$scriptsPath\install.log" -Append
 
 # -------------------
 # Settings --> System
@@ -212,10 +214,10 @@ reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\Inpr
 # - After setting this, the default app for the file type must be manually selected in the "Open
 #   with..." menu. Doing this automatically is complicated, so we do not bother:
 #   https://superuser.com/questions/1748620/on-windows-10-is-there-a-file-i-can-modify-to-configure-the-default-apps
-$registryPath = "C:\enable-windows-photo-viewer.reg"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/registry/enable-windows-photo-viewer.reg" -OutFile $registryPath
-regedit /s $registryPath
-Remove-Item $registryPath
+$scriptName = "enable-windows-photo-viewer.reg"
+$scriptPath = "$scriptsPath\$scriptName"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/registry/$scriptName" -OutFile $scriptPath
+regedit /s $scriptPath
 
 # --------------------
 # Application Settings

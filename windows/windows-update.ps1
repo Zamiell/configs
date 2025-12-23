@@ -3,11 +3,18 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 Set-PSDebug -Trace 1
-Start-Transcript -Path "C:\Windows\Setup\scripts\install.log" -Append
+$scriptsPath = "C:\Windows\Setup\scripts\"
+if (-not (Test-Path $scriptsPath)) {
+    New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
+}
+Start-Transcript -Path "$scriptsPath\install.log" -Append
 
 # Before invoking Windows Update and automatically restarting the system, set the next installation
 # script to run on the next boot.
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce" -Name "InstallWinget" -Value "powershell.exe -ExecutionPolicy Bypass -File `"C:\Windows\Setup\scripts\cleanup-and-install-software.ps1`""
+$scriptName = "cleanup-and-install-software.ps1"
+$scriptPath = "$scriptsPath\$scriptName"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/$scriptName" -OutFile $scriptPath
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce" -Name "InstallWinget" -Value "powershell.exe -ExecutionPolicy Bypass -File $scriptPath"
 
 # Use the "PSWindowsUpdate" module to install Windows updates.
 # https://www.powershellgallery.com/packages/PSWindowsUpdate/2.2.1.5

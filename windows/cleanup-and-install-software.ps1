@@ -3,7 +3,11 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 Set-PSDebug -Trace 1
-Start-Transcript -Path "C:\Windows\Setup\scripts\install.log" -Append
+$scriptsPath = "C:\Windows\Setup\scripts\"
+if (-not (Test-Path $scriptsPath)) {
+    New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
+}
+Start-Transcript -Path "$scriptsPath\install.log" -Append
 
 # -------
 # Cleanup
@@ -78,7 +82,10 @@ Install-WingetProgram "Google.Chrome.EXE"
 # In order to do this, we must edit the file:
 # C:\Users\james\AppData\Local\Google\Chrome\User Data\Default\Preferences
 # However, it will not exist until Chrome is started for the first time.
-Start-Process "C:\Windows\Setup\scripts\open-and-close-chrome.ahk" -Wait
+$scriptName = "open-and-close-chrome.ahk"
+$scriptPath = "$scriptsPath\$scriptName"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/$scriptName" -OutFile $scriptPath
+Start-Process "$scriptPath" -Wait
 $preferencesPath = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Preferences"
 $preferences = Get-Content $preferencesPath -Raw
 $preferences -replace ',"extensions":',',"download":{"directory_upgrade":true,"default_directory":"C:\\Users\\james\\Desktop"},"extensions":' | Set-Content -Path $preferencesPath
@@ -94,7 +101,10 @@ Install-WingetProgram "Microsoft.VisualStudioCode"
 # VSCode does not install to the right-click context menu by default, so we manually modify the
 # registry. (This is cleaner than invoking winget with custom arguments.)
 # https://github.com/microsoft/winget-cli/discussions/1798
-reg import "C:\Windows\Setup\scripts\vscode-context-menu.reg"
+$scriptName = "vscode-context-menu.reg"
+$scriptPath = "$scriptsPath\$scriptName"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/registry/$scriptName" -OutFile $scriptPath
+reg import $scriptPath
 Install-WingetProgram "Notepad++.Notepad++"
 Install-WingetProgram "GitHub.cli"
 Install-WingetProgram "Schniz.fnm"
@@ -135,6 +145,8 @@ if (Test-Path "C:\Users\Public\Desktop\VLC media player.lnk") {
 
 Write-Output "Successfully cleaned and installed software."
 
-# Configure Windows settings using the "setup.ps1" file from the "configs" repository.
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/set-windows-settings.ps1" -OutFile "C:\Windows\Setup\scripts\windows\set-windows-settings.ps1"
-"C:\Windows\Setup\scripts\windows\set-windows-settings.ps1"
+# Invoke the next script.
+$scriptName = "set-windows-settings.ps1"
+$scriptPath = "$scriptsPath\$scriptName"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/$scriptName" -OutFile $scriptPath
+& $scriptPath

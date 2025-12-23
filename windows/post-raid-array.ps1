@@ -1,7 +1,13 @@
+#Requires -RunAsAdministrator
+
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 Set-PSDebug -Trace 1
-Start-Transcript -Path "C:\Windows\Setup\scripts\install.log" -Append
+$scriptsPath = "C:\Windows\Setup\scripts\"
+if (-not (Test-Path $scriptsPath)) {
+    New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
+}
+Start-Transcript -Path "$scriptsPath\install.log" -Append
 
 # Copy over start menu shortcuts.
 Copy-Item "D:\Backup\Start Menu\Shortcuts\*" "$HOME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\"
@@ -20,4 +26,4 @@ D:\Apps\Misc\syspin.exe "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
 D:\Apps\Misc\SetDefaultBrowser\SetDefaultBrowser.exe chrome
 
 # Copy SSH keys.
-Copy-Item "D:\Backup\App Settings\.ssh\*" "~\.ssh\"
+Copy-Item "D:\Backup\App Settings\.ssh\*" "$HOME\.ssh\"
