@@ -174,5 +174,4 @@ $scriptPath = "$scriptsPath\$scriptName"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/$scriptName" -OutFile $scriptPath
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce" -Name "$scriptName" -Value "powershell.exe -ExecutionPolicy Bypass -File $scriptPath"
 
-# Uncomment the below once this script is successful for the first time.
-# shutdown /r /t 0
+shutdown /r /t 0
