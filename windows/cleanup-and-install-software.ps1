@@ -124,8 +124,9 @@ Install-WingetProgram "Schniz.fnm"
 & "$HOME\AppData\Local\Microsoft\WinGet\Packages\Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe\fnm.exe" install --lts
 
 # Bun
+# https://bun.com/
 if (-not (Test-Path "$HOME\.bun")) {
-  powershell -c "irm bun.sh/install.ps1|iex"
+  Invoke-RestMethod bun.sh/install.ps1 | Invoke-Expression
 }
 
 # Games
