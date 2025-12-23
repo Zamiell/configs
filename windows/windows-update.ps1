@@ -17,5 +17,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
 # https://www.powershellgallery.com/packages/PSWindowsUpdate/2.2.1.5
 Install-PackageProvider -Name NuGet -Force # "-Force" is required to avoid the prompt.
 Install-Module PSWindowsUpdate -Force # "-Force" is required to avoid the prompt.
-Get-WindowsUpdate
+# We exclude drivers to work around an error that happens on the first boot:
+# Value does not fall within the expected range.
+Get-WindowsUpdate -NotCategory "Drivers"
 Install-WindowsUpdate -MicrosoftUpdate -AcceptAll -AutoReboot
