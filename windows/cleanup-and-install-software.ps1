@@ -124,7 +124,9 @@ Install-WingetProgram "Schniz.fnm"
 & "$HOME\AppData\Local\Microsoft\WinGet\Packages\Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe\fnm.exe" install --lts
 
 # Bun
-powershell -c "irm bun.sh/install.ps1|iex"
+if (-not (Test-Path "$HOME\.bun")) {
+  powershell -c "irm bun.sh/install.ps1|iex"
+}
 
 # Games
 Install-WingetProgram "Discord.Discord"
