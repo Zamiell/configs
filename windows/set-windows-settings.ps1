@@ -190,7 +190,7 @@ reg add "HKCU\Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}" /v 
 # - Explorer will rewrite the setting when it exits, so we first have to close explorer.
 taskkill /f /im explorer.exe
 reg add "HKCU\Software\Microsoft\Windows\Shell\Bags\1\Desktop" /v FFlags /t REG_DWORD /d 1075839525 /f
-start explorer.exe
+Start-Process explorer.exe
 
 # Right click "Recycle Bin" --> Properties --> Don't move files to the Recycle Bin. Remove files
 # immediately when deleted.
