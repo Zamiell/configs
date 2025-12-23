@@ -13,7 +13,7 @@ Start-Transcript -Path "$scriptsPath\install.log" -Append
 $scriptName = "cleanup-and-install-software.ps1"
 $scriptPath = "$scriptsPath\$scriptName"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/$scriptName" -OutFile $scriptPath
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce" -Name "InstallWinget" -Value "powershell.exe -ExecutionPolicy Bypass -File $scriptPath"
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce" -Name "$scriptName" -Value "powershell.exe -ExecutionPolicy Bypass -File $scriptPath"
 
 # The "wuauserv" service needs to be running for the below commands to work properly.
 Start-Service -Name wuauserv
