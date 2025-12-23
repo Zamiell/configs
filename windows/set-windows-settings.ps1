@@ -12,6 +12,16 @@ Start-Transcript -Path "$scriptsPath\install.log" -Append
 # Settings --> System
 # -------------------
 
+# Settings --> System --> Power --> Power Mode --> Best Performance
+# https://www.tenforums.com/performance-maintenance/186847-how-do-i-set-high-performance-power-options-default.html
+# - This grays out the setting in the normal GUI, but it can be seen with:
+#   Start --> Run --> control powercfg.cpl
+powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+# Set "Turn off display" to Never when Plugged In
+powercfg /change monitor-timeout-ac 0
+# Set "Turn off display" to Never when on Battery
+powercfg /change monitor-timeout-dc 0
+
 # Settings --> System --> Multitasking --> Snap windows --> Uncheck "When I snap a window, suggest what I can snap next to it"
 # https://www.tenforums.com/tutorials/4343-turn-off-aero-snap-windows-10-a.html
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v SnapAssist /t REG_DWORD /d 0 /f
@@ -243,9 +253,11 @@ if (-not (Test-Path $notepadConfigPath)) {
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/notepad%2B%2B/config-vanilla.xml" -OutFile $notepadConfigPath
 }
 # View --> Show Symbol --> Show Space and Tab
-(Get-Content $notepadConfigPath) -replace 'whiteSpaceShow="hide"', 'whiteSpaceShow="show"' | Set-Content $notepadConfigPath
+(Get-Content $notepadConfigPath) -creplace 'whiteSpaceShow="hide"', 'whiteSpaceShow="show"' | Set-Content $notepadConfigPath
+# View --> Word Wrap
+(Get-Content $notepadConfigPath) -creplace ' Wrap="no"', ' Wrap="yes"' | Set-Content $notepadConfigPath
 # Settings --> Preferences --> Margins/Border/Edge --> Uncheck "Display Change History"
-(Get-Content $notepadConfigPath) -replace 'isChangeHistoryEnabled="1"', 'isChangeHistoryEnabled="0"' | Set-Content $notepadConfigPath
+(Get-Content $notepadConfigPath) -creplace 'isChangeHistoryEnabled="1"', 'isChangeHistoryEnabled="0"' | Set-Content $notepadConfigPath
 
 # Windows Terminal
 $terminalAppDataPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"

@@ -101,7 +101,7 @@ while (-not (Test-Path $preferencesPath)) {
 Start-Sleep -Seconds 1
 Stop-Process -Id $chromeProcess.Id -Force -ErrorAction SilentlyContinue
 $preferences = Get-Content $preferencesPath -Raw
-$preferences -replace ',"extensions":',',"download":{"directory_upgrade":true,"default_directory":"C:\\Users\\james\\Desktop"},"extensions":' | Set-Content -Path $preferencesPath
+$preferences -creplace ',"extensions":',',"download":{"directory_upgrade":true,"default_directory":"C:\\Users\\james\\Desktop"},"extensions":' | Set-Content -Path $preferencesPath
 # Pin it to the taskbar.
 & $pttbPath "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
 
