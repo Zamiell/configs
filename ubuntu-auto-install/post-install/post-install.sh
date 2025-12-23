@@ -510,26 +510,14 @@ if ! command -v code &> /dev/null; then
   sudo snap install --classic code
 fi
 
-# Install nvm.
-# TODO: Replace this with fnm.
-if ! command -v nvm &> /dev/null; then
-  curl --silent --fail --show-error --location https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-
-  # Add it to path.
-  # https://github.com/nvm-sh/nvm?tab=readme-ov-file#manual-install
-  export NVM_DIR="$HOME/.nvm"
-  # We temporarily disable command echoing since the nvm script is noisy.
-  set +x
-  # shellcheck source=/dev/null
-  [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-  # shellcheck source=/dev/null
-  [[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
-  set -e
+# Install fnm.
+if ! command -v fnm &> /dev/null; then
+  curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash
 fi
 
 # Install Node.js
 if ! command -v node &> /dev/null; then
-  nvm install --lts
+  fnm install --lts
 fi
 
 # Install Bun.
