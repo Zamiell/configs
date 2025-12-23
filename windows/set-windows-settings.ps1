@@ -21,6 +21,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Sn
 # - This requires a restart of explorer to take effect.
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v EnableSnapAssistFlyout /t REG_DWORD /d 0 /f
 
+# Settings --> System --> Multitasking --> Snap windows --> Uncheck "Show snap layouts when I drag a window to the top of the screen"
+# https://www.elevenforum.com/t/enable-or-disable-snap-layouts-on-top-of-screen-in-windows-11.6142/
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v EnableSnapBar /t REG_DWORD /d 0 /f
+
 # --------------------------------
 # Settings --> Bluetooth & devices
 # --------------------------------
