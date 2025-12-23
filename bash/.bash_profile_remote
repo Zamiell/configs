@@ -640,6 +640,12 @@ fi
 # Application Settings
 # --------------------
 
+# ssh
+if ! ssh-keygen -F github.com &> /dev/null; then
+  # Install the public key for "github.com".
+  ssh-keyscan github.com >> "$HOME/.ssh/known_hosts"
+fi
+
 # npm
 if command -v npm &> /dev/null; then
   NPM_CONFIG_PATH="$HOME/.npmrc"
