@@ -1029,6 +1029,17 @@ alias t="run_package_script test"
 alias tpr="run_package_script test-pr"
 alias u="run_package_script update || exec_package complete-cli@latest update"
 
+set-npm-token() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "$NODE_AUTH_TOKEN" ]]; then
+    echo "Error: The \"NODE_AUTH_TOKEN\" environment variable must be set to use this command." >&2
+    return 1
+  fi
+
+  echo "//registry.npmjs.org/:_authToken=\${NODE_AUTH_TOKEN}" >> .npmrc
+)
+
 # ----------
 # Git Config
 # ----------
