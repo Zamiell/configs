@@ -656,8 +656,14 @@ if command -v npm &> /dev/null; then
   if [[ ! -s "$NPM_CONFIG_PATH" ]]; then
     touch "$NPM_CONFIG_PATH"
   fi
+
   if ! grep --quiet "save-exact=true" "$NPM_CONFIG_PATH"; then
     npm config set save-exact=true
+  fi
+
+  if [[ -n "$NODE_AUTH_TOKEN" ]]; then
+    sed --in-place "/registry.npmjs.org/d" "$HOME/.npmrc"
+    echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> "$HOME/.npmrc"
   fi
 fi
 
@@ -1028,17 +1034,6 @@ alias s="run_package_script start"
 alias t="run_package_script test"
 alias tpr="run_package_script test-pr"
 alias u="run_package_script update || exec_package complete-cli@latest update"
-
-set-npm-token() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ -z "$NODE_AUTH_TOKEN" ]]; then
-    echo "Error: The \"NODE_AUTH_TOKEN\" environment variable must be set to use this command." >&2
-    return 1
-  fi
-
-  echo "//registry.npmjs.org/:_authToken=\${NODE_AUTH_TOKEN}" >> .npmrc
-)
 
 # ----------
 # Git Config
