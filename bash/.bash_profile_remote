@@ -644,7 +644,7 @@ fi
 # --------------------
 
 # ssh
-mkdir --parents "$HOME/.ssh" # The directory has to exist for the "ssh-keygen" command to work.
+mkdir -p "$HOME/.ssh" # The directory has to exist for the "ssh-keygen" command to work.
 if ! ssh-keygen -F github.com &> /dev/null; then
   # Install the public key for "github.com".
   ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
@@ -775,7 +775,7 @@ alias get-env='bw sync && bw get notes .env > $HOME/.env'
 get-ssh-keys() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  mkdir --parents "$HOME/.ssh"
+  mkdir -p "$HOME/.ssh"
   bw sync
   # The secret is "id_ed25519.key" instead of "id_ed25519" because otherwise, BitWarden will
   # complain that "More than one result was found".
