@@ -23,3 +23,6 @@ Get-ChildItem "D:\Backup\Start Menu\Startup Shortcuts\*" | ForEach-Object { Star
 
 # Copy SSH keys.
 Copy-Item "D:\Backup\App Settings\.ssh\*" "$HOME\.ssh\"
+
+# Set background.
+& "D:\Repositories\bing-wallpaper-manual\scripts\install-scheduled-task.ps1"

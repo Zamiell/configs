@@ -618,6 +618,9 @@ if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
   eval "$(fnm env --shell bash)"
 fi
 
+# PostgreSQL
+append_path "/c/Program Files/PostgreSQL/18/bin"
+
 # terragrunt
 append_path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"
 
