@@ -1,6 +1,7 @@
 # Compatibility notes:
 # - `mkdir` does not support `--parents` on macOS, so we use "-p" instead.
 # - `sed` does not support `--expression` on macOS, so we use "-e" instead.
+# - `sed` does not support `--in-place` on macOS, so we use "-i" instead.`
 # - `sed` does not support `--quiet` on macOS, so we use "-n" instead.
 # - `sed` does not support `--regexp-extended` on macOS, so we use "-E" instead.
 
@@ -665,7 +666,7 @@ if command -v npm &> /dev/null; then
   fi
 
   if [[ -n "$NODE_AUTH_TOKEN" ]]; then
-    sed --in-place "/registry.npmjs.org/d" "$HOME/.npmrc"
+    sed -i "/registry.npmjs.org/d" "$HOME/.npmrc"
     echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> "$HOME/.npmrc"
   fi
 fi
