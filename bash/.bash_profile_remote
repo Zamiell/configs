@@ -524,6 +524,9 @@ if [[ -s "/opt/homebrew/bin/brew" ]]; then
   fi
 
   alias sed="gsed"
+elif [[ "$(uname)" == "Darwin" ]]; then
+  echo "Error: On macOS, these Bash configs require that you have Homebrew package manager installed. Run: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"" >&2
+  return 1
 fi
 
 # Add browsers to the path, which is necessary for the GitHub CLI.
