@@ -515,7 +515,12 @@ to_lowercase() (
 # Homebrew
 # https://brew.sh/
 # (Homebrew must come first so that other programs can enter the PATH.)
-if [[ -s "/opt/homebrew/bin/brew" ]]; then
+if [[ "$(uname)" == "Darwin" ]]; then
+  if [[ ! -s "/opt/homebrew/bin/brew" ]]; then
+    echo "Error: On macOS, these Bash configs require that you have Homebrew package manager installed. Run: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"" >&2
+    return 1
+  fi
+
   eval "$(/opt/homebrew/bin/brew shellenv)"
 
   if ! command -v gsed &> /dev/null; then
@@ -524,9 +529,6 @@ if [[ -s "/opt/homebrew/bin/brew" ]]; then
   fi
 
   alias sed="gsed"
-elif [[ "$(uname)" == "Darwin" ]]; then
-  echo "Error: On macOS, these Bash configs require that you have Homebrew package manager installed. Run: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"" >&2
-  return 1
 fi
 
 # Add browsers to the path, which is necessary for the GitHub CLI.
