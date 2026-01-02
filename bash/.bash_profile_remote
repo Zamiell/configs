@@ -1815,26 +1815,50 @@ gpr() (
     return
   fi
 
-  if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN:-}" ]]; then
-    echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN\" environment variable is not set. (This is required to automatically open pull requests to Azure DevOps.)" >&2
-    return 1
-  fi
-
   assert_jq_installed
 
-  local domain="azuredevops.logixhealth.com"
-  local api_version="7.0"
-
   read -r host organization project repository <<< "$(get_git_remote_details)"
-  if [[ "$host" != "azure-devops-server" ]]; then
+  if [[ "$host" != "azure-devops-server" ]] && [[ "$host" != "azure-devops-services" ]]; then
     echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
     return 1
   fi
 
   # First, check for an existing pull request.
+  local domain
+  if [[ "$host" == "azure-devops-server" ]]; then
+    domain="azuredevops.logixhealth.com"
+  elif [[ "$host" == "azure-devops-services" ]]; then
+    domain="dev.azure.com"
+  fi
+  local api_version="7.0"
   local azdo_project_url="https://$domain/$organization/$project"
   local azdo_api_url="$azdo_project_url/_apis/git/repositories/$repository/pullrequests?api-version=$api_version"
   local azdo_api_url_check="$azdo_api_url&searchCriteria.sourceRefName=refs/heads/$branch_name&searchCriteria.status=active"
+
+  local personal_access_token
+  if [[ "$host" == "azure-devops-server" ]]; then
+    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVER:-}" ]] && [[ -n "${AZDO_PERSONAL_ACCESS_TOKEN:-}" ]]; then
+      AZDO_PERSONAL_ACCESS_TOKEN_SERVER="$AZDO_PERSONAL_ACCESS_TOKEN"
+    fi
+
+    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVER:-}" ]]; then
+      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVER\" environment variable is not set. (This is required to automatically open pull requests to Azure DevOps Server.)" >&2
+      return 1
+    fi
+
+    personal_access_token="$AZDO_PERSONAL_ACCESS_TOKEN_SERVER"
+  elif [[ "$host" == "azure-devops-services" ]]; then
+    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVICES:-}" ]] && [[ -n "${AZDO_PERSONAL_ACCESS_TOKEN:-}" ]]; then
+      AZDO_PERSONAL_ACCESS_TOKEN_SERVICES="$AZDO_PERSONAL_ACCESS_TOKEN"
+    fi
+
+    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVICES:-}" ]]; then
+      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVICES\" environment variable is not set. (This is required to automatically open pull requests to Azure DevOps Services.)" >&2
+      return 1
+    fi
+
+    personal_access_token="$AZDO_PERSONAL_ACCESS_TOKEN_SERVICES"
+  fi
 
   local api_response_check
   api_response_check=$(
@@ -1843,7 +1867,7 @@ gpr() (
       --fail \
       --show-error \
       --location \
-      --user ":$AZDO_PERSONAL_ACCESS_TOKEN" \
+      --user ":$personal_access_token" \
       "$azdo_api_url_check" || {
       local err="$?"
       echo "curl failed on URL: $azdo_api_url_check" >&2
@@ -1924,7 +1948,7 @@ gpr() (
     --show-error \
     --location \
     --output "$response_body" \
-    --user ":$AZDO_PERSONAL_ACCESS_TOKEN" \
+    --user ":$personal_access_token" \
     --header "Content-Type: application/json" \
     --data "$json_payload" \
     "$azdo_api_url" || {
