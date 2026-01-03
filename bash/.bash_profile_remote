@@ -753,8 +753,8 @@ cdg() {
   cd "$repo_root"
 }
 
-# It is annoying that Claude Code requires permission to edit files on every invocation.
-alias claude="claude --permission-mode acceptEdits"
+# Turn off Claude Code permissions.
+alias claude="claude --dangerously-skip-permissions"
 
 # "csf" is short for "CSpell fix", which will invoke "cspell-check-unused-words --fix".
 csf() (
