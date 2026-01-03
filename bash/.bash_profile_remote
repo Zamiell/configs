@@ -1624,6 +1624,18 @@ gc() (
           # it.
           git remote add "$github_username" "$remote_config"
         fi
+
+        git fetch "$github_username"
+        local merge_ref
+        # This will be something like: refs/heads/main
+        merge_ref=$(git config branch."$branch_name".merge)
+        local branch_short_name
+        # This will be something like: main
+        branch_short_name=${merge_ref#refs/heads/}
+        local target_ref
+        # This will be something like: refs/remotes/alice/main
+        target_ref="refs/remotes/$github_username/$branch_short_name"
+        git branch --set-upstream-to="$target_ref"
       fi
 
       git pull --rebase
