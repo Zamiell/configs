@@ -127,7 +127,7 @@ get_branch_name_from_number() (
     local branch_number="$branch_name_or_number"
 
     local local_branches
-    local_branches=$(git branch --format="%(refname:short)" | sort)
+    local_branches=$(git branch --format="%(refname:lstrip=2)" | sort)
 
     branch_name=$(echo "$local_branches" | sed --quiet "${branch_number}p")
     if [[ -z "$branch_name" ]]; then
@@ -1316,7 +1316,9 @@ gbl() (
   assert_in_git_repository
 
   local local_branches
-  local_branches=$(git branch --format="%(refname:short)" | sort)
+  # We need to use "lstrip" instead of "short" since the latter does not work properly with branches
+  # from "gh pr checkout".
+  local_branches=$(git branch --format="%(refname:lstrip=2)" | sort)
   local current_branch
   current_branch=$(git branch --show-current)
 
@@ -1350,7 +1352,7 @@ gblr() (
   git fetch --prune --quiet
 
   local remote_branches
-  remote_branches=$(git branch --format="%(refname:short)" --remotes | grep --invert-match --line-regexp "origin" | grep --invert-match "^origin/" | sort)
+  remote_branches=$(git branch --format="%(refname:lstrip=2)" --remotes | grep --invert-match --line-regexp "origin" | grep --invert-match "^origin/" | sort)
 
   echo "Remote git branches:"
 
@@ -1528,7 +1530,7 @@ gc() (
   # Only check for the remote branch existing if:
   # 1) There are one or more commits. (For brand-new repositories, the remote branch will not yet
   #    exist.)
-  # 2) This is not a repository from: `gh pr checkout 123`
+  # 2) This is not a repository from: `gh pr checkout`
   if [[ "$repository_has_commits" == "true" ]] && [[ "$has_upstream_config" == "false" ]]; then
     local remote_branch_info
     remote_branch_info=$(git ls-remote --heads origin "$branch_name")
@@ -1599,6 +1601,31 @@ gc() (
     git commit --message "$commit_message"
 
     if [[ "$repository_has_commits" == "true" ]]; then
+      # "git pull" will fail if we are on a branch that was created from "gh pr checkout". Thus,
+      # we must first set up the remote properly.
+      local remote_config
+      # This will be "origin" on normal branches and e.g. "https://github.com/alice/foo" on branches
+      # from "gh pr checkout".
+      remote_config=$(git config branch."$branch_name".remote)
+      if [[ "$remote_config" =~ github\.com[:/]([^/]+)/ ]]; then
+        local github_username
+        github_username="${BASH_REMATCH[1]}"
+        local existing_url
+        existing_url=$(git remote get-url "$github_username" 2> /dev/null)
+
+        if [[ -n "$existing_url" ]]; then
+          # The remote has already been set up on this branch. Verify that it matches.
+          if [[ "$existing_url" != "$remote_config" ]]; then
+            echo "Error: The remote \"$github_username\" already exists, but it points to \"$existing_url\" instead of \"$remote_config\"." >&2
+            return 1
+          fi
+        else
+          # This is a freshly created branch from "gh pr checkout" that does not have a remote. Add
+          # it.
+          git remote add "$github_username" "$remote_config"
+        fi
+      fi
+
       git pull --rebase
     fi
 
@@ -1738,7 +1765,7 @@ gh-clean() (
   fi
 
   local local_branches
-  local_branches=$(git branch --format="%(refname:short)" | sort)
+  local_branches=$(git branch --format="%(refname:lstrip=2)" | sort)
 
   while IFS= read -r branch; do
     if [[ "$branch" == "$main_branch_name" ]]; then
@@ -1791,7 +1818,7 @@ gpm() (
 
   # We use "--list" to filter the branches directly via Git.
   local remote_branches
-  remote_branches=$(git branch --remotes --format="%(refname:short)" --list "origin/$prefix*")
+  remote_branches=$(git branch --remotes --format="%(refname:lstrip=2)" --list "origin/$prefix*")
 
   if [[ -z "$remote_branches" ]]; then
     return
