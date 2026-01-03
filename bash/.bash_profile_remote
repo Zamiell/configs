@@ -596,9 +596,14 @@ fi
 
 # Python
 # e.g. $HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts
-PYTHON_PATH=$(find "$HOME/AppData/Local/Python" -maxdepth 2 -type d -path "*/pythoncore-*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
-if [[ -n "$PYTHON_PATH" ]]; then
-  append_path "$PYTHON_PATH"
+PYTHON_PATH_WINDOWS=$(find "$HOME/AppData/Local/Python" -maxdepth 2 -type d -path "*/pythoncore-*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
+if [[ -n "$PYTHON_PATH_WINDOWS" ]]; then
+  append_path "$PYTHON_PATH_WINDOWS"
+fi
+# e.g. $HOME/Library/Python/3.9/bin
+PYTHON_PATH_MACOS=$(find "$HOME/Library/Python" -maxdepth 2 -type d -path "*/bin" 2> /dev/null | sort --version-sort | tail -n 1)
+if [[ -n "$PYTHON_PATH_MACOS" ]]; then
+  append_path "$PYTHON_PATH_MACOS"
 fi
 
 # terragrunt
