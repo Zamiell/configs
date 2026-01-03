@@ -877,6 +877,12 @@ o() (
   echo "$url"
 )
 
+# No global pip command is included on Windows:
+# https://peps.python.org/pep-0773/#global-pip-command
+if command -v python &> /dev/null && ! command -v pip &> /dev/null; then
+  alias pip="python -m pip"
+fi
+
 put-env() (
   set -euo pipefail # Exit on errors and undefined variables.
 
