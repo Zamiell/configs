@@ -588,7 +588,18 @@ if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
 fi
 
 # PostgreSQL
-append_path "/c/Program Files/PostgreSQL/18/bin"
+# e.g. /c/Program Files/PostgreSQL/18/bin
+PG_PATH=$(find "/c/Program Files/PostgreSQL" -maxdepth 2 -type d -path "*/[0-9]*/bin" 2> /dev/null | sort --version-sort | tail -n 1)
+if [[ -n "$PG_PATH" ]]; then
+  append_path "$PG_PATH"
+fi
+
+# Python
+# e.g. $HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts
+PYTHON_PATH=$(find "$HOME/AppData/Local/Python" -maxdepth 2 -type d -path "*/pythoncore-*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
+if [[ -n "$PYTHON_PATH" ]]; then
+  append_path "$PYTHON_PATH"
+fi
 
 # terragrunt
 append_path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"

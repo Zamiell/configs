@@ -146,6 +146,7 @@
     "pullrequests",
     "pulumi",
     "pyproject",
+    "pythoncore",
     "qdbus",
     "readlink",
     "realpath",
