@@ -814,7 +814,7 @@ if [[ $- == *i* ]]; then
 
   # bun auto-complete for e.g. "bun run"
   if command -v bun &> /dev/null; then
-    BUN_COMPLETIONS_PATH="$HOME/.bun/bun.completion.sh"
+    BUN_COMPLETIONS_PATH="$HOME/.bun/_bun"
     bun completions > "$BUN_COMPLETIONS_PATH"
     if [[ "$(uname)" == "Darwin" ]]; then
       # We modify the output from "bun completions" to work around this bug:
