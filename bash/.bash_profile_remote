@@ -1,23 +1,17 @@
 # Compatibility notes:
+# - `ls` does not support long flags on macOS.
 # - `mkdir` does not support `--parents` on macOS, so we use "-p" instead.
 
+# region: Constants
 # ---------
 # Constants
 # ---------
 
 CSPELL_IGNORED_WORDS="knip,mypy,pyproject,pyright,shellcheck,sqlfluff,yamlfix"
 
-# --------
-# Builtins
-# --------
+# endregion
 
-# Make writing to Bash command history immediate:
-# https://askubuntu.com/questions/67283/is-it-possible-to-make-writing-to-bash-history-immediate
-# This fixes the bug where closing one terminal window will remove the command history that was
-# written by other terminal windows.
-shopt -s histappend # This is "off" by default.
-PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
-
+# region: Helper functions
 # ----------------
 # Helper functions
 # ----------------
@@ -493,8 +487,7 @@ print-files-and-branches() (
   # On Git Gash, the "git rev-parse" command will show a directory in the format of:
   # D:/Repositories/configs
   # Thus, we have to made some modifications
-  local current_dir
-  current_dir=$(pwd)
+  local current_dir="$PWD"
   local repo_root
   repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
 
@@ -606,6 +599,9 @@ to-lowercase() (
   echo "${@,,}"
 )
 
+# endregion
+
+# region: Path
 # ----
 # Path
 # ----
@@ -725,9 +721,12 @@ if [[ $- == *i* ]] && command -v fzf &> /dev/null && command -v zoxide &> /dev/n
   bind '"\ec": "zi\n"'
 fi
 
-# ---------------------
-# Environment Variables
-# ---------------------
+# endregion
+
+# region: Other Environment Variables
+# ---------------------------
+# Other Environment Variables
+# ---------------------------
 
 # Load secret environment variables that cannot be committed to Git.
 if [[ -s "$HOME/.env" ]]; then
@@ -765,16 +764,123 @@ else
   echo "Failed to derive the operating system username." >&2
 fi
 
-# -------------------------
-# Operating System Settings
-# -------------------------
+# endregion
+
+# region: Terminal Settings
+# --------
+# Terminal Settings
+# --------
+
+# Make writing to Bash command history immediate:
+# https://askubuntu.com/questions/67283/is-it-possible-to-make-writing-to-bash-history-immediate
+# This fixes the bug where closing one terminal window will remove the command history that was
+# written by other terminal windows.
+shopt -s histappend # This is "off" by default.
+PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 
 # Prevent "Last login: Mon Jan  1 12:00:00 on ttys000" from appearing on macOS.
 touch "$HOME/.hushlogin"
 
-# --------------------
-# Application Settings
-# --------------------
+# Only change the prompt if the shell is interactive.
+if [[ $- == *i* ]]; then
+  if ! command -v __git_ps1 &> /dev/null; then
+    if [[ -s "/usr/lib/git-core/git-sh-prompt" ]]; then
+      # This is the standard location on Ubuntu.
+      # shellcheck source=/dev/null
+      source "/usr/lib/git-core/git-sh-prompt"
+    elif [[ -s "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh" ]]; then
+      # This is the standard location on macOS.
+      # shellcheck source=/dev/null
+      source "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh"
+    else
+      echo "Error: Cannot find the \"__git_ps1\" function declared." >&2
+      return 1
+    fi
+  fi
+
+  if [[ -s "/etc/os-release" ]]; then
+    # shellcheck source=/dev/null
+    source /etc/os-release
+  fi
+
+  if [[ "$ID" == "ubuntu" ]] || [[ "$(uname)" == "Darwin" ]]; then
+    # We copy the prompt from Git Bash for Windows:
+    # https://github.com/git-for-windows/build-extra/blob/main/git-extra/git-prompt.sh
+    PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]' # set window title
+    PS1="$PS1"'\n'                         # new line
+    PS1="$PS1"'\[\033[32m\]'               # change to green
+    PS1="$PS1"'\u@\h '                     # user@host<space>
+    PS1="$PS1"'\[\033[35m\]'               # change to purple
+    PS1="$PS1"'$MSYSTEM '                  # show MSYSTEM
+    PS1="$PS1"'\[\033[33m\]'               # change to brownish yellow
+    PS1="$PS1"'\w'                         # current working directory
+    GIT_EXEC_PATH="$(git --exec-path 2> /dev/null)"
+    COMPLETION_PATH="${GIT_EXEC_PATH%/libexec/git-core}"
+    COMPLETION_PATH="${COMPLETION_PATH%/lib/git-core}"
+    COMPLETION_PATH="$COMPLETION_PATH/share/git/completion"
+    PS1="$PS1"'\[\033[36m\]' # change color to cyan
+    PS1="$PS1"'`__git_ps1`'  # bash function
+    PS1="$PS1"'\[\033[0m\]'  # change color
+    PS1="$PS1"'\n'           # new line
+    PS1="$PS1"'$ '           # prompt: always $
+  fi
+fi
+
+# endregion
+
+# region: Git Settings
+# ------------
+# Git Settings
+# ------------
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-coreautocrlf
+# Default value: input
+# Explicitly setting it to false prevents Git from changing line endings at any point, which can
+# prevent issues when Windows users collaborate with MacOS/Linus users.
+git config --global core.autocrlf false
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-coreignoreCase
+# Default value: false (on Linux machines) or true (on Windows machines)
+# Explicitly setting it to false can prevent problems with interop between Linux & Windows.
+git config --global core.ignorecase false
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-diffcolorMoved
+# Default value: false
+# Setting zebra can make git diffs easier to read by having a different color for moved lines.
+git config --global diff.colorMoved zebra
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-fetchprune
+# Default value: false
+# Automatically remove any remote-tracking references that no longer exist on the remote.
+git config --global fetch.prune true
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-fetchpruneTags
+# Default value: false
+# Automatically remove any tags that no longer exist on the remote.
+git config --global fetch.pruneTags true
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-pullrebase
+# Default value: false
+# Setting this prevents spurious merge commits.
+git config --global pull.rebase true
+
+# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-pushautoSetupRemote
+# Default value: false
+# Setting this automates having "git pull" and "git push" work properly after setting up a new
+# branch.
+git config --global push.autoSetupRemote true
+
+if [[ "$OS_USERNAME" == "james" || "$OS_USERNAME" == "jnesta" ]]; then
+  git config --global user.name "Zamiell"
+  git config --global user.email "5511220+Zamiell@users.noreply.github.com"
+fi
+
+# endregion
+
+# region: Other Application Settings
+# --------------------------
+# Other Application Settings
+# --------------------------
 
 # ssh
 mkdir -p "$HOME/.ssh" # The directory has to exist for the "ssh-keygen" command to work.
@@ -800,6 +906,9 @@ if command -v npm &> /dev/null; then
   fi
 fi
 
+# endregion
+
+# region: Miscellaneous Commands
 # ----------------------
 # Miscellaneous Commands
 # ----------------------
@@ -838,7 +947,7 @@ azdo-history() (
 # "bwl" is short for "bw login --apikey". (This is the BitWarden CLI.)
 alias bwl="bw login --apikey"
 
-# Only create this alias if the shell is interactive.
+# Only create the "cd" alias if the shell is interactive.
 if [[ $- == *i* ]]; then
   # We have to use braces instead of parenthesis here.
   cd() {
@@ -1025,16 +1134,10 @@ put-env() (
 )
 
 # "r" is short for switching to the repositories directory.
-if [[ -d "/c/Users/$OS_USERNAME/Repositories" ]]; then # Generic Windows
-  REPOSITORIES_DIR="/c/Users/$OS_USERNAME/Repositories"
-elif [[ -d "/Users/$OS_USERNAME/repositories" ]]; then # Generic MacOS (1/2)
-  REPOSITORIES_DIR="/Users/$OS_USERNAME/repositories"
-elif [[ -d "/Users/$OS_USERNAME/Repositories" ]]; then # Generic MacOS (2/2)
-  REPOSITORIES_DIR="/Users/$OS_USERNAME/Repositories"
-elif [[ -d "/home/$OS_USERNAME/repositories" ]]; then # Generic Linux (1/2)
-  REPOSITORIES_DIR="/home/$OS_USERNAME/repositories"
-elif [[ -d "/home/$OS_USERNAME/Repositories" ]]; then # Generic Linux (2/2)
-  REPOSITORIES_DIR="/home/$OS_USERNAME/Repositories"
+if [[ -d "$HOME/Repositories" ]]; then # Windows / macOS
+  REPOSITORIES_DIR="$HOME/Repositories"
+elif [[ -d "$HOME/repositories" ]]; then # Linux
+  REPOSITORIES_DIR="$HOME/repositories"
 elif [[ -d "/c/Repositories" ]]; then # Windows C drive
   REPOSITORIES_DIR="/c/Repositories"
 elif [[ -d "/d/Repositories" ]]; then # Windows D drive
@@ -1047,7 +1150,7 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
   # By default, it is useful for shells to open in the repositories directory instead of the home
   # directory. (But only do this if the shell is interactive and we are starting in the home
   # directory.)
-  if [[ $- == *i* ]] && [[ "$(pwd)" == "$HOME" ]]; then
+  if [[ $- == *i* ]] && [[ "$PWD" == "$HOME" ]]; then
     builtin cd "$REPOSITORIES_DIR"
   fi
 fi
@@ -1067,6 +1170,9 @@ vpn() (
   sudo nohup gpclient connect lhvpn.logixhealth.com --browser "$MICROSOFT_EDGE_PATH" &
 )
 
+# endregion
+
+# region: kubectl Commands
 # ----------------
 # kubectl Commands
 # ----------------
@@ -1078,6 +1184,9 @@ alias kds="kubectl describe service"
 alias kgd="kubectl get deployment"
 alias kgp="kubectl get pod"
 
+# endregion
+
+# region: npm Commands
 # ------------
 # npm Commands
 # ------------
@@ -1119,8 +1228,7 @@ exec-package() (
 get-package-manager() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local current_dir
-  current_dir="$(pwd)"
+  local current_dir="$PWD"
 
   # Search upward through directories, looking for package lock files.
   while [[ "$current_dir" != "/" ]]; do
@@ -1174,52 +1282,9 @@ alias t="run-package-script test"
 alias tpr="run-package-script test-pr"
 alias u="run-package-script update || exec-package complete-cli@latest update"
 
-# ----------
-# Git Config
-# ----------
+# endregion
 
-# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-coreautocrlf
-# Default value: input
-# Explicitly setting it to false prevents Git from changing line endings at any point, which can
-# prevent issues when Windows users collaborate with MacOS/Linus users.
-git config --global core.autocrlf false
-
-# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-coreignoreCase
-# Default value: false (on Linux machines) or true (on Windows machines)
-# Explicitly setting it to false can prevent problems with interop between Linux & Windows.
-git config --global core.ignorecase false
-
-# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-diffcolorMoved
-# Default value: false
-# Setting zebra can make git diffs easier to read by having a different color for moved lines.
-git config --global diff.colorMoved zebra
-
-# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-fetchprune
-# Default value: false
-# Automatically remove any remote-tracking references that no longer exist on the remote.
-git config --global fetch.prune true
-
-# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-fetchpruneTags
-# Default value: false
-# Automatically remove any tags that no longer exist on the remote.
-git config --global fetch.pruneTags true
-
-# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-pullrebase
-# Default value: false
-# Setting this prevents spurious merge commits.
-git config --global pull.rebase true
-
-# https://git-scm.com/docs/git-config/#Documentation/git-config.txt-pushautoSetupRemote
-# Default value: false
-# Setting this automates having "git pull" and "git push" work properly after setting up a new
-# branch.
-git config --global push.autoSetupRemote true
-
-if [[ "$OS_USERNAME" == "james" || "$OS_USERNAME" == "jnesta" ]]; then
-  git config --global user.name "Zamiell"
-  git config --global user.email "5511220+Zamiell@users.noreply.github.com"
-fi
-
+# region: Git Commands
 # ------------
 # Git Commands
 # ------------
@@ -1776,91 +1841,6 @@ gcu() (
 # "gd" is short for "git diff".
 alias gd="git diff"
 
-# This will sync a forked repositories main branch with the upstream. (This is a common operation
-# when working on GitHub.)
-gh-sync() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  assert-in-git-repository
-  assert-main-branch
-
-  if ! git remote get-url upstream &> /dev/null; then
-    echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
-    return 1
-  fi
-
-  local main_branch_name
-  main_branch_name=$(get-main-branch-name)
-
-  git fetch origin --prune --quiet
-  git fetch upstream --prune --quiet
-
-  local local_head
-  local_head=$(git rev-parse HEAD)
-  local remote_head
-  remote_head=$(git rev-parse "upstream/$main_branch_name")
-
-  if [[ "$local_head" != "$remote_head" ]]; then
-    git rebase "upstream/$main_branch_name"
-    git push origin "$main_branch_name" --force-with-lease
-  fi
-)
-
-# This will delete local branches that have been merged via pull requests on GitHub.
-gh-clean() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  assert-in-git-repository
-  assert-main-branch
-
-  if ! git remote get-url upstream &> /dev/null; then
-    echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
-    return 1
-  fi
-
-  local main_branch_name
-  main_branch_name=$(get-main-branch-name)
-
-  if ! command -v gh &> /dev/null; then
-    echo "Error: GitHub CLI (gh) is not installed or not in PATH." >&2
-    return 1
-  fi
-
-  if ! gh auth status &> /dev/null; then
-    echo "Error: Not authenticated with GitHub. Run: gh auth login" >&2
-    return 1
-  fi
-
-  local my_merged_object_ids
-  my_merged_object_ids=$(gh pr list --author @me --state merged --json headRefOid --jq ".[].headRefOid")
-
-  if [[ -z "$my_merged_object_ids" ]]; then
-    return
-  fi
-
-  local local_branches
-  local_branches=$(git branch --format="%(refname:lstrip=2)" | sort)
-
-  while IFS= read -r branch; do
-    if [[ "$branch" == "$main_branch_name" ]]; then
-      continue
-    fi
-
-    local branch_object_id
-    branch_object_id=$(git rev-parse "$branch")
-
-    if echo "$my_merged_object_ids" | grep --line-regexp --quiet "$branch_object_id"; then
-      echo "GitHub pull request branch has been merged on the upstream: $branch"
-
-      git branch --delete --force "$branch"
-      echo "Deleted local branch: $branch"
-      git push origin ":$branch"
-      echo "Deleted remote branch: $branch"
-    fi
-
-  done <<< "$local_branches"
-)
-
 # "gl" is short for "git log".
 alias gl="git log"
 
@@ -2318,6 +2298,101 @@ alias gu="git push"
 # "guf" is short for "git push --force-with-lease".
 alias guf="git push --force-with-lease"
 
+# endregion
+
+# region: GitHub Commands
+# ---------------
+# GitHub Commands
+# ---------------
+
+# This will sync a forked repositories main branch with the upstream. (This is a common operation
+# when working on GitHub.)
+gh-sync() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+  assert-main-branch
+
+  if ! git remote get-url upstream &> /dev/null; then
+    echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
+    return 1
+  fi
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  git fetch origin --prune --quiet
+  git fetch upstream --prune --quiet
+
+  local local_head
+  local_head=$(git rev-parse HEAD)
+  local remote_head
+  remote_head=$(git rev-parse "upstream/$main_branch_name")
+
+  if [[ "$local_head" != "$remote_head" ]]; then
+    git rebase "upstream/$main_branch_name"
+    git push origin "$main_branch_name" --force-with-lease
+  fi
+)
+
+# This will delete local branches that have been merged via pull requests on GitHub.
+gh-clean() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+  assert-main-branch
+
+  if ! git remote get-url upstream &> /dev/null; then
+    echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
+    return 1
+  fi
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  if ! command -v gh &> /dev/null; then
+    echo "Error: GitHub CLI (gh) is not installed or not in PATH." >&2
+    return 1
+  fi
+
+  if ! gh auth status &> /dev/null; then
+    echo "Error: Not authenticated with GitHub. Run: gh auth login" >&2
+    return 1
+  fi
+
+  local my_merged_object_ids
+  my_merged_object_ids=$(gh pr list --author @me --state merged --json headRefOid --jq ".[].headRefOid")
+
+  if [[ -z "$my_merged_object_ids" ]]; then
+    return
+  fi
+
+  local local_branches
+  local_branches=$(git branch --format="%(refname:lstrip=2)" | sort)
+
+  while IFS= read -r branch; do
+    if [[ "$branch" == "$main_branch_name" ]]; then
+      continue
+    fi
+
+    local branch_object_id
+    branch_object_id=$(git rev-parse "$branch")
+
+    if echo "$my_merged_object_ids" | grep --line-regexp --quiet "$branch_object_id"; then
+      echo "GitHub pull request branch has been merged on the upstream: $branch"
+
+      git branch --delete --force "$branch"
+      echo "Deleted local branch: $branch"
+      git push origin ":$branch"
+      echo "Deleted remote branch: $branch"
+    fi
+
+  done <<< "$local_branches"
+)
+
+# endregion
+
+# region: Pulumi Commands
 # ---------------
 # Pulumi Commands
 # ---------------
@@ -2334,6 +2409,9 @@ alias pu="pulumi up"
 # "puy" is short for "pulumi up --yes".
 alias puy="pulumi up --yes"
 
+# endregion
+
+# region: Terraform Commands
 # ------------------
 # Terraform Commands
 # ------------------
@@ -2365,51 +2443,4 @@ alias tp="terraform plan"
 # "tv" is short for "terraform validate".
 alias tv="terraform validate"
 
-# ------
-# Prompt
-# ------
-
-# Only change the prompt if the shell is interactive.
-if [[ $- == *i* ]]; then
-  if ! command -v __git_ps1 &> /dev/null; then
-    if [[ -s "/usr/lib/git-core/git-sh-prompt" ]]; then
-      # This is the standard location on Ubuntu.
-      # shellcheck source=/dev/null
-      source "/usr/lib/git-core/git-sh-prompt"
-    elif [[ -s "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh" ]]; then
-      # This is the standard location on macOS.
-      # shellcheck source=/dev/null
-      source "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh"
-    else
-      echo "Error: Cannot find the \"__git_ps1\" function declared." >&2
-      return 1
-    fi
-  fi
-
-  if [[ -s "/etc/os-release" ]]; then
-    # shellcheck source=/dev/null
-    source /etc/os-release
-  fi
-
-  if [[ "$ID" == "ubuntu" ]] || [[ "$(uname)" == "Darwin" ]]; then
-    # We copy the prompt from Git Bash for Windows:
-    # https://github.com/git-for-windows/build-extra/blob/main/git-extra/git-prompt.sh
-    PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]' # set window title
-    PS1="$PS1"'\n'                         # new line
-    PS1="$PS1"'\[\033[32m\]'               # change to green
-    PS1="$PS1"'\u@\h '                     # user@host<space>
-    PS1="$PS1"'\[\033[35m\]'               # change to purple
-    PS1="$PS1"'$MSYSTEM '                  # show MSYSTEM
-    PS1="$PS1"'\[\033[33m\]'               # change to brownish yellow
-    PS1="$PS1"'\w'                         # current working directory
-    GIT_EXEC_PATH="$(git --exec-path 2> /dev/null)"
-    COMPLETION_PATH="${GIT_EXEC_PATH%/libexec/git-core}"
-    COMPLETION_PATH="${COMPLETION_PATH%/lib/git-core}"
-    COMPLETION_PATH="$COMPLETION_PATH/share/git/completion"
-    PS1="$PS1"'\[\033[36m\]' # change color to cyan
-    PS1="$PS1"'`__git_ps1`'  # bash function
-    PS1="$PS1"'\[\033[0m\]'  # change color
-    PS1="$PS1"'\n'           # new line
-    PS1="$PS1"'$ '           # prompt: always $
-  fi
-fi
+# endregion
