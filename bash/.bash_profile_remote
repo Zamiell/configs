@@ -216,7 +216,14 @@ get-git-remote-details() (
 
     # Check if we are on a branch created with "gh pr checkout".
     set-gh-remote
-    # TODO
+    local branch_name
+    branch_name=$(git branch --show-current)
+    local remote_config
+    # This should be equal to "origin" or the GitHub username.
+    remote_config=$(git -C "$directory" config "branch.$branch_name.remote")
+    if [[ "$remote_config" != "origin" ]]; then
+      author="$remote_config"
+    fi
 
     echo "$host $author $repository"
     return
@@ -567,7 +574,7 @@ set-gh-remote() (
     local origin_url
     origin_url=$(git -C "$directory" remote get-url origin)
     # The GitHub CLI does not support the "-C" flag, so we use a subshell.
-    (cd "$directory" && gh repo set-default "$origin_url")
+    (builtin cd "$directory" && gh repo set-default "$origin_url")
   fi
 
   git -C "$directory" fetch "$github_username"
