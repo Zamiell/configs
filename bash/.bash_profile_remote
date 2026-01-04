@@ -22,7 +22,7 @@ PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 # Helper functions
 # ----------------
 
-add_logix_cert_to_requests_ca_bundle() (
+add-logix-cert-to-requests-ca-bundle() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${REQUESTS_CA_BUNDLE:-}" ]]; then
@@ -51,7 +51,7 @@ add_logix_cert_to_requests_ca_bundle() (
 )
 
 # If we use a subshell, the changes to PATH would be lost.
-append_path() {
+append-path() {
   if [[ -z "${1:-}" ]]; then
     echo "Error: The path is required. Usage: ${FUNCNAME[0]} <path>" >&2
     return 1
@@ -64,14 +64,14 @@ append_path() {
   fi
 }
 
-assert_feature_branch() (
+assert-feature-branch() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local branch_name
   branch_name=$(git branch --show-current)
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   if [[ "$branch_name" == "$main_branch_name" ]]; then
     echo "Error: This command is intended to be run on a feature branch and you are currently on the \"$main_branch_name\" branch." >&2
@@ -79,7 +79,7 @@ assert_feature_branch() (
   fi
 )
 
-assert_in_git_repository() (
+assert-in-git-repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree &> /dev/null; then
@@ -88,7 +88,7 @@ assert_in_git_repository() (
   fi
 )
 
-assert_jq_installed() (
+assert-jq-installed() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! command -v jq &> /dev/null; then
@@ -97,14 +97,14 @@ assert_jq_installed() (
   fi
 )
 
-assert_main_branch() (
+assert-main-branch() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local branch_name
   branch_name=$(git branch --show-current)
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   if [[ "$branch_name" != "$main_branch_name" ]]; then
     echo "Error: This command is intended to be run on the \"$main_branch_name\" branch and you are currently on the \"$branch_name\" branch." >&2
@@ -113,7 +113,7 @@ assert_main_branch() (
 )
 
 # This will echo back the same input if the input is not a number.
-get_branch_name_from_number() (
+get-branch-name-from-number() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1:-}" ]]; then
@@ -141,20 +141,20 @@ get_branch_name_from_number() (
   echo "$branch_name"
 )
 
-get_first_branch_commit_description() (
+get-first-branch-commit-description() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_feature_branch
+  assert-in-git-repository
+  assert-feature-branch
 
   local branch_name
   branch_name=$(git branch --show-current)
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   local merge_base
-  merge_base=$(get_merge_base)
+  merge_base=$(get-merge-base)
 
   local first_commit_hash
   first_commit_hash=$(git rev-list --reverse "$merge_base..$branch_name" | head -n 1)
@@ -166,7 +166,7 @@ get_first_branch_commit_description() (
   printf "%s" "$(git show --no-patch --format="%B" "$first_commit_hash")"
 )
 
-get_git_remote_details() (
+get-git-remote-details() (
   set -euo pipefail
 
   local directory
@@ -242,10 +242,10 @@ get_git_remote_details() (
 )
 
 # This will return a descriptive commit message based on the currently staged files.
-get_llm_commit_message() (
+get-llm-commit-message() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   if [[ -z "${GEMINI_API_KEY:-}" ]]; then
     echo "Error: The \"GEMINI_API_KEY\" environment variable is not set." >&2
@@ -260,20 +260,20 @@ get_llm_commit_message() (
     return 1
   fi
 
-  get_llm_output_git_diff "$git_diff" "commit message"
+  get-llm-output-git-diff "$git_diff" "commit message"
 )
 
 # This will return a pull request description based on differences between the current branch and
 # the main branch. (Similar to a commit message, the title will be on the first line and the
 # description will be on the second line, if any.)
-get_llm_pull_request_text() (
+get-llm-pull-request-text() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_feature_branch
+  assert-in-git-repository
+  assert-feature-branch
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   if [[ -z "${GEMINI_API_KEY:-}" ]]; then
     echo "Error: The \"GEMINI_API_KEY\" environment variable is not set." >&2
@@ -288,35 +288,10 @@ get_llm_pull_request_text() (
     return 1
   fi
 
-  get_llm_output_git_diff "$git_diff" "pull request description"
+  get-llm-output-git-diff "$git_diff" "pull request description"
 )
 
-get_llm_output_git_diff() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ -z "${1:-}" ]]; then
-    echo "Error: The git diff is required. Usage: ${FUNCNAME[0]} <git_diff> <noun>" >&2
-    return 1
-  fi
-  local git_diff="$1"
-
-  if [[ -z "${2:-}" ]]; then
-    echo "Error: The noun is required. Usage: ${FUNCNAME[0]} <git_diff> <noun>" >&2
-    return 1
-  fi
-  local noun="$2"
-
-  assert_jq_installed
-
-  local system_prompt="You are an expert git commit message generator. You will be given a git diff. Your response must be only the commit message; do not include any preamble, explanation, or markdown. Be concise and descriptive. The commit message is allowed to be more than one line, but only if the changes are complicated. Follow the 50/72 rule. Follow conventional commit standards (e.g. \"feat: add new feature\", \"fix: correct bug\", \"chore: update build\"). Pay particular attention to removed lines, since if a block of code is moved from one place to another, the commit message should not say \"add\", it should say \"move\". If the file being modified is in the \"3_Applications/kubernetes\" directory, then add a commit message scope like \"feat(kubernetes): add variable\". Additionally, the subdirectories of \"3_Applications/containers\" should be scoped to their directory name in the same way. For example, modifying a file in the \"3_Applications/containers/logix-ci-cd-tasks\" directory should result in a commit message like \"feat(logix-ci-cd-tasks): add variable\"."
-
-  local llm_output
-  llm_output=$(get_llm_output "$system_prompt" "$git_diff")
-
-  echo -e "$llm_output\n\n(This $noun was automatically generated by an LLM.)"
-)
-
-get_llm_output() (
+get-llm-output() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1:-}" ]]; then
@@ -386,7 +361,32 @@ get_llm_output() (
   echo "$llm_output"
 )
 
-get_main_branch_name() (
+get-llm-output-git-diff() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The git diff is required. Usage: ${FUNCNAME[0]} <git_diff> <noun>" >&2
+    return 1
+  fi
+  local git_diff="$1"
+
+  if [[ -z "${2:-}" ]]; then
+    echo "Error: The noun is required. Usage: ${FUNCNAME[0]} <git_diff> <noun>" >&2
+    return 1
+  fi
+  local noun="$2"
+
+  assert-jq-installed
+
+  local system_prompt="You are an expert git commit message generator. You will be given a git diff. Your response must be only the commit message; do not include any preamble, explanation, or markdown. Be concise and descriptive. The commit message is allowed to be more than one line, but only if the changes are complicated. Follow the 50/72 rule. Follow conventional commit standards (e.g. \"feat: add new feature\", \"fix: correct bug\", \"chore: update build\"). Pay particular attention to removed lines, since if a block of code is moved from one place to another, the commit message should not say \"add\", it should say \"move\". If the file being modified is in the \"3_Applications/kubernetes\" directory, then add a commit message scope like \"feat(kubernetes): add variable\". Additionally, the subdirectories of \"3_Applications/containers\" should be scoped to their directory name in the same way. For example, modifying a file in the \"3_Applications/containers/logix-ci-cd-tasks\" directory should result in a commit message like \"feat(logix-ci-cd-tasks): add variable\"."
+
+  local llm_output
+  llm_output=$(get-llm-output "$system_prompt" "$git_diff")
+
+  echo -e "$llm_output\n\n(This $noun was automatically generated by an LLM.)"
+)
+
+get-main-branch-name() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if git show-ref --verify --quiet refs/heads/main; then
@@ -399,14 +399,14 @@ get_main_branch_name() (
   fi
 )
 
-get_merge_base() (
+get-merge-base() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local branch_name
   branch_name=$(git branch --show-current)
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   local merge_base
   merge_base=$(git merge-base "$main_branch_name" "$branch_name")
@@ -418,22 +418,22 @@ get_merge_base() (
   echo "$merge_base"
 )
 
-get_num_commits_on_branch() (
+get-num-commits-on-branch() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_feature_branch
+  assert-in-git-repository
+  assert-feature-branch
 
   local branch_name
   branch_name=$(git branch --show-current)
 
   local merge_base
-  merge_base=$(get_merge_base)
+  merge_base=$(get-merge-base)
 
   git rev-list --count "$merge_base..$branch_name"
 )
 
-is_git_bash() (
+is-git-bash() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local kernel_name
@@ -441,7 +441,7 @@ is_git_bash() (
   [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
 )
 
-is_github_repository() (
+is-github-repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! git rev-parse --is-inside-work-tree &> /dev/null; then
@@ -461,7 +461,7 @@ is_github_repository() (
 
 # When we "cd" to a Git repository, we want to show the branches. Otherwise, can we show the list of
 # files in the directory.
-print_files_and_branches() (
+print-files-and-branches() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   # We use the same flags as the "ll" alias. (We cannot use the alias directly as the subshell does
@@ -479,11 +479,11 @@ print_files_and_branches() (
   if command -v cygpath &> /dev/null; then
     # "/c/Repositories/foo" --> "C:\Repositories\configs"
     current_dir=$(cygpath --windows "$current_dir")
-    current_dir=$(to_lowercase "$current_dir")
+    current_dir=$(to-lowercase "$current_dir")
 
     # "C:/Repositories/foo" --> "C:\Repositories\foo"
     repo_root=$(cygpath --windows "$repo_root")
-    repo_root=$(to_lowercase "$repo_root")
+    repo_root=$(to-lowercase "$repo_root")
   fi
 
   if [[ "$current_dir" == "$repo_root" ]]; then
@@ -492,11 +492,59 @@ print_files_and_branches() (
   fi
 )
 
-remove_leading_and_trailing_whitespace() {
+remove-leading-and-trailing-whitespace() {
   sed --expression '/[^[:space:]]/,$!d' --expression 's/^[[:space:]]*//' --expression 's/[[:space:]]*$//'
 }
 
-to_lowercase() (
+set-gh-remote() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  # "git pull" will fail if we are on a branch that was created from "gh pr checkout". Thus,
+  # we must first set up the remote properly.
+  local remote_config
+  # This will be "origin" on normal branches and e.g. "https://github.com/alice/foo" on branches
+  # from "gh pr checkout".
+  remote_config=$(git config branch."$branch_name".remote)
+  if [[ ! "$remote_config" =~ github\.com[:/]([^/]+)/ ]]; then
+    return
+  fi
+
+  local github_username
+  github_username="${BASH_REMATCH[1]}"
+  local existing_url
+  existing_url=$(git remote get-url "$github_username" 2> /dev/null)
+
+  if [[ -n "$existing_url" ]]; then
+    # The remote has already been set up on this branch. Verify that it matches.
+    if [[ "$existing_url" != "$remote_config" ]]; then
+      echo "Error: The remote \"$github_username\" already exists, but it points to \"$existing_url\" instead of \"$remote_config\"." >&2
+      return 1
+    fi
+  else
+    # This is a freshly created branch from "gh pr checkout" that does not have a remote. Add
+    # it.
+    git remote add "$github_username" "$remote_config"
+  fi
+
+  git fetch "$github_username"
+  local merge_ref
+  # This will be something like: refs/heads/main
+  merge_ref=$(git config branch."$branch_name".merge)
+  local branch_short_name
+  # This will be something like: main
+  branch_short_name=${merge_ref#refs/heads/}
+  local target_ref
+  # This will be something like: refs/remotes/alice/main
+  target_ref="refs/remotes/$github_username/$branch_short_name"
+  git branch --set-upstream-to="$target_ref"
+)
+
+to-lowercase() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ $# -eq 0 ]]; then
@@ -550,16 +598,16 @@ fi
 
 # bun
 # https://bun.com/
-append_path "$HOME/.bun/bin"
+append-path "$HOME/.bun/bin"
 
 # Claude Code
 # https://www.claude.com/product/claude-code
-append_path "$HOME/.local/bin"
+append-path "$HOME/.local/bin"
 
 # fnm
 # https://github.com/Schniz/fnm
-append_path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
-append_path "$HOME/.local/share/fnm"
+append-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
+append-path "$HOME/.local/share/fnm"
 
 # fzf
 # https://github.com/junegunn/fzf
@@ -577,10 +625,10 @@ if command -v fzf &> /dev/null; then
 fi
 
 # gitleaks
-append_path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/gitleaks/gitleaks_8.28.0_windows_x64"
+append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/gitleaks/gitleaks_8.28.0_windows_x64"
 
 # GnuWin32
-append_path "/c/Program Files (x86)/GnuWin32/bin"
+append-path "/c/Program Files (x86)/GnuWin32/bin"
 
 # Node.js (through fnm)
 if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
@@ -591,23 +639,23 @@ fi
 # e.g. /c/Program Files/PostgreSQL/18/bin
 PG_PATH=$(find "/c/Program Files/PostgreSQL" -maxdepth 2 -type d -path "*/[0-9]*/bin" 2> /dev/null | sort --version-sort | tail -n 1)
 if [[ -n "$PG_PATH" ]]; then
-  append_path "$PG_PATH"
+  append-path "$PG_PATH"
 fi
 
 # Python
 # e.g. $HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts
 PYTHON_PATH_WINDOWS=$(find "$HOME/AppData/Local/Python" -maxdepth 2 -type d -path "*/pythoncore-*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
 if [[ -n "$PYTHON_PATH_WINDOWS" ]]; then
-  append_path "$PYTHON_PATH_WINDOWS"
+  append-path "$PYTHON_PATH_WINDOWS"
 fi
 # e.g. $HOME/Library/Python/3.9/bin
 PYTHON_PATH_MACOS=$(find "$HOME/Library/Python" -maxdepth 2 -type d -path "*/bin" 2> /dev/null | sort --version-sort | tail -n 1)
 if [[ -n "$PYTHON_PATH_MACOS" ]]; then
-  append_path "$PYTHON_PATH_MACOS"
+  append-path "$PYTHON_PATH_MACOS"
 fi
 
 # terragrunt
-append_path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"
+append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"
 
 # zoxide
 # https://github.com/ajeetdsouza/zoxide
@@ -617,7 +665,7 @@ if command -v zoxide &> /dev/null; then
   eval "$(zoxide init bash)"
 
   zi() {
-    __zoxide_zi "$@" && print_files_and_branches
+    __zoxide_zi "$@" && print-files-and-branches
   }
 fi
 
@@ -656,7 +704,7 @@ elif [[ -s "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/c
 elif [[ -s "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/opt/az/lib/python3.13/site-packages/certifi/cacert.pem"
 fi
-add_logix_cert_to_requests_ca_bundle
+add-logix-cert-to-requests-ca-bundle
 
 # Get the username in an operating system agnostic way.
 if [[ -n "$USER" ]]; then # macOS/Linux
@@ -727,7 +775,7 @@ azdo-history() (
   local relative_path
   relative_path=$(realpath --relative-to="$repo_root" "$file_path")
 
-  read -r host organization project repository <<< "$(get_git_remote_details "$repo_root")"
+  read -r host organization project repository <<< "$(get-git-remote-details "$repo_root")"
   if [[ "$host" != "azure-devops-server" ]]; then
     echo "Error: This command can only be used in a repository hosted on Azure DevOps server." >&2
     return 1
@@ -746,9 +794,9 @@ if [[ $- == *i* ]]; then
   cd() {
     if command -v z &> /dev/null; then
       # Use "zoxide" if it is available.
-      z "$@" && print_files_and_branches
+      z "$@" && print-files-and-branches
     else
-      builtin cd "$@" && print_files_and_branches
+      builtin cd "$@" && print-files-and-branches
     fi
   }
 fi
@@ -757,7 +805,7 @@ fi
 # the current git repository. If used in a directory that is not part of a Git repository, it will
 # throw an error.
 cdg() {
-  assert_in_git_repository
+  assert-in-git-repository
 
   local repo_root
   repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
@@ -776,7 +824,7 @@ alias claude="claude --dangerously-skip-permissions"
 csf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
   exec_package cspell-check-unused-words --fix
 
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -839,7 +887,7 @@ llm() (
 
   local system_prompt="You are being asked a question inside of a terminal. Be fairly brief in your response. For example, if you are being asked what the command is for something, format your response as just the command and a 1-2 sentence description."
 
-  get_llm_output "$system_prompt" "$prompt"
+  get-llm-output "$system_prompt" "$prompt"
 )
 
 # "n" is short for "nuke".
@@ -902,7 +950,7 @@ put-env() (
     return 1
   fi
 
-  assert_jq_installed
+  assert-jq-installed
 
   local bw_item
   bw_item=$(bw get item .env)
@@ -1158,14 +1206,14 @@ gb() (
   done
   set -- "${positional_args[@]}" # Restore positional parameters.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   local new_branch_name="misc"
   if [[ -n "${1:-}" ]]; then
     new_branch_name="$1"
   fi
 
-  if [[ "$use_logixhealth_convention" == "true" ]] && ! is_github_repository; then
+  if [[ "$use_logixhealth_convention" == "true" ]] && ! is-github-repository; then
     local application_name="misc"
     if [[ -n "${2:-}" ]]; then
       application_name="$2"
@@ -1180,7 +1228,7 @@ gb() (
   fi
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
     git switch "$main_branch_name"
@@ -1220,10 +1268,10 @@ gbc() (
     fi
   done
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
     git switch "$main_branch_name"
@@ -1248,7 +1296,7 @@ gbc() (
 gbd() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   local branch_name_or_number=""
   local only_local="false"
@@ -1267,7 +1315,7 @@ gbd() (
   fi
 
   local branch_name
-  branch_name=$(get_branch_name_from_number "$branch_name_or_number")
+  branch_name=$(get-branch-name-from-number "$branch_name_or_number")
 
   if [[ "$branch_name" == "main" ]] || [[ "$branch_name" == "master" ]]; then
     echo "Error: You cannot use this command to delete the \"$branch_name\" branch. Are you sure you want to delete that?" >&2
@@ -1313,7 +1361,7 @@ gbdl() (
 gbl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   local local_branches
   # We need to use "lstrip" instead of "short" since the latter does not work properly with branches
@@ -1347,7 +1395,7 @@ gbl() (
 gblr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   git fetch --prune --quiet
 
@@ -1385,7 +1433,7 @@ gbr() (
   done
   set -- "${positional_args[@]}" # Restore positional parameters.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   local old_branch_name
   old_branch_name=$(git branch --show-current) # e.g. "feature/misc/alice/fix-bug-1"
@@ -1437,14 +1485,14 @@ alias gbr_="gbr --no-convention"
 gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_feature_branch
+  assert-in-git-repository
+  assert-feature-branch
 
   local branch_name
   branch_name=$(git branch --show-current)
 
   local merge_base
-  merge_base=$(get_merge_base)
+  merge_base=$(get-merge-base)
 
   local num_branch_commits
   num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
@@ -1488,7 +1536,7 @@ gc() (
 
   local commit_message="${commit_message_args[*]}"
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   if [[ -z "$(git config user.name)" ]]; then
     echo "Error: Git user name not set. Run: git config --global user.name \"Your Name\"" >&2
@@ -1502,7 +1550,7 @@ gc() (
 
   local user_email
   user_email=$(git config user.email)
-  if is_github_repository; then
+  if is-github-repository; then
     if [[ "$user_email" == *logixhealth.com ]]; then
       echo "Error: You are trying to commit to a GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
       return 1
@@ -1594,50 +1642,14 @@ gc() (
         commit_message="chore: update something"
       else
         echo "Getting the commit message from an LLM..."
-        commit_message=$(get_llm_commit_message)
+        commit_message=$(get-llm-commit-message)
       fi
     fi
 
     git commit --message "$commit_message"
 
     if [[ "$repository_has_commits" == "true" ]]; then
-      # "git pull" will fail if we are on a branch that was created from "gh pr checkout". Thus,
-      # we must first set up the remote properly.
-      local remote_config
-      # This will be "origin" on normal branches and e.g. "https://github.com/alice/foo" on branches
-      # from "gh pr checkout".
-      remote_config=$(git config branch."$branch_name".remote)
-      if [[ "$remote_config" =~ github\.com[:/]([^/]+)/ ]]; then
-        local github_username
-        github_username="${BASH_REMATCH[1]}"
-        local existing_url
-        existing_url=$(git remote get-url "$github_username" 2> /dev/null)
-
-        if [[ -n "$existing_url" ]]; then
-          # The remote has already been set up on this branch. Verify that it matches.
-          if [[ "$existing_url" != "$remote_config" ]]; then
-            echo "Error: The remote \"$github_username\" already exists, but it points to \"$existing_url\" instead of \"$remote_config\"." >&2
-            return 1
-          fi
-        else
-          # This is a freshly created branch from "gh pr checkout" that does not have a remote. Add
-          # it.
-          git remote add "$github_username" "$remote_config"
-        fi
-
-        git fetch "$github_username"
-        local merge_ref
-        # This will be something like: refs/heads/main
-        merge_ref=$(git config branch."$branch_name".merge)
-        local branch_short_name
-        # This will be something like: main
-        branch_short_name=${merge_ref#refs/heads/}
-        local target_ref
-        # This will be something like: refs/remotes/alice/main
-        target_ref="refs/remotes/$github_username/$branch_short_name"
-        git branch --set-upstream-to="$target_ref"
-      fi
-
+      set-gh-remote
       git pull --rebase
     fi
 
@@ -1665,23 +1677,23 @@ gcam() (
 gcs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
   local commit_sha1
   commit_sha1=$(git rev-parse HEAD)
 
-  read -r host _2 _3 _4 <<< "$(get_git_remote_details)"
+  read -r host _2 _3 _4 <<< "$(get-git-remote-details)"
 
   local commit_url
   if [[ "$host" == "github" ]]; then
-    read -r host author repository <<< "$(get_git_remote_details)"
+    read -r host author repository <<< "$(get-git-remote-details)"
     commit_url="https://github.com/$author/$repository/commit/$commit_sha1"
   elif [[ "$host" == "azure-devops-services" ]]; then
-    read -r host organization project repository <<< "$(get_git_remote_details)"
+    read -r host organization project repository <<< "$(get-git-remote-details)"
     commit_url="https://dev.azure.com/$organization/$project/_git/$repository/commit/$commit_sha1"
   elif [[ "$host" == "azure-devops-server" ]]; then
-    read -r host organization project repository <<< "$(get_git_remote_details)"
+    read -r host organization project repository <<< "$(get-git-remote-details)"
     commit_url="https://azuredevops.logixhealth.com/$organization/$project/_git/$repository/commit/$commit_sha1"
   else
     echo "Unknown git remote host: $host" >&2
@@ -1696,7 +1708,7 @@ gcs() (
 gcu() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   local num_commits=1
   if [[ -n "${1:-}" ]]; then
@@ -1719,8 +1731,8 @@ alias gd="git diff"
 gh-sync() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_main_branch
+  assert-in-git-repository
+  assert-main-branch
 
   if ! git remote get-url upstream &> /dev/null; then
     echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
@@ -1728,7 +1740,7 @@ gh-sync() (
   fi
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   git fetch origin --prune --quiet
   git fetch upstream --prune --quiet
@@ -1748,8 +1760,8 @@ gh-sync() (
 gh-clean() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_main_branch
+  assert-in-git-repository
+  assert-main-branch
 
   if ! git remote get-url upstream &> /dev/null; then
     echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
@@ -1757,7 +1769,7 @@ gh-clean() (
   fi
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   if ! command -v gh &> /dev/null; then
     echo "Error: GitHub CLI (gh) is not installed or not in PATH." >&2
@@ -1822,7 +1834,7 @@ alias gp="git pull --rebase"
 gpm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   git fetch origin --prune --quiet
 
@@ -1854,14 +1866,14 @@ gpm() (
 gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_feature_branch
+  assert-in-git-repository
+  assert-feature-branch
 
   local branch_name
   branch_name=$(git branch --show-current)
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   local git_diff
   git_diff=$(git diff "$main_branch_name"...HEAD)
@@ -1871,14 +1883,14 @@ gpr() (
     return 1
   fi
 
-  if is_github_repository; then
+  if is-github-repository; then
     gh pr create --fill-first --web
     return
   fi
 
-  assert_jq_installed
+  assert-jq-installed
 
-  read -r host organization project repository <<< "$(get_git_remote_details)"
+  read -r host organization project repository <<< "$(get-git-remote-details)"
   if [[ "$host" != "azure-devops-server" ]] && [[ "$host" != "azure-devops-services" ]]; then
     echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
     return 1
@@ -1958,14 +1970,14 @@ gpr() (
     if [[ -z "${GEMINI_API_KEY:-}" ]]; then
       # If the user does not have an API key, use a generic pull request title and description.
       echo "Using the first commit description as the pull request title & description."
-      pull_request_text=$(get_first_branch_commit_description)
+      pull_request_text=$(get-first-branch-commit-description)
     else
-      if [[ $(get_num_commits_on_branch) == "1" ]]; then
+      if [[ $(get-num-commits-on-branch) == "1" ]]; then
         echo "Using the only commit description as the pull request title & description."
-        pull_request_text=$(get_first_branch_commit_description)
+        pull_request_text=$(get-first-branch-commit-description)
       else
         echo "Getting the pull request title & description from an LLM..."
-        pull_request_text=$(get_llm_pull_request_text)
+        pull_request_text=$(get-llm-pull-request-text)
       fi
     fi
   else
@@ -1986,7 +1998,7 @@ gpr() (
   pull_request_title=$(echo "$pull_request_text" | head -n 1)
 
   local pull_request_description
-  pull_request_description=$(echo "$pull_request_text" | tail -n +2 | remove_leading_and_trailing_whitespace)
+  pull_request_description=$(echo "$pull_request_text" | tail -n +2 | remove-leading-and-trailing-whitespace)
   if [[ -z "$pull_request_description" ]]; then
     pull_request_description="n/a"
   fi
@@ -2039,7 +2051,7 @@ alias grba="git rebase --abort"
 grbc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   git add --all
   git rebase --continue
@@ -2050,11 +2062,11 @@ grbc() (
 grbm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_feature_branch
+  assert-in-git-repository
+  assert-feature-branch
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   git fetch origin "$main_branch_name" --prune --quiet
   git rebase "origin/$main_branch_name"
@@ -2071,11 +2083,11 @@ alias grsh="git reset --hard"
 grshm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_feature_branch
+  assert-in-git-repository
+  assert-feature-branch
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   git reset --hard "origin/$main_branch_name"
   git push --force-with-lease
@@ -2085,8 +2097,8 @@ grshm() (
 grt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
-  assert_feature_branch
+  assert-in-git-repository
+  assert-feature-branch
 
   if [[ -z "${1-}" ]]; then
     echo "Error: One or more file paths are required." >&2
@@ -2094,7 +2106,7 @@ grt() (
   fi
 
   local merge_base
-  merge_base=$(get_merge_base)
+  merge_base=$(get-merge-base)
 
   # We use "git checkout" instead of "git restore" since it works in more situations.
   git checkout "$merge_base" -- "$@"
@@ -2104,7 +2116,7 @@ grt() (
 grv() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Commit SHA1 is required. Usage: ${FUNCNAME[0]} <commit_sha1>" >&2
@@ -2123,7 +2135,7 @@ alias grva="git revert --abort"
 grvc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   git add --all
   git revert --continue
@@ -2133,7 +2145,7 @@ grvc() (
 grvl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   # "--no-edit" avoids prompting for a commit message and uses the default commit message.
   git revert HEAD --no-edit
@@ -2149,7 +2161,7 @@ alias gs="git status --porcelain"
 gsq() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: You must provide the number of commits to squash." >&2
@@ -2186,10 +2198,10 @@ alias gstp="git stash pop"
 gsw() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
@@ -2198,7 +2210,7 @@ gsw() (
   local branch_name_or_number="$1"
 
   local branch_name
-  branch_name=$(get_branch_name_from_number "$branch_name_or_number")
+  branch_name=$(get-branch-name-from-number "$branch_name_or_number")
 
   git switch "$branch_name"
 )
@@ -2210,10 +2222,10 @@ alias gswc="git switch -c"
 gswm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   local main_branch_name
-  main_branch_name=$(get_main_branch_name)
+  main_branch_name=$(get-main-branch-name)
 
   if [[ -n "$(git status --porcelain)" ]]; then
     echo "The repository is not clean. Stashing all of your existing changes."
@@ -2240,7 +2252,7 @@ gswm() (
 gtc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert_in_git_repository
+  assert-in-git-repository
 
   git tag -l | xargs git tag -d
   git fetch --tags
