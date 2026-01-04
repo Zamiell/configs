@@ -2376,6 +2376,24 @@ gh-clean() (
   done <<< "$local_branches"
 )
 
+# This is a custom version of "gh pr checkout". This is necessary because "gh pr checkout" will fail
+# if the forked repository branch name overlaps with a branch name on the upstream repository (and
+# the remote has already been added by "set-gh-remote"). To work around this, we can checkout the
+# forked repository branch with a custom arbitrary name matching the pull request number.
+gh-pr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The pull request number is required. Usage: ${FUNCNAME[0]} <pull_request_number>" >&2
+    return 1
+  fi
+  local pull_request_number="$1"
+
+  assert-in-github-repository
+  gh pr checkout "$pull_request_number" --branch "pr-$pull_request_number"
+  set-gh-remote
+)
+
 # This will sync a forked repository's main branch with the upstream. (This is a common operation
 # when working on GitHub.)
 gh-sync() (
@@ -2404,24 +2422,6 @@ gh-sync() (
     git rebase "upstream/$main_branch_name"
     git push origin "$main_branch_name" --force-with-lease
   fi
-)
-
-# This is a custom version of "gh pr checkout". This is necessary because "gh pr checkout" will fail
-# if the forked repository branch name overlaps with a branch name on the upstream repository (and
-# the remote has already been added by "set-gh-remote"). To work around this, we can checkout the
-# forked repository branch with a custom arbitrary name matching the pull request number.
-gh-pr() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ -z "${1:-}" ]]; then
-    echo "Error: The pull request number is required. Usage: ${FUNCNAME[0]} <pull_request_number>" >&2
-    return 1
-  fi
-  local pull_request_number="$1"
-
-  assert-in-github-repository
-  gh pr checkout "$pull_request_number" --branch "pr-$pull_request_number"
-  set-gh-remote
 )
 
 # endregion
