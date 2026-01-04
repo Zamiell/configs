@@ -497,8 +497,9 @@ remove-leading-and-trailing-whitespace() {
 }
 
 # When using "gh pr checkout", the git remote will not be set up properly and "git pull" will error.
-# This function will be a no-op if we are not in a GitHub repository or if the remote is already set
-# up properly.
+# This can be seen by typing "git remote -v", which will only show "origin" for "fetch" and "push",
+# even though we are on a branch pointing to a separate repository. This function will be a no-op if
+# we are not in a GitHub repository or if the remote is already set up properly.
 set-gh-remote() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -520,7 +521,7 @@ set-gh-remote() (
   local github_username
   github_username="${BASH_REMATCH[1]}"
   local existing_url
-  existing_url=$(git remote get-url "$github_username" 2> /dev/null)
+  existing_url=$(git remote get-url "$github_username" 2> /dev/null || true)
 
   if [[ -n "$existing_url" ]]; then
     # The remote has already been set up on this branch. Verify that it matches.
