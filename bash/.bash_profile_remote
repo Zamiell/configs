@@ -1,6 +1,6 @@
 # Compatibility notes:
-# - `ls` does not support long flags on macOS.
-# - `mkdir` does not support `--parents` on macOS, so we use "-p" instead.
+# - "ls" does not support long flags on macOS.
+# - "mkdir" does not support "--parents" on macOS, so we use "-p" instead.
 
 # region: Constants
 # ---------
@@ -715,7 +715,7 @@ if command -v zoxide &> /dev/null; then
   }
 fi
 
-# Change fzf's "Alt + C" hotkey to use zoxide. We also require an interactive terminal since `bind`
+# Change fzf's "Alt + C" hotkey to use zoxide. We also require an interactive terminal since "bind"
 # can cause bugs with agents.
 if [[ $- == *i* ]] && command -v fzf &> /dev/null && command -v zoxide &> /dev/null; then
   bind '"\ec": "zi\n"'
@@ -1298,7 +1298,7 @@ alias gaa="git add --all"
 # - "gb" is short for creating a new git branch, which is a common coding task.
 # - If the remote repository is not GitHub, this will make the branch according to the LogixHealth
 #   branch naming convention.
-# - Doing a push is important after creating a new branch because it prevents subsequent `git pull`
+# - Doing a push is important after creating a new branch because it prevents subsequent "git pull"
 #   calls from failing.
 # - You can use the "-n" or "--no-convention" flag to omit the LogixHealth naming convention.
 gb() (
@@ -1693,7 +1693,7 @@ gc() (
   # Only check for the remote branch existing if:
   # 1) There are one or more commits. (For brand-new repositories, the remote branch will not yet
   #    exist.)
-  # 2) This is not a repository from: `gh pr checkout`
+  # 2) This is not a repository from: gh pr checkout
   if [[ "$repository_has_commits" == "true" ]] && [[ "$has_upstream_config" == "false" ]]; then
     local remote_branch_info
     remote_branch_info=$(git ls-remote --heads origin "$branch_name")
@@ -1738,7 +1738,7 @@ gc() (
       git commit --amend --no-edit
     fi
 
-    # We do not need to `git pull` because we already verified above that we are on the remote tip.
+    # We do not need to "git pull" because we already verified above that we are on the remote tip.
     git push --force-with-lease
   else
     if [[ -n "$commit_message" ]]; then
@@ -2304,6 +2304,14 @@ alias guf="git push --force-with-lease"
 # ---------------
 # GitHub Commands
 # ---------------
+
+# Set "gh prco" as a custom version of "gh pr checkout". This is necessary because "gh pr checkout"
+# will fail if the forked repository branch name overlaps with a branch name on the upstream
+# repository (and the remote has been added by "set-gh-remote"). To work around this, we can
+# checkout the forked repository branch with a custom arbitrary name matching the pull request
+# number.
+# shellcheck disable=SC2016
+gh alias set prco --shell 'gh pr checkout "$1" -b "pr-$1"'
 
 # This will sync a forked repositories main branch with the upstream. (This is a common operation
 # when working on GitHub.)
