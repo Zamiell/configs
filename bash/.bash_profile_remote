@@ -215,6 +215,7 @@ get-git-remote-details() (
     fi
 
     # Check if we are on a branch created with "gh pr checkout".
+    set-gh-remote
     # TODO
 
     echo "$host $author $repository"
@@ -517,17 +518,22 @@ remove-leading-and-trailing-whitespace() {
 set-gh-remote() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert-in-git-repository
+  local directory="${1-}"
+  if [[ -z "$directory" ]]; then
+    directory="$PWD"
+  fi
+
+  assert-in-git-repository "$directory"
 
   local branch_name
-  branch_name=$(git branch --show-current)
+  branch_name=$(git -C "$directory" branch --show-current)
 
   # "git pull" will fail if we are on a branch that was created from "gh pr checkout". Thus,
   # we must first set up the remote properly.
   local remote_config
   # This will be "origin" on normal branches and e.g. "https://github.com/alice/foo" on branches
   # from "gh pr checkout".
-  remote_config=$(git config branch."$branch_name".remote)
+  remote_config=$(git -C "$directory" config branch."$branch_name".remote)
   if [[ ! "$remote_config" =~ github\.com[:/]([^/]+)/ ]]; then
     return
   fi
@@ -535,7 +541,7 @@ set-gh-remote() (
   local github_username
   github_username="${BASH_REMATCH[1]}"
   local existing_url
-  existing_url=$(git remote get-url "$github_username" 2> /dev/null || true)
+  existing_url=$(git -C "$directory" remote get-url "$github_username" 2> /dev/null || true)
 
   if [[ -n "$existing_url" ]]; then
     # The remote has already been set up on this branch. Verify that it matches.
@@ -546,20 +552,20 @@ set-gh-remote() (
   else
     # This is a freshly created branch from "gh pr checkout" that does not have a remote. Add
     # it.
-    git remote add "$github_username" "$remote_config"
+    git -C "$directory" remote add "$github_username" "$remote_config"
   fi
 
-  git fetch "$github_username"
+  git -C "$directory" fetch "$github_username"
   local merge_ref
   # This will be something like: refs/heads/main
-  merge_ref=$(git config branch."$branch_name".merge)
+  merge_ref=$(git -C "$directory" config branch."$branch_name".merge)
   local branch_short_name
   # This will be something like: main
   branch_short_name=${merge_ref#refs/heads/}
   local target_ref
   # This will be something like: refs/remotes/alice/main
   target_ref="refs/remotes/$github_username/$branch_short_name"
-  git branch --set-upstream-to="$target_ref"
+  git -C "$directory" branch --set-upstream-to="$target_ref"
 )
 
 to-lowercase() (
