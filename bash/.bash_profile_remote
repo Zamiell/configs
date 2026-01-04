@@ -496,6 +496,9 @@ remove-leading-and-trailing-whitespace() {
   sed --expression '/[^[:space:]]/,$!d' --expression 's/^[[:space:]]*//' --expression 's/[[:space:]]*$//'
 }
 
+# When using "gh pr checkout", the git remote will not be set up properly and "git pull" will error.
+# This function will be a no-op if we are not in a GitHub repository or if the remote is already set
+# up properly.
 set-gh-remote() (
   set -euo pipefail # Exit on errors and undefined variables.
 
