@@ -511,10 +511,17 @@ remove-leading-and-trailing-whitespace() {
   sed --expression '/[^[:space:]]/,$!d' --expression 's/^[[:space:]]*//' --expression 's/[[:space:]]*$//'
 }
 
-# When using "gh pr checkout", the git remote will not be set up properly and "git pull" will error.
-# This can be seen by typing "git remote -v", which will only show "origin" for "fetch" and "push",
-# even though we are on a branch pointing to a separate repository. This function will be a no-op if
-# we are not in a GitHub repository or if the remote is already set up properly.
+# - When using "gh pr checkout", the git remote will not be set up properly and "git pull" will have
+#   the following error:
+#   Your configuration specifies to merge with the ref 'refs/heads/main'
+#   from the remote, but no such ref was fetched.
+# - This can be seen by typing "git remote", which will only show "origin", even though we are on a
+#   branch pointing to a separate repository. Additionally, "git config branch.alice/main.remote"
+#   will return "git@github.com:alice/foo.git" instead of "alice".
+# - After running this function, "git remote" will return "alice" and "origin", and
+#   "git config branch.alice/main.remote" will return "alice".
+# - This function will be a no-op if we are not in a GitHub repository or if the remote is already
+#   set up properly.
 set-gh-remote() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -528,34 +535,46 @@ set-gh-remote() (
   local branch_name
   branch_name=$(git -C "$directory" branch --show-current)
 
-  # "git pull" will fail if we are on a branch that was created from "gh pr checkout". Thus,
-  # we must first set up the remote properly.
+  # Check to see if this is a branch freshly created from "gh pr checkout".
   local remote_config
-  # This will be "origin" on normal branches and e.g. "https://github.com/alice/foo" on branches
-  # from "gh pr checkout".
-  remote_config=$(git -C "$directory" config branch."$branch_name".remote)
+  # This will be "origin" on normal branches and "alice" on branches already touched by this
+  # function and e.g. "git@github.com:alice/foo.git" or "https://github.com/alice/foo" on branches
+  # freshly created from "gh pr checkout".
+  remote_config=$(git -C "$directory" config "branch.$branch_name.remote")
   if [[ ! "$remote_config" =~ github\.com[:/]([^/]+)/ ]]; then
     return
   fi
 
+  # First, add a remote for the forked repository.
   local github_username
   github_username="${BASH_REMATCH[1]}"
   local existing_url
   existing_url=$(git -C "$directory" remote get-url "$github_username" 2> /dev/null || true)
 
   if [[ -n "$existing_url" ]]; then
-    # The remote has already been set up on this branch. Verify that it matches.
+    # The remote has already been set up on this repository. Verify that it matches.
     if [[ "$existing_url" != "$remote_config" ]]; then
       echo "Error: The remote \"$github_username\" already exists, but it points to \"$existing_url\" instead of \"$remote_config\"." >&2
       return 1
     fi
   else
-    # This is a freshly created branch from "gh pr checkout" that does not have a remote. Add
-    # it.
+    # The remote for this username does not already exist.
     git -C "$directory" remote add "$github_username" "$remote_config"
+
+    # Now that the repository has more than one remote, the GitHub CLI will become confused and
+    # complain that "no default remote repository has been set" when running commands. Manually set
+    # the default to the non-forked remote.
+    local origin_url
+    origin_url=$(git -C "$directory" remote get-url origin)
+    # The GitHub CLI does not support the "-C" flag, so we use a subshell.
+    (cd "$directory" && gh repo set-default "$origin_url")
   fi
 
   git -C "$directory" fetch "$github_username"
+
+  # Second, set the upstream for the current branch. By default, branches created with "gh pr
+  # checkout" will not have an upstream, which can be seen with "git branch -vv". If the upstream is
+  # already set, this will be a no-op.
   local merge_ref
   # This will be something like: refs/heads/main
   merge_ref=$(git -C "$directory" config branch."$branch_name".merge)
