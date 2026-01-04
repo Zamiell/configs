@@ -671,21 +671,6 @@ append-path "$HOME/.local/bin"
 append-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
 append-path "$HOME/.local/share/fnm"
 
-# fzf
-# https://github.com/junegunn/fzf
-if command -v fzf &> /dev/null; then
-  eval "$(fzf --bash)"
-
-  # https://github.com/junegunn/fzf?tab=readme-ov-file#advanced-topics
-  # "--scheme=path" - Optimize the scoring for file paths.
-  export FZF_COMPLETION_OPTS="--scheme=path"
-
-  # The default completion trigger is "**". We could replace the normal Bash tab menu with fzf, but
-  # this is not desirable because fzf is much slower and does not always prioritize files in the
-  # respective directory. We use "." instead of "**" since it is easier to type.
-  export FZF_COMPLETION_TRIGGER="."
-fi
-
 # gitleaks
 append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/gitleaks/gitleaks_8.28.0_windows_x64"
 
@@ -718,24 +703,6 @@ fi
 
 # terragrunt
 append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"
-
-# zoxide
-# https://github.com/ajeetdsouza/zoxide
-if command -v zoxide &> /dev/null; then
-  # We can use "zoxide init bash --cmd cd" to replace the "cd" command, but we don't need to do this
-  # because we overwrite the cd command above anyway.
-  eval "$(zoxide init bash)"
-
-  zi() {
-    __zoxide_zi "$@" && print-files-and-branches
-  }
-fi
-
-# Change fzf's "Alt + C" hotkey to use zoxide. We also require an interactive terminal since "bind"
-# can cause bugs with agents.
-if [[ $- == *i* ]] && command -v fzf &> /dev/null && command -v zoxide &> /dev/null; then
-  bind '"\ec": "zi\n"'
-fi
 
 # endregion
 
@@ -794,20 +761,22 @@ fi
 shopt -s histappend # This is "off" by default.
 PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 
-# Prevent "Last login: Mon Jan  1 12:00:00 on ttys000" from appearing on macOS.
-touch "$HOME/.hushlogin"
-
-# Only change the prompt if the shell is interactive.
+# Only modify other terminal settings if the shell is interactive.
 if [[ $- == *i* ]]; then
+  # Prevent "Last login: Mon Jan  1 12:00:00 on ttys000" from appearing on macOS. (Unfortunately, this
+  # will only take effect on the next shell.)
+  touch "$HOME/.hushlogin"
+
+  # Emulate the Git Bash for Windows prompt on non-Windows platforms.
   if ! command -v __git_ps1 &> /dev/null; then
-    if [[ -s "/usr/lib/git-core/git-sh-prompt" ]]; then
-      # This is the standard location on Ubuntu.
+    GIT_SH_PROMPT_PATH_MACOS="/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh"
+    GIT_SH_PROMPT_PATH_UBUNTU="/usr/lib/git-core/git-sh-prompt"
+    if [[ -s "$GIT_SH_PROMPT_PATH_MACOS" ]]; then
       # shellcheck source=/dev/null
-      source "/usr/lib/git-core/git-sh-prompt"
-    elif [[ -s "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh" ]]; then
-      # This is the standard location on macOS.
+      source "$GIT_SH_PROMPT_PATH_MACOS"
+    elif [[ -s "$GIT_SH_PROMPT_PATH_UBUNTU" ]]; then
       # shellcheck source=/dev/null
-      source "/Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh"
+      source "$GIT_SH_PROMPT_PATH_UBUNTU"
     else
       echo "Error: Cannot find the \"__git_ps1\" function declared." >&2
       return 1
@@ -839,6 +808,39 @@ if [[ $- == *i* ]]; then
     PS1="$PS1"'\[\033[0m\]'  # change color
     PS1="$PS1"'\n'           # new line
     PS1="$PS1"'$ '           # prompt: always $
+  fi
+
+  # zoxide (a better cd)
+  # https://github.com/ajeetdsouza/zoxide
+  if command -v zoxide &> /dev/null; then
+    # We can use "zoxide init bash --cmd cd" to replace the "cd" command, but we do not need to do
+    # this because we overwrite the "cd" command anyway.
+    eval "$(zoxide init bash)"
+
+    # Overwrite the "zi" command so that it functions similar to our custom "cd" command.
+    zi() {
+      __zoxide_zi "$@" && print-files-and-branches
+    }
+  fi
+
+  # fzf (for fuzzy matching file paths)
+  # https://github.com/junegunn/fzf
+  if command -v fzf &> /dev/null; then
+    eval "$(fzf --bash)"
+
+    # https://github.com/junegunn/fzf?tab=readme-ov-file#advanced-topics
+    # "--scheme=path" - Optimize the scoring for file paths.
+    export FZF_COMPLETION_OPTS="--scheme=path"
+
+    # The default completion trigger is "**". We could replace the normal Bash tab menu with fzf, but
+    # this is not desirable because fzf is much slower and does not always prioritize files in the
+    # respective directory. We use "." instead of "**" since it is easier to type.
+    export FZF_COMPLETION_TRIGGER="."
+
+    # Change fzf's "Alt + C" hotkey to use zoxide, if available.
+    if command -v zoxide &> /dev/null; then
+      bind '"\ec": "zi\n"'
+    fi
   fi
 fi
 
