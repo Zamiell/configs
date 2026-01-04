@@ -82,8 +82,18 @@ assert-feature-branch() (
 assert-in-git-repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a Git repository." >&2
+  local directory="${1-}"
+  if [[ -z "$directory" ]]; then
+    directory="$PWD"
+  fi
+
+  if [[ ! -d "$directory" ]]; then
+    echo "Error: The provided directory does not exist: $directory" >&2
+    return 1
+  fi
+
+  if ! git -C "$directory" rev-parse --is-inside-work-tree &> /dev/null; then
+    echo "Error: The \"$directory\" directory is not inside a Git repository." >&2
     return 1
   fi
 )
@@ -169,10 +179,9 @@ get-first-branch-commit-description() (
 get-git-remote-details() (
   set -euo pipefail
 
-  local directory
-  directory=$(pwd)
-  if [[ -n "${1-}" ]]; then
-    directory="$1"
+  local directory="${1-}"
+  if [[ -z "$directory" ]]; then
+    directory="$PWD"
   fi
 
   if [[ ! -d "$directory" ]]; then
@@ -180,12 +189,14 @@ get-git-remote-details() (
     return 1
   fi
 
+  assert-in-git-repository "$directory"
+
   local remote_url
   remote_url=$(git -C "$directory" remote get-url origin)
 
   local clean_url="${remote_url%.git}" # Remove the trailing ".git".
+  local repository="${clean_url##*/}"  # Everything after the final slash.
 
-  local repository="${clean_url##*/}" # Everything after the final slash.
   if [[ -z "$repository" ]]; then
     echo "Error: Unable to parse the repository from the git remote: $remote_url" >&2
     return 1
@@ -202,6 +213,9 @@ get-git-remote-details() (
       # HTTPS URL format: https://github.com/alice/my-repo.git
       author=$(echo "$remote_url" | sed --regexp-extended 's|https://github\.com/([^/]+)/.*\.git|\1|')
     fi
+
+    # Check if we are on a branch created with "gh pr checkout".
+    # TODO
 
     echo "$host $author $repository"
     return
