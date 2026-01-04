@@ -867,7 +867,7 @@ cdg() {
   cd "$repo_root"
 }
 
-# Turn off Claude Code permissions.
+# Turn off Claude Code prompts.
 alias claude="claude --dangerously-skip-permissions"
 
 # "csf" is short for "CSpell fix", which will invoke "cspell-check-unused-words --fix".
@@ -875,7 +875,7 @@ csf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
-  exec_package cspell-check-unused-words --fix
+  exec-package cspell-check-unused-words --fix
 
   if [[ -n "$(git status --porcelain)" ]]; then
     gc "chore: remove unused words from the CSpell configuration file"
@@ -941,7 +941,7 @@ llm() (
 )
 
 # "n" is short for "nuke".
-alias n="npx complete-cli@latest nuke"
+alias n="bunx complete-cli@latest nuke"
 
 # "o" is short for "open", to open a URL in a browser.
 o() (
@@ -1082,7 +1082,7 @@ alias kgp="kubectl get pod"
 # npm Commands
 # ------------
 
-exec_package() (
+exec-package() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1-}" ]]; then
@@ -1091,7 +1091,7 @@ exec_package() (
   fi
 
   local package_manager
-  package_manager="$(get_package_manager)"
+  package_manager="$(get-package-manager)"
 
   local exec_command
   case $package_manager in
@@ -1116,7 +1116,7 @@ exec_package() (
   "$exec_command" "$@"
 )
 
-get_package_manager() (
+get-package-manager() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local current_dir
@@ -1151,7 +1151,7 @@ get_package_manager() (
   echo "npm"
 )
 
-run_package_script() (
+run-package-script() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1-}" ]]; then
@@ -1160,19 +1160,19 @@ run_package_script() (
   fi
 
   local package_manager
-  package_manager="$(get_package_manager)"
+  package_manager="$(get-package-manager)"
   "$package_manager" run "$@"
 )
 
-alias b="run_package_script build"
-alias d="run_package_script dev"
-alias l="run_package_script lint"
-alias la="run_package_script lint-all"
-alias p="run_package_script publish"
-alias s="run_package_script start"
-alias t="run_package_script test"
-alias tpr="run_package_script test-pr"
-alias u="run_package_script update || exec_package complete-cli@latest update"
+alias b="run-package-script build"
+alias d="run-package-script dev"
+alias l="run-package-script lint"
+alias la="run-package-script lint-all"
+alias p="run-package-script publish"
+alias s="run-package-script start"
+alias t="run-package-script test"
+alias tpr="run-package-script test-pr"
+alias u="run-package-script update || exec-package complete-cli@latest update"
 
 # ----------
 # Git Config
@@ -2039,7 +2039,7 @@ gpr() (
         # https://cspell.org/docs/Configuration/document-settings#ignore
         echo "# cSpell:ignore $CSPELL_IGNORED_WORDS"
         echo "$pull_request_text"
-      } | exec_package cspell stdin --no-progress --no-summary
+      } | exec-package cspell stdin --no-progress --no-summary
       # - "--no-progress" and "--no-summary" make it only output errors.
     fi
   fi
