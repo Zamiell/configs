@@ -813,17 +813,18 @@ if [[ $- == *i* ]]; then
   fi
 
   # bun auto-complete for e.g. "bun run"
-  if command -v bun &> /dev/null; then
-    BUN_COMPLETIONS_PATH="$HOME/.bun/_bun"
-    bun completions > "$BUN_COMPLETIONS_PATH"
-    if [[ "$(uname)" == "Darwin" ]]; then
-      # We modify the output from "bun completions" to work around this bug:
-      # https://github.com/oven-sh/bun/issues/24847
-      sed --in-place "s/local re_prev_script=/return; local re_prev_script=/" "$BUN_COMPLETIONS_PATH"
-    fi
-    # shellcheck source=/dev/null
-    source "$BUN_COMPLETIONS_PATH"
-  fi
+  # TODO: Does not work on my work computer.
+  # if command -v bun &> /dev/null; then
+  #   BUN_COMPLETIONS_PATH="$HOME/.bun/_bun"
+  #   bun completions > "$BUN_COMPLETIONS_PATH"
+  #   if [[ "$(uname)" == "Darwin" ]]; then
+  #     # We modify the output from "bun completions" to work around this bug:
+  #     # https://github.com/oven-sh/bun/issues/24847
+  #     sed --in-place "s/local re_prev_script=/return; local re_prev_script=/" "$BUN_COMPLETIONS_PATH"
+  #   fi
+  #   # shellcheck source=/dev/null
+  #   source "$BUN_COMPLETIONS_PATH"
+  # fi
 
   # npm auto-complete for e.g. "npm run"
   if command -v npm &> /dev/null; then
