@@ -63,7 +63,7 @@
       },
       {
         "closeOnExit": "always",
-        "commandline": "%PROGRAMFILES%/Git/usr/bin/bash.exe -i -l",
+        "commandline": "%PROGRAMFILES%\\Git\\bin\\bash.exe -i -l",
         "guid": "{2534e69d-4823-4626-8295-fa9d1dded4e3}",
         "icon": "%PROGRAMFILES%/Git/mingw64/share/git/git-for-windows.ico",
         "name": "Bash",
