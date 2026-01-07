@@ -831,9 +831,10 @@ if [[ $- == *i* ]]; then
   # fi
 
   # npm auto-complete for e.g. "npm run"
-  if command -v npm &> /dev/null; then
-    eval "$(npm completion)"
-  fi
+  # TODO: Commented out since it is too expensive.
+  #if command -v npm &> /dev/null; then
+  #  eval "$(npm completion)"
+  #fi
 
   # zoxide (a better cd)
   # https://github.com/ajeetdsouza/zoxide
