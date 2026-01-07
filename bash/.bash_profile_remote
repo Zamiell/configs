@@ -853,13 +853,8 @@ if [[ $- == *i* ]]; then
     # "--scheme=path" - Optimize the scoring for file paths.
     export FZF_COMPLETION_OPTS="--scheme=path"
 
-    # The default completion trigger is "**". We could replace the normal Bash tab menu with fzf, but
-    # this is not desirable because fzf is much slower and does not always prioritize files in the
-    # respective directory. We use "." instead of "**" since it is easier to type.
-    export FZF_COMPLETION_TRIGGER="."
-
     # Change fzf's "Alt + C" hotkey to use zoxide, if available.
-    if command -v zoxide &> /dev/null; then
+    if command -v zi &> /dev/null; then
       bind '"\ec": "zi\n"'
     fi
   fi
