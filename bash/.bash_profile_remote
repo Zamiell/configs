@@ -603,6 +603,10 @@ set-gh-remote() (
   # This will be something like: refs/remotes/alice/main
   target_ref="refs/remotes/$github_username/$branch_short_name"
   git -C "$directory" branch --set-upstream-to="$target_ref"
+
+  # Set "push.default" to "upstream". This ensures that "git push" works even when the local branch
+  # name (e.g. "pr-123") differs from the remote branch name.
+  git -C "$directory" config push.default upstream
 )
 
 to-lowercase() (
