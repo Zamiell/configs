@@ -1068,6 +1068,9 @@ get-ssh-keys() (
   bw get notes id_ed25519.pub > "$HOME/.ssh/id_ed25519.pub"
 )
 
+# "kb" is short for "kubernetes build".
+alias kb='$REPOSITORIES_DIR/infrastructure/3_Applications/kubernetes/build.sh'
+
 # A better "ll" alias that shows human-readable file sizes.
 # (macOS does not support any of the long-form flags, so we use the short ones instead.)
 # - "-a" is short for "--all", which shows hidden files.
