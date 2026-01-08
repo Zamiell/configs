@@ -1156,6 +1156,8 @@ put-env() (
 
   assert-jq-installed
 
+  bw sync
+
   local bw_item
   bw_item=$(bw get item .env)
   if [[ -z "$bw_item" ]]; then
