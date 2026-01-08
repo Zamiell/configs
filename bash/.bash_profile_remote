@@ -1053,6 +1053,9 @@ alias full-path="readlink -f"
 # copy of the vault.)
 alias get-env='bw sync && bw get notes .env > $HOME/.env'
 
+# Turn off Gemini Code Assist prompts.
+alias gemini="gemini --yolo"
+
 get-ssh-keys() (
   set -euo pipefail # Exit on errors and undefined variables.
 
