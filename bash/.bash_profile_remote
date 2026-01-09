@@ -9,7 +9,7 @@
 # Constants
 # ---------
 
-CSPELL_IGNORED_WORDS="knip,mypy,pyproject,pyright,shellcheck,sqlfluff,yamlfix"
+CSPELL_IGNORED_WORDS="knip,mypy,pyproject,pyright,pytest,shellcheck,sqlfluff,yamlfix"
 
 # endregion
 

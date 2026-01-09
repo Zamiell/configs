@@ -147,6 +147,7 @@
     "pullrequests",
     "pulumi",
     "pyproject",
+    "pytest",
     "pythoncore",
     "qdbus",
     "readlink",
