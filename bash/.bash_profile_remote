@@ -1202,6 +1202,7 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
   fi
 fi
 
+# "tpr" is short for "test-pr".
 tpr() (
   builtin cd "$REPOSITORIES_DIR/infrastructure/3_Applications/containers/logix-ci-cd-tasks"
   bun run test-pr "$@"
