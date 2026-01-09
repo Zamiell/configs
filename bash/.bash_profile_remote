@@ -1724,8 +1724,13 @@ gc() (
     fi
   else
     if [[ "$user_email" == *github.com || "$user_email" == *gmail.com ]]; then
-      echo "Error: You are trying to commit to an non-GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
-      return 1
+      if [[ "$OS_USERNAME" == "james" || "$OS_USERNAME" == "jnesta" ]]; then
+        git config user.name "James Nesta"
+        git config user.email "jnesta@logixhealth.com"
+      else
+        echo "Error: You are trying to commit to an non-GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
+        return 1
+      fi
     fi
   fi
 
