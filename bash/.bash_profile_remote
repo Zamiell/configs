@@ -1069,7 +1069,7 @@ get-ssh-keys() (
 )
 
 # "kb" is short for "kubernetes build".
-alias kb='(cd $REPOSITORIES_DIR/infrastructure/3_Applications/kubernetes && npm run build)'
+alias kb='(builtin cd $REPOSITORIES_DIR/infrastructure/3_Applications/kubernetes && npm run build)'
 
 # A better "ll" alias that shows human-readable file sizes.
 # (macOS does not support any of the long-form flags, so we use the short ones instead.)
@@ -1202,7 +1202,10 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
   fi
 fi
 
-alias tpr='(cd $REPOSITORIES_DIR/infrastructure/3_Applications/containers/logix-ci-cd-tasks && bun run test-pr)'
+tpr() (
+  builtin cd "$REPOSITORIES_DIR/infrastructure/3_Applications/containers/logix-ci-cd-tasks"
+  bun run test-pr "$@"
+)
 
 # Establishes a connection to the LogixHealth VPN in the background. (This is intended to be used on
 # Linux devices.)
