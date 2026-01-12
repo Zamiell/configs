@@ -1030,23 +1030,6 @@ csf() (
   fi
 )
 
-# Alias "explorer" to "open" on macOS and "xdg-open" on Linux. (Note that we could also use "start"
-# instead of "explorer".
-explorer() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if command -v explorer &> /dev/null; then
-    # We must use "command" to invoke "explorer" to prevent an infinite loop.
-    command explorer "$@"
-  else
-    if [[ "$(uname)" == "Darwin" ]]; then
-      open "$@"
-    else
-      xdg-open "$@"
-    fi
-  fi
-)
-
 alias full-path="readlink -f"
 
 # Get our ".env" file from BitWarden. (We must sync first because the BitWarden CLI uses a local
@@ -1201,6 +1184,21 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
     builtin cd "$REPOSITORIES_DIR"
   fi
 fi
+
+# Alias "start" to "open" on macOS and "xdg-open" on Linux. ("start" is a Windows-only command to
+# open explorer at the given path.)
+start() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if is-git-bash; then
+    # We must use "command" to invoke "start" to prevent an infinite loop.
+    command start "$@"
+  elif [[ "$(uname)" == "Darwin" ]]; then
+    open "$@"
+  else
+    xdg-open "$@"
+  fi
+)
 
 # "tpr" is short for "test-pr".
 tpr() (
