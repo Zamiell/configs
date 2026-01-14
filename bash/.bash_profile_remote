@@ -2126,6 +2126,28 @@ gpr() (
   o "$pull_request_url"
 )
 
+# "gpr-dry" is similar to "gpr", but will just open the URL that will begin the process of creating
+# the pull request instead of actually fully opening the pull request. This is useful to see the
+# files changed on the branch.
+gpr-dry() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+  assert-feature-branch
+
+  read -r host organization project repository <<< "$(get-git-remote-details)"
+  if [[ "$host" != "azure-devops-server" ]]; then
+    echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
+    return 1
+  fi
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  local pr_url="https://azuredevops.logixhealth.com/$organization/$project/_git/$repository/pullrequestcreate?sourceRef=$branch_name"
+  o "$pr_url"
+)
+
 # "grb" is short for "git rebase".
 alias grb="git rebase"
 
