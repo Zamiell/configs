@@ -1943,6 +1943,8 @@ gpm() (
       git branch --track "$local_branch" "$remote_branch"
     fi
   done
+
+  gbl
 )
 
 # "gpr" is short for "git pull request", to start a new pull request based on the current branch.
