@@ -695,6 +695,9 @@ if [[ -n "$PG_PATH" ]]; then
   append-path "$PG_PATH"
 fi
 
+# "Programs" directory in OneDrive
+append-path "/c/Users/jnesta/OneDrive - LogixHealth Inc/Documents/Programs"
+
 # Python
 # e.g. $HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts
 PYTHON_PATH_WINDOWS=$(find "$HOME/AppData/Local/Python" -maxdepth 2 -type d -path "*/pythoncore-*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
