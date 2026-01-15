@@ -559,43 +559,61 @@ set-gh-remote() (
   # function and e.g. "git@github.com:alice/foo.git" or "https://github.com/alice/foo" on branches
   # freshly created from "gh pr checkout".
   remote_config=$(git -C "$directory" config "branch.$branch_name.remote")
-  if [[ ! "$remote_config" =~ github\.com[:/]([^/]+)/ ]]; then
+
+  if [[ -z "$remote_config" ]]; then
+    echo "Error: Failed to parse the Git branch remote config of: $remote_config" >&2
+    return 1
+  fi
+
+  if [[ "$remote_config" == "origin" ]]; then
     return
   fi
 
-  # First, add a remote for the forked repository.
   local github_username
-  github_username="${BASH_REMATCH[1]}"
-  local existing_url
-  existing_url=$(git -C "$directory" remote get-url "$github_username" 2> /dev/null || true)
+  if [[ "$remote_config" =~ github\.com[:/]([^/]+)/ ]]; then
+    # Add a remote for the forked repository.
+    github_username="${BASH_REMATCH[1]}"
 
-  if [[ -n "$existing_url" ]]; then
-    # The remote has already been set up on this repository. Verify that it matches.
-    if [[ "$existing_url" != "$remote_config" ]]; then
-      echo "Error: The remote \"$github_username\" already exists, but it points to \"$existing_url\" instead of \"$remote_config\"." >&2
-      return 1
+    local existing_url
+    existing_url=$(git -C "$directory" remote get-url "$github_username" 2> /dev/null || true)
+
+    if [[ -n "$existing_url" ]]; then
+      # The remote has already been set up on this repository. Verify that it matches.
+      if [[ "$existing_url" != "$remote_config" ]]; then
+        echo "Error: The remote \"$github_username\" already exists, but it points to \"$existing_url\" instead of \"$remote_config\"." >&2
+        return 1
+      fi
+    else
+      # The remote for this username does not already exist.
+      git -C "$directory" remote add "$github_username" "$remote_config"
+
+      # Now that the repository has more than one remote, the GitHub CLI will become confused and
+      # complain that "no default remote repository has been set" when running commands. Manually
+      # set the default to the non-forked remote.
+      local origin_url
+      origin_url=$(git -C "$directory" remote get-url origin)
+      # The GitHub CLI does not support the "-C" flag, so we use a subshell.
+      (builtin cd "$directory" && gh repo set-default "$origin_url")
     fi
-  else
-    # The remote for this username does not already exist.
-    git -C "$directory" remote add "$github_username" "$remote_config"
 
-    # Now that the repository has more than one remote, the GitHub CLI will become confused and
-    # complain that "no default remote repository has been set" when running commands. Manually set
-    # the default to the non-forked remote.
-    local origin_url
-    origin_url=$(git -C "$directory" remote get-url origin)
-    # The GitHub CLI does not support the "-C" flag, so we use a subshell.
-    (builtin cd "$directory" && gh repo set-default "$origin_url")
+    git -C "$directory" fetch "$github_username"
+  else
+    # The remote is already set (e.g. "alice").
+    github_username="$remote_config"
   fi
 
-  git -C "$directory" fetch "$github_username"
-
-  # Second, set the upstream for the current branch. By default, branches created with "gh pr
-  # checkout" will not have an upstream, which can be seen with "git branch -vv". If the upstream is
-  # already set, this will be a no-op.
+  # Set the upstream for the current branch. By default, branches created with "gh pr checkout" will
+  # not have an upstream, which can be seen with "git branch -vv". If the upstream is already set,
+  # this will be a no-op.
   local merge_ref
   # This will be something like: refs/heads/main
   merge_ref=$(git -C "$directory" config branch."$branch_name".merge)
+
+  if [[ -z "$merge_ref" ]]; then
+    echo "Error: Failed to parse the Git branch merge config." >&2
+    return 1
+  fi
+
   local branch_short_name
   # This will be something like: main
   branch_short_name=${merge_ref#refs/heads/}
