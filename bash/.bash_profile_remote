@@ -1398,6 +1398,10 @@ gb() (
   if [[ -n "${1:-}" ]]; then
     new_branch_name="$1"
   fi
+  if ! git check-ref-format "refs/heads/$new_branch_name"; then
+    echo "Error: The branch name of \"$new_branch_name\" contains illegal characters." >&2
+    return 1
+  fi
 
   if [[ "$use_logixhealth_convention" == "true" ]] && ! is-github-repository; then
     local application_name="misc"
