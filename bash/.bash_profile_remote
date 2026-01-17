@@ -1075,6 +1075,23 @@ get-ssh-keys() (
 # "kb" is short for "kubernetes build".
 alias kb='(builtin cd $REPOSITORIES_DIR/infrastructure/3_Applications/kubernetes && npm run build)'
 
+killapp() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ "$(uname)" != "Darwin" ]]; then
+    echo "Error: This command is only meant to be used on macOS." >&2
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The application name is required. Usage: ${FUNCNAME[0]} <application_name>" >&2
+    return 1
+  fi
+  local application_name="$*"
+
+  osascript -e "quit app \"$application_name\""
+)
+
 # A better "ll" alias that shows human-readable file sizes.
 # (macOS does not support any of the long-form flags, so we use the short ones instead.)
 # - "-a" is short for "--all", which shows hidden files.
@@ -1631,7 +1648,7 @@ gbr() (
   local new_branch_name
   if [[ "$use_logixhealth_convention" == "true" ]]; then
     if [[ -z "${1:-}" ]]; then
-      echo "Error: Application name is required. Usage: ${FUNCNAME[0]} <application-name> [description]" >&2
+      echo "Error: Application name is required. Usage: ${FUNCNAME[0]} <application_name> [description]" >&2
       return 1
     fi
     local new_app_name="$1"
