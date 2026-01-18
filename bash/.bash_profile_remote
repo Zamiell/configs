@@ -1060,6 +1060,8 @@ alias get-env='bw sync && bw get notes .env > $HOME/.env'
 # Turn off Gemini Code Assist prompts.
 alias gemini="gemini --yolo"
 
+alias get-claude-settings='mkdir -p "$HOME/.claude" && curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/other/claude/settings.json > "$HOME/.claude/settings.json"'
+
 get-ssh-keys() (
   set -euo pipefail # Exit on errors and undefined variables.
 
