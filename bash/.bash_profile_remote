@@ -2585,6 +2585,9 @@ alias ti="terraform init"
 # "tp" is short for "terraform plan".
 alias tp="terraform plan"
 
+# "tu" is short for "terraform force-unlock -force".
+alias tu="terraform force-unlock -force"
+
 # "tv" is short for "terraform validate".
 alias tv="terraform validate"
 
