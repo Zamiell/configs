@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo -e '\\a'"
+            "command": "ffplay -nodisp -autoexit $HOME/blind6.mp3"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo -e '\\a'"
+            "command": "ffplay -nodisp -autoexit $HOME/blind6.mp3"
           }
         ]
       }
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo -e '\\a'"
+            "command": "ffplay -nodisp -autoexit $HOME/blind6.mp3"
           }
         ]
       }
