@@ -2542,6 +2542,9 @@ gh-sync() (
 # Pulumi Commands
 # ---------------
 
+# "pc" is short for "pulumi cancel".
+alias pc="pulumi cancel"
+
 # "pd" is short for "pulumi destroy".
 alias pd="pulumi destroy"
 
