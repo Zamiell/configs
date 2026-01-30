@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "ffplay -nodisp -autoexit $HOME/blind6.mp3"
+            "command": "ffplay -nodisp -autoexit \"C:/Users/jnesta/blind6.mp3\""
           }
         ]
       }
@@ -17,18 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "ffplay -nodisp -autoexit $HOME/blind6.mp3"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "ffplay -nodisp -autoexit $HOME/blind6.mp3"
+            "command": "ffplay -nodisp -autoexit \"C:/Users/jnesta/blind6.mp3\""
           }
         ]
       }
