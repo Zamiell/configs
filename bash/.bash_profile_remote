@@ -1036,6 +1036,9 @@ cdg() {
   cd "$repo_root"
 }
 
+# Turn off GitHub Copilot CLI prompts.
+alias copilot="copilot --yolo"
+
 # Turn off Claude Code prompts.
 alias claude="claude --dangerously-skip-permissions"
 
