@@ -786,7 +786,7 @@ fi
 # This fixes the bug where closing one terminal window will remove the command history that was
 # written by other terminal windows.
 shopt -s histappend # This is "off" by default.
-PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+PROMPT_COMMAND+=("history -a")
 
 # Only modify other terminal settings if the shell is interactive.
 if [[ $- == *i* ]]; then
