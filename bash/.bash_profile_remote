@@ -1426,12 +1426,7 @@ gb() (
   fi
 
   if [[ "$use_logixhealth_convention" == "true" ]] && ! is-github-repository; then
-    local application_name="misc"
-    if [[ -n "${2:-}" ]]; then
-      application_name="$2"
-    fi
-
-    new_branch_name="feature/$application_name/$OS_USERNAME/$new_branch_name"
+    new_branch_name="feature/$OS_USERNAME/$new_branch_name"
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
