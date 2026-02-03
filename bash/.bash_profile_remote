@@ -1968,7 +1968,7 @@ gpm() (
 
   git fetch origin --prune --quiet
 
-  local prefix="feature/misc/$OS_USERNAME/"
+  local prefix="feature/$OS_USERNAME/"
 
   # We use "--list" to filter the branches directly via Git.
   local remote_branches
