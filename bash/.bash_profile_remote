@@ -728,6 +728,9 @@ if [[ -n "$PYTHON_PATH_MACOS" ]]; then
   append-path "$PYTHON_PATH_MACOS"
 fi
 
+# terraform-docs
+append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terraform-docs"
+
 # terragrunt
 append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"
 
