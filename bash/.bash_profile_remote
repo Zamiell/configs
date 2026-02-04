@@ -2586,6 +2586,9 @@ alias tf="terraform fmt"
 # "ti" is short for "terraform init".
 alias ti="terraform init"
 
+# "tiv" is short for "terraform init && terraform validate".
+alias tiv="terraform init && terraform validate"
+
 # "tp" is short for "terraform plan".
 alias tp="terraform plan"
 
