@@ -1888,15 +1888,20 @@ gcam() (
   gc --amend --edit-commit-message
 )
 
-# "gcs" is short for "git commit show", which will open a browser to view the last commit.
+# "gcs" is short for "git commit show", which will open a browser to view the last commit. You can
+# optionally supply a SHA1 to show a custom commit.
 gcs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
 
-  # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
   local commit_sha1
-  commit_sha1=$(git rev-parse HEAD)
+  if [[ -z "${1:-}" ]]; then
+    # e.g. "efe970b4d2d9c7a7023919ea677efce70222c201"
+    commit_sha1=$(git rev-parse HEAD)
+  else
+    commit_sha1="$1"
+  fi
 
   read -r host _2 _3 _4 <<< "$(get-git-remote-details)"
 
