@@ -2233,6 +2233,40 @@ grbm() (
   git push --force-with-lease
 )
 
+# "grms" is short for "git remote ssh", which changes the current Git remote from HTTPS to SSH.
+grms() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local remote_url
+  remote_url=$(git remote get-url origin)
+
+  if [[ "$remote_url" == git@* ]] || [[ "$remote_url" == ssh://* ]]; then
+    echo "The remote is already set to SSH: $remote_url"
+    return
+  fi
+
+  local new_url
+  if [[ "$remote_url" =~ ^https://github\.com/([^/]+)/([^/]+)(\.git)?$ ]]; then
+    local user="${BASH_REMATCH[1]}"
+    local repo="${BASH_REMATCH[2]}"
+    repo="${repo%.git}"
+    new_url="git@github.com:$user/$repo.git"
+  elif [[ "$remote_url" =~ ^https://dev\.azure\.com/([^/]+)/([^/]+)/_git/([^/]+)$ ]]; then
+    local organization="${BASH_REMATCH[1]}"
+    local project="${BASH_REMATCH[2]}"
+    local repository="${BASH_REMATCH[3]}"
+    new_url="git@ssh.dev.azure.com:v3/$organization/$project/$repository"
+  else
+    echo "Error: Unsupported remote URL format for automatic conversion: $remote_url" >&2
+    return 1
+  fi
+
+  git remote set-url origin "$new_url"
+  echo "Changed remote origin to SSH: $new_url"
+)
+
 # "grs" is short for "git reset".
 alias grs="git reset"
 
