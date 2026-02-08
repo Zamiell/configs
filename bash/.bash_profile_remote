@@ -734,6 +734,9 @@ append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terraform-docs"
 # terragrunt
 append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"
 
+# zig
+append-path "/d/Apps/Misc/zig"
+
 # endregion
 
 # region: Other Environment Variables
