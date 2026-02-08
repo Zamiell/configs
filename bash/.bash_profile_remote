@@ -1217,10 +1217,10 @@ if [[ -d "$HOME/Repositories" ]]; then # Windows / macOS
   REPOSITORIES_DIR="$HOME/Repositories"
 elif [[ -d "$HOME/repositories" ]]; then # Linux
   REPOSITORIES_DIR="$HOME/repositories"
+elif [[ -d "/d/Repositories" ]]; then # Windows D drive (should have priority over C drive)
+  REPOSITORIES_DIR="/d/Repositories"
 elif [[ -d "/c/Repositories" ]]; then # Windows C drive
   REPOSITORIES_DIR="/c/Repositories"
-elif [[ -d "/d/Repositories" ]]; then # Windows D drive
-  REPOSITORIES_DIR="/d/Repositories"
 fi
 if [[ -n "$REPOSITORIES_DIR" ]]; then
   export REPOSITORIES_DIR
