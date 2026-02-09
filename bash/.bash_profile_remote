@@ -717,10 +717,15 @@ fi
 append-path "/c/Users/jnesta/OneDrive - LogixHealth Inc/Documents/Programs"
 
 # Python
-# e.g. $HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts
-PYTHON_PATH_WINDOWS=$(find "$HOME/AppData/Local/Python" -maxdepth 2 -type d -path "*/pythoncore-*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
-if [[ -n "$PYTHON_PATH_WINDOWS" ]]; then
-  append-path "$PYTHON_PATH_WINDOWS"
+# e.g. $HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts (Microsoft Store install)
+PYTHON_PATH_WINDOWS_LOCAL=$(find "$HOME/AppData/Local/Python" -maxdepth 2 -type d -path "*/pythoncore-*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
+if [[ -n "$PYTHON_PATH_WINDOWS_LOCAL" ]]; then
+  append-path "$PYTHON_PATH_WINDOWS_LOCAL"
+fi
+# e.g. $HOME/AppData/Roaming/Python/Python314/Scripts (python.org install, pip --user)
+PYTHON_PATH_WINDOWS_ROAMING=$(find "$HOME/AppData/Roaming/Python" -maxdepth 2 -type d -path "*/Python*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
+if [[ -n "$PYTHON_PATH_WINDOWS_ROAMING" ]]; then
+  append-path "$PYTHON_PATH_WINDOWS_ROAMING"
 fi
 # e.g. $HOME/Library/Python/3.9/bin
 PYTHON_PATH_MACOS=$(find "$HOME/Library/Python" -maxdepth 2 -type d -path "*/bin" 2> /dev/null | sort --version-sort | tail -n 1)
