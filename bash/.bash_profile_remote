@@ -930,6 +930,15 @@ git config --global fetch.prune true
 # Automatically remove any tags that no longer exist on the remote.
 git config --global fetch.pruneTags true
 
+# https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpsslBackend
+# Default value: openssl
+# On Windows, we need to tell Git to use the Windows Certificate Store for resolving HTTPS website.
+# This is necessary in situations where self-signed company certificates are present in the Windows
+# Certificate Store.
+if is-git-bash; then
+  git config --global http.sslBackend schannel
+fi
+
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-pullrebase
 # Default value: false
 # Setting this prevents spurious merge commits.
