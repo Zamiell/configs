@@ -1,7 +1,7 @@
 Windows Registry Editor Version 5.00
 
-; By default, when VSCode is installed from winget, it does not include context menus, so it must be
-; manually added afterwards.
+; By default, when Visual Studio Code is installed from winget, it does not include context menus,
+; so it must be manually added afterwards.
 ; https://thisdavej.com/right-click-on-windows-folder-and-open-with-visual-studio-code/
 
 ; Open files

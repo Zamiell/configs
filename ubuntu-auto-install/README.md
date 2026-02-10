@@ -7,10 +7,7 @@
    - boot/grub/grub.cfg
    - post-install
 
-3. Open the copied "autoinstall.yaml" file and change:
-   - The BitWarden API client secret:
-     - `- echo "hunter2" > /target/post-install/bitwarden_api_client_secret`
-   - The BitWarden master password:
-     - `echo "hunter2" > /target/post-install/bitwarden_master_password`
-   - The disk encryption password:
-     - `password: "hunter2"`
+3. Open the copied "autoinstall.yaml" file and change the disk encryption password:
+   - `password: "hunter2"`
+
+4. Copy the "id_ed25519" private key file to the "post-install/.ssh" directory.

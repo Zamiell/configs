@@ -19,18 +19,12 @@ autoinstall:
   # - The new root filesystem is at: /target
   late-commands:
     # Set automatic login.
-    - sudo mkdir --parents /target/etc/systemd/system/getty@tty1.service.d
+    - sudo mkdir -p /target/etc/systemd/system/getty@tty1.service.d
     - cp /cdrom/post-install/etc/systemd/override.conf /target/etc/systemd/system/getty@tty1.service.d/
 
     # Copy the post-installation script and related files to the system.
     - cp --recursive /cdrom/post-install /target/post-install
     - chmod +x /target/post-install/post-install.sh
-
-    # Write the BitWarden API client secret and master password to disk so that the
-    # post-installation script can use it. (This will be deleted later by the post-installation
-    # script.)
-    - echo "hunter2" > /target/post-install/bitwarden_api_client_secret
-    - echo "hunter2" > /target/post-install/bitwarden_master_password
 
     # Set the post-installation script to automatically run once the user logs in for the first
     # time. Note that:
@@ -41,8 +35,14 @@ autoinstall:
     # - The "user-data" --> "run_cmd" section can be used to run commands on the first boot, but we
     #   cannot use it for this purpose because the automatic login occurs first. In other words, any
     #   modifications to "/home/jnesta/.profile" would not take effect.
-    - mkdir --parents /target/home/jnesta
+    - mkdir -p /target/home/jnesta
     - cp /cdrom/post-install/.profile /target/home/jnesta/
+
+    # Copy the SSH public and private key.
+    - mkdir /target/home/jnesta/.ssh
+    - cp /cdrom/post-install/.ssh/id_ed25519 /target/home/jnesta/.ssh/id_ed25519
+    - chmod 600 /target/home/jnesta/.ssh/id_ed25519
+    - cp /cdrom/post-install/.ssh/id_ed25519.pub /target/home/jnesta/.ssh/id_ed25519.pub
 
     # Since the installer is running as root, the user's directory will be owned by root, so we have
     # to manually fix it. We have to use the numeric UID since the user does not exist on the

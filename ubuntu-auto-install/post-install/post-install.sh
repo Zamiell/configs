@@ -11,7 +11,6 @@ PERSONAL_EMAIL="j.nesta@gmail.com"
 WORK_EMAIL="jnesta@logixhealth.com"
 GITHUB_EMAIL="5511220+Zamiell@users.noreply.github.com"
 GITHUB_USERNAME="Zamiell"
-BW_CLIENTID="user.c73c6208-71e9-48f5-ac11-b3940010eeee"
 
 # ----------
 # Validation
@@ -26,73 +25,22 @@ fi
 # the "wpasupplicant" package. Putting this on the installation media is non-trivial because it
 # needs to match the existing system and would quickly get out of date. Thus, we first check for the
 # presence of a wired connection.
-if ! curl --silent --fail --show-error --location https://www.google.com &> /dev/null; then
+ONLINE="false"
+# Only wait for 20 seconds.
+for ((i = 1; i <= 20; i++)); do
+  if curl --silent --fail --show-error --location --connect-timeout 1 https://www.google.com &> /dev/null; then
+    ONLINE="true"
+    break
+  fi
+  sleep 1
+done
+if [[ "$ONLINE" == "false" ]]; then
   # Make the error message easy to see so that it does not get lost in the spam of the initial boot.
-  echo "---------------------------------------------------------------"
-  echo "Error: You must have an internet connection to run this script."
-  echo "---------------------------------------------------------------"
+  echo "---------------------------------------------------------------" >&2
+  echo "Error: You must have an internet connection to run this script." >&2
+  echo "---------------------------------------------------------------" >&2
   exit 1
 fi
-
-# ----------------
-# Helper functions
-# ----------------
-
-bitwarden_login() {
-  if [[ -n "${BW_SESSION:-}" ]]; then
-    return
-  fi
-
-  if [[ -z "${BW_CLIENTSECRET:-}" ]]; then
-    BITWARDEN_API_CLIENT_SECRET_PATH="/post-install/bitwarden_api_client_secret"
-    if [[ -s "$BITWARDEN_API_CLIENT_SECRET_PATH" ]]; then
-      BW_CLIENTSECRET=$(cat "$BITWARDEN_API_CLIENT_SECRET_PATH")
-    fi
-  fi
-
-  if [[ -z "${BW_PASSWORD:-}" ]]; then
-    BITWARDEN_MASTER_PASSWORD_PATH="/post-install/bitwarden_master_password"
-    if [[ -s "$BITWARDEN_MASTER_PASSWORD_PATH" ]]; then
-      BW_PASSWORD=$(cat "$BITWARDEN_MASTER_PASSWORD_PATH")
-    else
-      # "-s" is for silent mode, which hides the input.
-      # "-r" is recommended by shellcheck.
-      # "-p" is to provide a prompt.
-      read -s -r -p "Type in your BitWarden master password and press enter. (The input will be masked.) " BW_PASSWORD && echo
-    fi
-  fi
-
-  # Being already logged in makes the "unlock" command below not work properly, so we always start
-  # from a clean slate.
-  if bw login --check &> /dev/null; then
-    bw logout
-  fi
-
-  export BW_CLIENTID
-  export BW_CLIENTSECRET
-  export BW_PASSWORD
-
-  if [[ -n "${BW_CLIENTSECRET:-}" ]]; then
-    bw login --apikey
-  else
-    bw login "$PERSONAL_EMAIL" --passwordenv BW_PASSWORD
-  fi
-
-  # Before unlocking, we person a manual sync to try and avoid a race condition where the "bw
-  # unlock" command can occasionally fail.
-  bw sync
-
-  BW_SESSION=$(bw unlock --raw --passwordenv BW_PASSWORD)
-
-  export -n BW_CLIENTID
-  export -n BW_CLIENTSECRET
-  export -n BW_PASSWORD
-
-  if [[ -z "$BW_SESSION" ]]; then
-    echo "Error: Failed to get a BitWarden session key." >&2
-    return 1
-  fi
-}
 
 # -----------------
 # Phase 1 - Pre-GUI
@@ -119,41 +67,10 @@ if ! dpkg --status openssh-server &> /dev/null; then
   sudo systemctl enable ssh
   sudo systemctl start ssh
 fi
+# (SSH keys are already set up from "autoinstall.yaml".)
 
 # Disable the message of the day.
 touch "$HOME/.hushlogin"
-
-# Install the BitWarden CLI.
-# https://bitwarden.com/help/cli/#tab-snap-bI3gMs3A3z4pl0fwvRie9
-if ! command -v bw &> /dev/null; then
-  sudo snap install bw
-fi
-
-# Set up environment variables.
-ENV_PATH="$HOME/.env"
-if [[ ! -s "$ENV_PATH" ]]; then
-  bitwarden_login
-  bw get notes .env --session "$BW_SESSION" > "$ENV_PATH"
-  echo >> "$ENV_PATH"
-fi
-# shellcheck source=/dev/null
-source "$ENV_PATH"
-
-# Set up SSH keys.
-mkdir --parents "$HOME/.ssh"
-PRIVATE_KEY_PATH="$HOME/.ssh/id_rsa"
-if [[ ! -s "$PRIVATE_KEY_PATH" ]]; then
-  bitwarden_login
-  bw get notes ssh-private-key --session "$BW_SESSION" > "$PRIVATE_KEY_PATH"
-  echo >> "$PRIVATE_KEY_PATH"
-  chmod 600 "$PRIVATE_KEY_PATH"
-fi
-PUBLIC_KEY_PATH="$HOME/.ssh/id_rsa.pub"
-if [[ ! -s "$PUBLIC_KEY_PATH" ]]; then
-  bitwarden_login
-  bw get notes ssh-public-key --session "$BW_SESSION" > "$PUBLIC_KEY_PATH"
-  echo >> "$PUBLIC_KEY_PATH"
-fi
 
 # Install Git.
 if ! command -v git &> /dev/null; then
@@ -165,21 +82,16 @@ fi
 # Install the GitHub CLI.
 if ! command -v gh &> /dev/null; then
   # From: https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
-  sudo mkdir --parents -m 755 /etc/apt/keyrings \
+  sudo mkdir -p -m 755 /etc/apt/keyrings \
     && curl --silent --fail --show-error --location https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg &> /dev/null \
     && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-    && sudo mkdir --parents -m 755 /etc/apt/sources.list.d \
+    && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list &> /dev/null \
     && sudo apt-get update -qq \
     && sudo apt-get install -qq --yes gh
 
   # gh uses HTTPS by default.
   gh config set git_protocol ssh
-
-  if [[ -z "$GH_TOKEN" ]]; then
-    echo "Error: The \"GH_TOKEN\" environment variable is empty. This is needed by the \"gh\" command to authenticate to GitHub. It should be present in the \".env\" file (which comes from BitWarden)." >&2
-    exit 1
-  fi
 fi
 
 # Install the public key for "github.com".
@@ -189,15 +101,28 @@ fi
 
 # Set up the "repositories" directory.
 REPOSITORIES_PATH="$HOME/repositories"
-mkdir --parents "$REPOSITORIES_PATH"
+mkdir -p "$REPOSITORIES_PATH"
 
+# Ensure that our SSH keys are in place.
+SSH_PRIVATE_KEY_PATH="$HOME/.ssh/id_ed25519"
+if [[ ! -s "$SSH_PRIVATE_KEY_PATH" ]]; then
+  echo "Error: The \"$SSH_PRIVATE_KEY_PATH\" file does not exist or is 0 bytes." >&2
+  exit 1
+fi
+SSH_PUBLIC_KEY_PATH="$HOME/.ssh/id_ed25519.pub"
+if [[ ! -s "$SSH_PUBLIC_KEY_PATH" ]]; then
+  echo "Error: The \"$SSH_PUBLIC_KEY_PATH\" file does not exist or is 0 bytes." >&2
+  exit 1
+fi
+
+# Set up the "configs" repository.
 CONFIGS_PATH="$REPOSITORIES_PATH/configs"
 if [[ -d "$CONFIGS_PATH" ]]; then
   # Make sure this repository is up to date.
   git -C "$CONFIGS_PATH" pull
 else
   # Clone this repository.
-  gh repo clone Zamiell/configs "$CONFIGS_PATH"
+  git clone git@github.com:Zamiell/configs.git "$CONFIGS_PATH"
   git -C "$CONFIGS_PATH" config user.name "$GITHUB_USERNAME"
   git -C "$CONFIGS_PATH" config user.email "$GITHUB_EMAIL"
 fi
@@ -209,6 +134,22 @@ if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
   cat "$CONFIGS_PATH/bash/.bash_profile" >> "$BASHRC_PATH"
 fi
 
+# Set up the "secrets" repository.
+SECRETS_PATH="$REPOSITORIES_PATH/secrets"
+if [[ -d "$SECRETS_PATH" ]]; then
+  # Make sure this repository is up to date.
+  git -C "$SECRETS_PATH" pull
+else
+  # Clone this repository.
+  git clone git@github.com:Zamiell/secrets.git "$SECRETS_PATH"
+  git -C "$SECRETS_PATH" config user.name "$GITHUB_USERNAME"
+  git -C "$SECRETS_PATH" config user.email "$GITHUB_EMAIL"
+fi
+
+# Set the ".env" file.
+sudo apt-get install -qq --yes age
+age --decrypt --identity "$SSH_PRIVATE_KEY_PATH" --output "$HOME/.env" "$SECRETS_PATH/.env.age"
+
 # -------------
 # Phase 2 - GUI
 # -------------
@@ -219,7 +160,7 @@ sudo apt-get install -qq --yes kde-plasma-desktop
 # (This handles automatic login.)
 sudo cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/etc/sddm.conf" /etc/
 
-# Some GUI apps require a GPG key, such as connecting to WiFi and VSCode.
+# Some GUI apps require a GPG key, such as connecting to WiFi and VS Code.
 # (We add "(Personal)" since it is assumed in the GUI that all keys will have comments.)
 if ! gpg --list-secret-keys "$PERSONAL_EMAIL"; then
   gpg --batch --passphrase "" --quick-generate-key "$FULL_NAME (Personal) <$PERSONAL_EMAIL>" default default 0
@@ -234,7 +175,7 @@ sudo systemctl stop bluetooth.service
 # - Normally, icons in the system tray can be removed by deleting the corresponding entry from the
 #   "extraItems" key. However, "Updates" is a special case, because it has no corresponding entry.
 # - We do not need Discover because we will handle system updates manually.
-mkdir --parents "$HOME/.config/autostart"
+mkdir -p "$HOME/.config/autostart"
 cp /etc/xdg/autostart/org.kde.discover.notifier.desktop "$HOME/.config/autostart/"
 echo "Hidden=true" >> "$HOME/.config/autostart/org.kde.discover.notifier.desktop"
 
@@ -324,7 +265,7 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # From: https://store.kde.org/p/1258818
   # TODO: Does not work, makes bugged 3 dots.
   if [[ ! -d "$HOME/.icons/Win10OS-cursors" ]]; then
-    mkdir --parents "$HOME/.icons"
+    mkdir -p "$HOME/.icons"
     tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C "$HOME/.icons/"
   fi
   if [[ $(kreadconfig5 --file kcminputrc --group Mouse --key cursorTheme) != "PRA-DMZ" ]]; then
@@ -338,7 +279,7 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   WIN10_WINDOW_DECORATION_PATH="$HOME/.local/share/aurorae/themes/Win10OS-light"
   if [[ ! -d "$WIN10_WINDOW_DECORATION_PATH" ]]; then
     WINDOW_DECORATIONS_PATH=$(dirname "$WIN10_WINDOW_DECORATION_PATH")
-    mkdir --parents "$WINDOW_DECORATIONS_PATH"
+    mkdir -p "$WINDOW_DECORATIONS_PATH"
     unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/Win10OS-light.zip" -d "$WINDOW_DECORATIONS_PATH"
   fi
   kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae

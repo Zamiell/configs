@@ -118,7 +118,7 @@ Install-WingetProgram "Notepad++.Notepad++"
 
 # Visual Studio Code
 Install-WingetProgram "Microsoft.VisualStudioCode"
-# VSCode does not install to the right-click context menu by default, so we manually modify the
+# VS Code does not install to the right-click context menu by default, so we manually modify the
 # registry. (This is cleaner than invoking winget with custom arguments.)
 # https://github.com/microsoft/winget-cli/discussions/1798
 $scriptName = "vscode-context-menu.reg"
@@ -131,9 +131,6 @@ Install-WingetProgram "Schniz.fnm"
 # Installing with this command is idempotent.
 # cspell:disable-next-line
 & "$HOME\AppData\Local\Microsoft\WinGet\Packages\Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe\fnm.exe" install --lts
-
-# Bitwarden CLI
-npm install -g @bitwarden/cli
 
 # Bun
 # https://bun.com/

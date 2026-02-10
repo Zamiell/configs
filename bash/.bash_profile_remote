@@ -1076,9 +1076,38 @@ csf() (
 
 alias full-path="readlink -f"
 
-# Get our ".env" file from BitWarden. (We must sync first because the BitWarden CLI uses a local
-# copy of the vault.)
-alias get-env='bw sync && bw get notes .env > $HOME/.env'
+get-env() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! command -v age &> /dev/null; then
+    echo "Error: age is required to get/set secrets. If you are on Windows, you can install it with: winget install --exact --id FiloSottile.age" >&2
+    exit 1
+  fi
+
+  SSH_PRIVATE_KEY_PATH="$HOME/.ssh/id_ed25519"
+  if [[ ! -s "$SSH_PRIVATE_KEY_PATH" ]]; then
+    echo "Error: The \"$SSH_PRIVATE_KEY_PATH\" file does not exist or is 0 bytes." >&2
+    exit 1
+  fi
+
+  SECRETS_PATH="$REPOSITORIES_DIR/secrets"
+  if [[ ! -d "$SECRETS_PATH" ]]; then
+    echo "Error: The \"secrets\" repository does not exist." >&2
+    exit 1
+  fi
+
+  ENCRYPTED_ENV_PATH="$SECRETS_PATH/.env.age"
+  if [[ ! -s "$ENCRYPTED_ENV_PATH" ]]; then
+    echo "Error: The \"$ENCRYPTED_ENV_PATH\" file does not exist or is 0 bytes." >&2
+    exit 1
+  fi
+
+  git -C "$SECRETS_PATH" pull
+  ENV_PATH="$HOME/.env"
+  age --decrypt --identity "$SSH_PRIVATE_KEY_PATH" --output "$ENV_PATH" "$ENCRYPTED_ENV_PATH"
+
+  echo "Successfully updated: $OUTPUT_PATH"
+)
 
 # Turn off Gemini Code Assist prompts.
 alias gemini="gemini --yolo"
@@ -1186,46 +1215,6 @@ if command -v python &> /dev/null && ! command -v pip &> /dev/null; then
   alias pip="python -m pip"
 fi
 
-put-env() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ -z "$BW_SESSION" ]]; then
-    echo "Error: The \"BW_SESSION\" environment variable is not set. Run: bw unlock" >&2
-    return 1
-  fi
-
-  local env_path="$HOME/.env"
-  if [[ ! -s "$env_path" ]]; then
-    echo "Error: The \"$env_path\" file is missing or empty." >&2
-    return 1
-  fi
-
-  assert-jq-installed
-
-  bw sync
-
-  local bw_item
-  bw_item=$(bw get item .env)
-  if [[ -z "$bw_item" ]]; then
-    echo "Error: Could not find a Bitwarden item named: .env"
-    return 1
-  fi
-
-  local bw_item_id
-  bw_item_id=$(jq --raw-output .id <<< "$bw_item")
-  if [[ -z "$bw_item_id" ]]; then
-    echo "Error: Failed to parse the \"id\" key from the Bitwarden item."
-    return 1
-  fi
-
-  local bw_item_updated
-  bw_item_updated=$(jq --arg notes "$(cat "$env_path")" '.notes = $notes' <<< "$bw_item")
-
-  # We get rid of the output to prevent passwords from appearing on the screen.
-  echo "$bw_item_updated" | bw encode | bw edit item "$bw_item_id" > /dev/null
-  echo "Successfully uploaded \"$env_path\" to Bitwarden."
-)
-
 # "r" is short for switching to the repositories directory.
 if [[ -d "$HOME/Repositories" ]]; then # Windows / macOS
   REPOSITORIES_DIR="$HOME/Repositories"
@@ -1247,6 +1236,43 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
     builtin cd "$REPOSITORIES_DIR"
   fi
 fi
+
+set-env() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! command -v age &> /dev/null; then
+    echo "Error: age is required to get/set secrets. If you are on Windows, you can install it with: winget install --exact --id FiloSottile.age" >&2
+    exit 1
+  fi
+
+  SSH_PUBLIC_KEY_PATH="$HOME/.ssh/id_ed25519.pub"
+  if [[ ! -s "$SSH_PUBLIC_KEY_PATH" ]]; then
+    echo "Error: The \"$SSH_PUBLIC_KEY_PATH\" file does not exist or is 0 bytes." >&2
+    exit 1
+  fi
+
+  ENV_PATH="$HOME/.env"
+  if [[ ! -s "$ENV_PATH" ]]; then
+    echo "Error: The \"$ENV_PATH\" file does not exist or is 0 bytes." >&2
+    exit 1
+  fi
+
+  SECRETS_PATH="$REPOSITORIES_DIR/secrets"
+  if [[ ! -d "$SECRETS_PATH" ]]; then
+    echo "Error: The \"secrets\" repository does not exist." >&2
+    exit 1
+  fi
+
+  OUTPUT_PATH="$SECRETS_PATH/.env.age"
+  age --recipients-file "$SSH_PUBLIC_KEY_PATH" --output "$OUTPUT_PATH" "$ENV_PATH"
+
+  git -C "$SECRETS_PATH" add --all
+  git -C "$SECRETS_PATH" commit --message update
+  git -C "$SECRETS_PATH" pull
+  git -C "$SECRETS_PATH" push
+
+  echo "Successfully updated: $OUTPUT_PATH"
+)
 
 # Alias "start" to "open" on macOS and "xdg-open" on Linux. ("start" is a Windows-only command to
 # open explorer at the given path.)
