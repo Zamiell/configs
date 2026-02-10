@@ -1319,7 +1319,8 @@ vpn() (
   fi
 
   # sudo is required to modify the tun0 interface.
-  sudo nohup gpclient connect lhvpn.logixhealth.com --browser "$MICROSOFT_EDGE_PATH" &
+  sudo --validate
+  sudo nohup gpclient connect lhvpn.logixhealth.com --browser "$MICROSOFT_EDGE_PATH" 2>&1 | sudo tee --append /var/log/vpn.log &
 )
 
 # endregion
