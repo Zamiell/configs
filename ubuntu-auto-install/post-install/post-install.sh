@@ -398,13 +398,16 @@ fi
 if ! dpkg --status autokey-qt &> /dev/null; then
   # https://github.com/autokey/autokey/wiki/Installing#debian-and-derivatives
   LATEST_AUTOKEY_VERSION=$(curl --silent --fail --show-error --location --output /dev/null --write-out "%{url_effective}" https://github.com/autokey/autokey/releases/latest | sed 's|.*/||' | sed 's/^v//')
+
   AUTOKEY_COMMON_PATH="/tmp/autokey-common.deb"
+  curl --silent --fail --show-error --location --output "$AUTOKEY_COMMON_PATH" "https://github.com/autokey/autokey/releases/download/v${LATEST_AUTOKEY_VERSION}/autokey-common_${LATEST_AUTOKEY_VERSION}_all.deb"
+  sudo apt-get install -qq --yes "$AUTOKEY_COMMON_PATH"
+  rm "$AUTOKEY_COMMON_PATH"
+
   AUTOKEY_QT_PATH="/tmp/autokey-qt.deb"
-  curl --silent --fail --show-error --location --output "$AUTOKEY_COMMON_PATH" "https://github.com/autokey/autokey/releases/download/v0.96.0/autokey-common_${LATEST_AUTOKEY_VERSION}_all.deb"
-  curl --silent --fail --show-error --location --output "$AUTOKEY_QT_PATH" "https://github.com/autokey/autokey/releases/download/v0.96.0/autokey-qt_${LATEST_AUTOKEY_VERSION}_all.deb"
-  sudo dpkg --install "$AUTOKEY_COMMON_PATH" "$AUTOKEY_QT_PATH"
-  rm "$AUTOKEY_COMMON_PATH" "$AUTOKEY_QT_PATH"
-  sudo apt-get --fix-broken install
+  curl --silent --fail --show-error --location --output "$AUTOKEY_QT_PATH" "https://github.com/autokey/autokey/releases/download/v${LATEST_AUTOKEY_VERSION}/autokey-qt_${LATEST_AUTOKEY_VERSION}_all.deb"
+  sudo apt-get install -qq --yes "$AUTOKEY_QT_PATH"
+  rm "$AUTOKEY_QT_PATH"
 fi
 
 # --------------------------------
