@@ -1,0 +1,1 @@
+window.activate("Visual Studio Code", switchDesktop=True)

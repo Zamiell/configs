@@ -434,6 +434,9 @@ if ! dpkg --status autokey-qt &> /dev/null; then
   curl --silent --fail --show-error --location --output "$AUTOKEY_QT_PATH" "https://github.com/autokey/autokey/releases/download/v${LATEST_AUTOKEY_VERSION}/autokey-qt_${LATEST_AUTOKEY_VERSION}_all.deb"
   sudo apt-get install -qq --yes "$AUTOKEY_QT_PATH"
   rm "$AUTOKEY_QT_PATH"
+
+  mkdir -p "$HOME/.config/autokey"
+  ln --symbolic "$CONFIGS_PATH/autokey/data" "$HOME/.config/autokey/data"
 fi
 
 # --------------------------------
