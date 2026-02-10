@@ -134,6 +134,11 @@ if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
   cat "$CONFIGS_PATH/bash/.bash_profile" >> "$BASHRC_PATH"
 fi
 
+# Set up the LogixHealth certificate.
+ROOT_CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
+sudo cp "$CONFIGS_PATH/certs/BEDROOTCA001.crt" "$ROOT_CERT_PATH"
+sudo update-ca-certificates
+
 # Set up the "secrets" repository.
 SECRETS_PATH="$REPOSITORIES_PATH/secrets"
 if [[ -d "$SECRETS_PATH" ]]; then
@@ -435,6 +440,14 @@ if [[ ! -s "$MICROSOFT_EDGE_REPOSITORY_PATH" ]]; then
   sudo apt-get update -qq
 fi
 sudo apt-get install -qq --yes microsoft-edge-stable
+
+# Make Microsoft Edge trust the company cert.
+sudo apt install -qq --yes libnss3-tools
+NSSDB="sql:$HOME/.pki/nssdb"
+CERT_NICKNAME="LogixHealth Root CA"
+if ! certutil -L -d "$NSSDB" -n "$CERT_NICKNAME" > /dev/null 2>&1; then
+  certutil -d "$NSSDB" -A -t "C,," -n "$CERT_NICKNAME" -i "$ROOT_CERT_PATH"
+fi
 
 # Install Google Chrome.
 if ! dpkg --status google-chrome-stable &> /dev/null; then
