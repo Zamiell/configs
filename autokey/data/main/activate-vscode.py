@@ -1,1 +1,2 @@
-window.activate("Visual Studio Code", switchDesktop=True)
+import subprocess
+subprocess.run(["wmctrl", "-x", "-a", "code.Code"])
