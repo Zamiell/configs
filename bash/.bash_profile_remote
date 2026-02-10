@@ -1306,7 +1306,18 @@ vpn() (
     return 1
   fi
 
-  sudo killall gpclient
+  if pgrep --exact gpclient > /dev/null; then
+    sudo killall gpclient
+    for _ in $(seq 1 10); do
+      pgrep --exact gpclient > /dev/null || break
+      sleep 1
+    done
+    if pgrep --exact gpclient > /dev/null; then
+      echo "Error: gpclient did not exit within 10 seconds." >&2
+      return 1
+    fi
+  fi
+
   sudo nohup gpclient connect lhvpn.logixhealth.com --browser "$MICROSOFT_EDGE_PATH" &
 )
 

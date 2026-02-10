@@ -130,6 +130,10 @@ fi
 # Install the remote configs from this repository.
 BASHRC_PATH="$HOME/.bashrc"
 if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
+  if [[ ! -s "$BASHRC_PATH" ]]; then
+    echo "# shellcheck shell=bash" > "$BASHRC_PATH"
+  fi
+
   echo >> "$BASHRC_PATH"
   cat "$CONFIGS_PATH/bash/.bash_profile" >> "$BASHRC_PATH"
 fi
@@ -486,7 +490,8 @@ fi
 
 # Install fnm.
 if ! command -v fnm &> /dev/null; then
-  curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash
+  # The "--skip-shell" is necessary to prevent fnm from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash -s -- --skip-shell
 
   # Add it to PATH.
   FNM_PATH="$HOME/.local/share/fnm"
@@ -502,7 +507,14 @@ fi
 # Install Bun.
 if ! command -v bun &> /dev/null; then
   curl --silent --fail --show-error --location https://bun.sh/install | bash
+
+  # Bun does not have a flag like fnm's "--skip-shell", so the added entries to the ".bashrc" file
+  # have to be manually deleted.
+  sed -i '/^# bun$/,+2d' ~/.bashrc ~/.bash_profile 2> /dev/null
 fi
+
+# Alias Python.
+sudo apt-get install -qq --yes python-is-python3
 
 # Install Microsoft Intune.
 if ! dpkg --status packages-microsoft-prod &> /dev/null; then
