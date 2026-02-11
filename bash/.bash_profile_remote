@@ -832,7 +832,7 @@ if [[ $- == *i* ]]; then
     source /etc/os-release
   fi
 
-  if [[ "$ID" == "ubuntu" ]] || [[ "$(uname)" == "Darwin" ]]; then
+  if [[ "${ID:-}" == "ubuntu" ]] || [[ "$(uname)" == "Darwin" ]]; then
     # We copy the prompt from Git Bash for Windows:
     # https://github.com/git-for-windows/build-extra/blob/main/git-extra/git-prompt.sh
     PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]' # set window title
@@ -857,7 +857,7 @@ if [[ $- == *i* ]]; then
   # bun auto-complete for e.g. "bun run"
   # We only enable this on Linux since it lags Windows for some reason and has a bug on macOS:
   # https://github.com/oven-sh/bun/issues/24847
-  if [[ "$ID" == "ubuntu" ]]; then
+  if [[ "${ID:-}" == "ubuntu" ]]; then
     if command -v bun &> /dev/null; then
       mkdir -p "$HOME/.bun"
       BUN_COMPLETIONS_PATH="$HOME/.bun/_bun"
@@ -869,7 +869,7 @@ if [[ $- == *i* ]]; then
 
   # npm auto-complete for e.g. "npm run"
   # We only enable this on Linux since it lags Windows for some reason.
-  if [[ "$ID" == "ubuntu" ]]; then
+  if [[ "${ID:-}" == "ubuntu" ]]; then
     if command -v npm &> /dev/null; then
       eval "$(npm completion)"
     fi
@@ -1198,7 +1198,7 @@ o() (
   fi
 
   if command -v chrome &> /dev/null; then
-    if [[ "$ID" == "ubuntu" ]]; then
+    if [[ "${ID:-}" == "ubuntu" ]]; then
       # - On Linux, starting chrome from the terminal will block, so we have to have special
       #   handling.
       # - We remove the output to prevent the "Created TensorFlow Lite XNNPACK delegate for CPU."
