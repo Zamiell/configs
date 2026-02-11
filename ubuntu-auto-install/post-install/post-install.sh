@@ -307,7 +307,8 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # System Settings --> Workspace
   # -----------------------------
 
-  # System Settings --> Workspace --> Workspace Behavior --> General Behavior --> Animation speed --> Instant
+  # System Settings --> Workspace --> Workspace Behavior --> General Behavior --> Animation speed
+  # --> Instant
   kwriteconfig5 --file kdeglobals --group KDE --key AnimationDurationFactor 0
 
   # System Settings --> Workspace --> Workspace Behavior --> Desktop Effects --> Uncheck "Login"
@@ -334,7 +335,8 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # --> Uncheck "After 5 minutes"
   kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
 
-  # System Settings --> Workspace --> Window Management --> Window Behavior --> Focus stealing preventing: None
+  # System Settings --> Workspace --> Window Management --> Window Behavior
+  # --> Focus stealing preventing: None
   kwriteconfig5 --file kwinrc --group Windows --key FocusStealingPreventionLevel --type int 0
 
   # System Settings --> Workspace --> Window Management --> Task Switcher
@@ -356,13 +358,26 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # ("Meta+PgDown" by default)
   kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Minimize" "Meta+Down,Minimize Window"
 
-  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Top
+  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin
+  # --> Quick Tile Window to the Top
   # ("Meta+Up" by default)
   kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Top" "none,Quick Tile Window to the Top"
 
-  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Bottom
+  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin
+  # --> Quick Tile Window to the Bottom
   # ("Meta+Down" by default)
   kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Bottom" "none,Quick Tile Window to the Bottom"
+
+  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> Plasma --> Walk through activities
+  # ("Meta+Tab" by default)
+  # kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "next activity" "none,none,Walk through activities"
+  # TODO
+
+  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> Plasma
+  # --> Walk through activities (Reverse)
+  # ("Meta+Shift+Tab" by default)
+  # kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "previous activity" "none,none,Walk through activities (Reverse)"
+  # TODO
 
   # System Settings --> Workspace --> Shortcuts --> Custom Shortcuts
   # --> Disable the 3 vanilla groups.
