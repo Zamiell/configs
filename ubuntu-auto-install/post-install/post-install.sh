@@ -208,6 +208,12 @@ mkdir -p "$HOME/.config/autostart"
 cp /etc/xdg/autostart/org.kde.discover.notifier.desktop "$HOME/.config/autostart/"
 echo "Hidden=true" >> "$HOME/.config/autostart/org.kde.discover.notifier.desktop"
 
+# Right click Desktop --> Configure Desktop and Wallpaper... --> Icons --> Sorting --> Name
+qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript 'd=desktops();for(i=0;i<d.length;i++){d[i].currentConfigGroup=Array("General");d[i].writeConfig("sortMode","0");d[i].reloadConfig();}'
+
+# Right click Desktop --> Configure Desktop and Wallpaper... --> Icons --> Lock in place
+qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript 'd=desktops();for(i=0;i<d.length;i++){d[i].currentConfigGroup=Array("General");d[i].writeConfig("locked","true");d[i].reloadConfig();}'
+
 # The rest of GUI configuration uses the `kwriteconfig5` command, which requires that the user has
 # logged on to the system at least once so that the relevant files in the ".config" directory get
 # created.
