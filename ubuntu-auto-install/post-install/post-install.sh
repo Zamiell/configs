@@ -178,23 +178,6 @@ if ! gpg --list-secret-keys "$PERSONAL_EMAIL"; then
   gpg --batch --passphrase "" --quick-generate-key "$FULL_NAME (Personal) <$PERSONAL_EMAIL>" default default 0
 fi
 
-# Install the GObject introspection bindings for libsecret. (This is needed to create the default
-# keyring programmatically.)
-sudo apt-get install -qq --yes gir1.2-secret-1
-
-# Create a default keyring with an empty password. This is necessary because SDDM auto-login
-# bypasses PAM, which means "pam_gnome_keyring" never gets the password to create/unlock the
-# "login" keyring. Without a default keyring, apps like Microsoft Intune will fail to store
-# authentication tokens.
-python3 -c "
-import gi
-gi.require_version('Secret', '1')
-from gi.repository import Secret
-service = Secret.Service.get_sync(Secret.ServiceFlags.OPEN_SESSION)
-if Secret.Collection.for_alias_sync(service, 'default', Secret.CollectionFlags.NONE, None) is None:
-    Secret.Collection.create_sync(service, 'Login', 'default', Secret.CollectionCreateFlags.NONE, None)
-"
-
 # Disable Bluetooth. (This will automatically remove the Bluetooth icon from the system tray.)
 sudo systemctl disable bluetooth.service
 sudo systemctl stop bluetooth.service
@@ -422,6 +405,23 @@ else
   # (It is designed to be idempotent.)
   cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.config/autostart/first-login-setup.desktop" "$FIRST_LOGIN_SETUP_DESKTOP_PATH"
 fi
+
+# Install the GObject introspection bindings for libsecret. (This is needed to create the default
+# keyring programmatically.)
+sudo apt-get install -qq --yes gir1.2-secret-1
+
+# Create a default keyring with an empty password. This is necessary because SDDM auto-login
+# bypasses PAM, which means "pam_gnome_keyring" never gets the password to create/unlock the
+# "login" keyring. Without a default keyring, apps like Microsoft Intune will fail to store
+# authentication tokens. This must be placed after the GUI has installed.
+python3 -c "
+import gi
+gi.require_version('Secret', '1')
+from gi.repository import Secret
+service = Secret.Service.get_sync(Secret.ServiceFlags.OPEN_SESSION)
+if Secret.Collection.for_alias_sync(service, 'default', Secret.CollectionFlags.NONE, None) is None:
+    Secret.Collection.create_sync(service, 'Login', 'default', Secret.CollectionCreateFlags.NONE, None)
+"
 
 # -----------------
 # Phase 3 - Hotkeys
