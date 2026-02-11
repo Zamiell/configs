@@ -69,9 +69,6 @@ if ! dpkg --status openssh-server &> /dev/null; then
 fi
 # (SSH keys are already set up from "autoinstall.yaml".)
 
-# Copy the SSH config.
-cp /post-install/.ssh/config "$HOME/.ssh/config"
-
 # Disable the message of the day.
 touch "$HOME/.hushlogin"
 
@@ -140,6 +137,9 @@ if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
   echo >> "$BASHRC_PATH"
   cat "$CONFIGS_PATH/bash/.bash_profile" >> "$BASHRC_PATH"
 fi
+
+# Set up the SSH config.
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.ssh/config" "$HOME/.ssh/"
 
 # Set up the LogixHealth certificate.
 ROOT_CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
