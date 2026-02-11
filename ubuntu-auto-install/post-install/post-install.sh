@@ -496,33 +496,12 @@ if ! certutil -L -d "$NSSDB" -n "$CERT_NICKNAME" > /dev/null 2>&1; then
   certutil -d "$NSSDB" -A -t "C,," -n "$CERT_NICKNAME" -i "$ROOT_CERT_PATH"
 fi
 
-# Make Firefox trust the company cert.
-FIREFOX_POLICIES_PATH="/etc/firefox/policies"
-FIREFOX_POLICIES_JSON_PATH="$FIREFOX_POLICIES_PATH/policies.json"
-sudo mkdir -p "$FIREFOX_POLICIES_PATH"
-if ! grep ImportEnterpriseRoots "$FIREFOX_POLICIES_JSON_PATH"; then
-  cat << EOF | sudo tee /etc/firefox/policies/policies.json > /dev/null
-  {
-    "policies": {
-      "Certificates": {
-        "ImportEnterpriseRoots": true
-      }
-    }
-  }
-EOF
-fi
-
 # Install Google Chrome.
 if ! dpkg --status google-chrome-stable &> /dev/null; then
   GOOGLE_CHROME_PATH="/tmp/google-chrome.deb"
   curl --silent --fail --show-error --location --output "$GOOGLE_CHROME_PATH" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
   sudo apt-get install -qq --yes "$GOOGLE_CHROME_PATH"
   rm "$GOOGLE_CHROME_PATH"
-fi
-
-# Install Firefox.
-if ! snap info firefox | grep -q "^installed:"; then
-  sudo snap install firefox
 fi
 
 # Install Visual Studio Code.
