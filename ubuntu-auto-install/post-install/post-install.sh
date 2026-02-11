@@ -141,6 +141,10 @@ fi
 # Set up the SSH config.
 cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.ssh/config" "$HOME/.ssh/"
 
+# Set up work SSH keys (1/2).
+mkdir -p "$HOME/.ssh/work"
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.ssh/work/id_rsa.pub" "$HOME/.ssh/work/"
+
 # Set up the LogixHealth certificate.
 ROOT_CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
 sudo cp "$CONFIGS_PATH/certs/BEDROOTCA001.crt" "$ROOT_CERT_PATH"
@@ -158,9 +162,15 @@ else
   git -C "$SECRETS_PATH" config user.email "$GITHUB_EMAIL"
 fi
 
-# Set the ".env" file.
+# Install age, which is necessary to decrypt secrets. (The "encrypt" function from the Bash configs
+# can be used to encrypt secrets.)
 sudo apt-get install -qq --yes age
+
+# Set the ".env" file.
 age --decrypt --identity "$SSH_PRIVATE_KEY_PATH" --output "$HOME/.env" "$SECRETS_PATH/.env.age"
+
+# Set up work SSH keys (2/2).
+age --decrypt --identity "$SSH_PRIVATE_KEY_PATH" --output "$HOME/.ssh/work/id_rsa" "$SECRETS_PATH/id_rsa.age"
 
 # -------------
 # Phase 2 - GUI
@@ -452,7 +462,7 @@ if ! dpkg --status autokey-qt &> /dev/null; then
   rm "$AUTOKEY_QT_PATH"
 
   mkdir -p "$HOME/.config/autokey"
-  ln --symbolic "$CONFIGS_PATH/autokey/data" "$HOME/.config/autokey/data"
+  ln --symbolic "$HOME/.config/autokey/data" "$CONFIGS_PATH/autokey/data"
 fi
 
 # --------------------------------
@@ -536,6 +546,11 @@ fi
 
 # Alias Python.
 sudo apt-get install -qq --yes python-is-python3
+
+# Install uv.
+if ! command -v uv &> /dev/null; then
+  curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | sh
+fi
 
 # Install Microsoft Intune.
 if ! dpkg --status packages-microsoft-prod &> /dev/null; then
