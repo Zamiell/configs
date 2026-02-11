@@ -1,5 +1,4 @@
 - keyring in IAC
-- get autokey working in IAC
 - task bar icons group together
 - disable aero peek
 - update sqlfluff docs
