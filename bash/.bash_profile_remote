@@ -1198,10 +1198,12 @@ o() (
 
   if command -v chrome &> /dev/null; then
     if [[ "$ID" == "ubuntu" ]]; then
-      # On Linux, starting chrome from the terminal will block, so we have to have special handling.
-      # Furthermore, we remove the output to prevent the "Opening in existing browser session." text
-      # from appearing.
-      nohup chrome "$url" > /dev/null &
+      # - On Linux, starting chrome from the terminal will block, so we have to have special
+      #   handling.
+      # - We remove the output to prevent the "Created TensorFlow Lite XNNPACK delegate for CPU."
+      #   output from appearing.
+      # - We cannot use aliases with "nohup" so we revert to using "google-chrome".
+      nohup google-chrome "$url" > /dev/null 2>&1 &
     else
       chrome "$url"
       return
@@ -1211,8 +1213,8 @@ o() (
   # macOS and Linux have the "open" command:
   # https://ss64.com/mac/open.html
   if command -v open &> /dev/null; then
-    # We remove the output to prevent the "Opening in existing browser session." text from appearing
-    # on Linux.
+    # We remove the output to prevent the "Opening in existing browser session." output from
+    # appearing on Linux.
     open "$url" > /dev/null
     return
   fi
