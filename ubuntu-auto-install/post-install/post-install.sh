@@ -274,13 +274,12 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # - Removed "Peek at Desktop".
   # - Removed pinned applications.
 
-  # --------
-  # Explorer
-  # --------
+  # ------------------
+  # Dolphin (Explorer)
+  # ------------------
 
-  # KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
-  # TODO: Does not work.
-  kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
+  # Hamburger menu --> Show Hidden Files
+  kwriteconfig5 --file ~/.local/share/dolphin/view_properties/global/.directory --group Settings --key HiddenFilesShown true
 
   # ------------------------------
   # System Settings --> Appearance
