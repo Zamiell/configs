@@ -115,6 +115,10 @@ if [[ ! -s "$SSH_PUBLIC_KEY_PATH" ]]; then
   exit 1
 fi
 
+# -------
+# configs
+# -------
+
 # Set up the "configs" repository.
 CONFIGS_PATH="$REPOSITORIES_PATH/configs"
 if [[ -d "$CONFIGS_PATH" ]]; then
@@ -145,10 +149,22 @@ cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.ssh/config" "$HOME/.ssh/"
 mkdir -p "$HOME/.ssh/work"
 cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.ssh/work/id_rsa.pub" "$HOME/.ssh/work/"
 
+# Set up a keyring with an empty password. This is necessary because SDDM auto-login bypasses PAM,
+# which means "pam_gnome_keyring" never gets the password to create/unlock the "login" keyring.
+# Without a default keyring, apps like Microsoft Intune will fail to store authentication tokens.
+KEYRINGS_PATH="$HOME/.local/share/keyrings"
+mkdir -p "$KEYRINGS_PATH"
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.local/share/keyrings/default" "$KEYRINGS_PATH"
+cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.local/share/keyrings/Login.keyring" "$KEYRINGS_PATH"
+
 # Set up the LogixHealth certificate.
 ROOT_CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
 sudo cp "$CONFIGS_PATH/certs/BEDROOTCA001.crt" "$ROOT_CERT_PATH"
 sudo update-ca-certificates
+
+# -------
+# secrets
+# -------
 
 # Set up the "secrets" repository.
 SECRETS_PATH="$REPOSITORIES_PATH/secrets"
@@ -395,28 +411,6 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
   kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
   kcminit kcm_touchpad
-
-  # -------
-  # Keyring
-  # -------
-
-  # Install the GObject introspection bindings for libsecret. (This is needed to create the default
-  # keyring programmatically.)
-  sudo apt-get install -qq --yes gir1.2-secret-1
-
-  # Create a default keyring with an empty password. This is necessary because SDDM auto-login
-  # bypasses PAM, which means "pam_gnome_keyring" never gets the password to create/unlock the
-  # "login" keyring. Without a default keyring, apps like Microsoft Intune will fail to store
-  # authentication tokens. This can only be executed after the GUI has been installed and the system
-  # is rebooted.
-  python3 -c "
-import gi
-gi.require_version('Secret', '1')
-from gi.repository import Secret
-service = Secret.Service.get_sync(Secret.ServiceFlags.OPEN_SESSION)
-if Secret.Collection.for_alias_sync(service, 'default', Secret.CollectionFlags.NONE, None) is None:
-    Secret.Collection.create_sync(service, 'Login', 'default', Secret.CollectionCreateFlags.NONE, None)
-"
 
   # -------
   # Cleanup
