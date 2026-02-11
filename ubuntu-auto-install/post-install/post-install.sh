@@ -288,15 +288,8 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # System Settings --> Appearance --> Window Decorations --> Change "Breeze" to "Win10OS-light".
   # This gives Window 10 icons in the top-right of a window.
   # From: https://store.kde.org/p/1464171
-  # TODO: Does not work, makes bugged 3 dots in the top left of the window.
-  # WIN10_WINDOW_DECORATION_PATH="$HOME/.local/share/aurorae/themes/Win10OS-light"
-  # if [[ ! -d "$WIN10_WINDOW_DECORATION_PATH" ]]; then
-  #   WINDOW_DECORATIONS_PATH=$(dirname "$WIN10_WINDOW_DECORATION_PATH")
-  #   mkdir -p "$WINDOW_DECORATIONS_PATH"
-  #   unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/Win10OS-light.zip" -d "$WINDOW_DECORATIONS_PATH"
-  # fi
-  # kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae
-  # kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key theme __aurorae__svg__Win10OS-light
+  # This must be done manually. When I tried to install just the "Window Decorations" theme, 3 dots
+  # appeared in the top left of all windows.
 
   # System Settings --> Appearance --> Cursors --> Change "Breeze" to "PRA-DMZ".
   # This changes the cursors to Windows 10 cursors.
