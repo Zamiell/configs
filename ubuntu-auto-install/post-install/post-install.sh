@@ -497,8 +497,10 @@ if ! certutil -L -d "$NSSDB" -n "$CERT_NICKNAME" > /dev/null 2>&1; then
 fi
 
 # Make Firefox trust the company cert.
-FIREFOX_POLICIES_PATH="/etc/firefox/policies/policies.json"
-if ! grep ImportEnterpriseRoots "$FIREFOX_POLICIES_PATH"; then
+FIREFOX_POLICIES_PATH="/etc/firefox/policies"
+FIREFOX_POLICIES_JSON_PATH="$FIREFOX_POLICIES_PATH/policies.json"
+sudo mkdir -p "$FIREFOX_POLICIES_PATH"
+if ! grep ImportEnterpriseRoots "$FIREFOX_POLICIES_JSON_PATH"; then
   cat << EOF | sudo tee /etc/firefox/policies/policies.json > /dev/null
   {
     "policies": {
