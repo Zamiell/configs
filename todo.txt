@@ -1,6 +1,6 @@
-- keyring in IAC
 - task bar icons group together
 - disable aero peek
+
 - update sqlfluff docs
 - update error message that tommy got on Tuesday
 - add docusaurus header for last changed
