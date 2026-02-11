@@ -1111,7 +1111,7 @@ decrypt() (
   file_name=$(basename "$file_path")
   local age_path="$secrets_path/$file_name.age"
 
-  git -C "$secrets_path" pull
+  git -C "$secrets_path" pull --rebase
   age --decrypt --identity "$ssh_private_key_path" --output "$file_path" "$age_path"
   echo "Successfully decrypted: $age_path --> $file_path"
 )
@@ -1151,7 +1151,7 @@ encrypt() (
   file_name=$(basename "$file_path")
   local age_path="$secrets_path/$file_name.age"
 
-  git -C "$secrets_path" pull
+  git -C "$secrets_path" pull --rebase
   age --encrypt --recipients-file "$ssh_public_key_path" --output "$age_path" "$file_path"
   git -C "$secrets_path" add --all
   git -C "$secrets_path" commit --message update

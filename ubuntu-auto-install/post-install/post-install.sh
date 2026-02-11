@@ -462,7 +462,7 @@ if ! dpkg --status autokey-qt &> /dev/null; then
   rm "$AUTOKEY_QT_PATH"
 
   mkdir -p "$HOME/.config/autokey"
-  ln --symbolic "$HOME/.config/autokey/data" "$CONFIGS_PATH/autokey/data"
+  ln --symbolic "$CONFIGS_PATH/autokey/data" "$HOME/.config/autokey/data"
 fi
 
 # --------------------------------
