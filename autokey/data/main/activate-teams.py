@@ -5,6 +5,6 @@ if result.returncode != 0:
     subprocess.Popen([
         "microsoft-edge",
         "--profile-directory=Default",
-        "--app-id=ompifgpmddkgmclendfeacglnodjjndh",
+        "--app-id=ompifgpmddkgmclendfeacglnodjjndh", # cspell: disable-line
         "--app-url=https://teams.cloud.microsoft/?clientType=pwa",
     ])
