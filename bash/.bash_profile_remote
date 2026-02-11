@@ -1081,9 +1081,42 @@ csf() (
   fi
 )
 
-alias full-path="readlink -f"
+decrypt() (
+  if ! command -v age &> /dev/null; then
+    echo "Error: age is required to get/set secrets. If you are on Windows, you can install it with: winget install --exact --id FiloSottile.age" >&2
+    exit 1
+  fi
 
-get-env() (
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The destination file path is required. Usage: ${FUNCNAME[0]} <path>" >&2
+    return 1
+  fi
+  local file_path="$1"
+
+  # We do not need to check to see if the destination file path already exists.
+
+  local ssh_private_key_path="$HOME/.ssh/id_ed25519"
+  if [[ ! -s "$ssh_private_key_path" ]]; then
+    echo "Error: The \"$ssh_private_key_path\" file does not exist or is 0 bytes." >&2
+    exit 1
+  fi
+
+  local secrets_path="${REPOSITORIES_DIR:-}/secrets"
+  if [[ ! -d "$secrets_path" ]]; then
+    echo "Error: The \"secrets\" repository does not exist." >&2
+    exit 1
+  fi
+
+  local file_name
+  file_name=$(basename "$file_path")
+  local age_path="$secrets_path/$file_name.age"
+
+  git -C "$secrets_path" pull
+  age --decrypt --identity "$ssh_private_key_path" --output "$file_path" "$age_path"
+  echo "Successfully decrypted: $age_path --> $file_path"
+)
+
+encrypt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if ! command -v age &> /dev/null; then
@@ -1091,30 +1124,44 @@ get-env() (
     exit 1
   fi
 
-  SSH_PRIVATE_KEY_PATH="$HOME/.ssh/id_ed25519"
-  if [[ ! -s "$SSH_PRIVATE_KEY_PATH" ]]; then
-    echo "Error: The \"$SSH_PRIVATE_KEY_PATH\" file does not exist or is 0 bytes." >&2
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The source file path is required. Usage: ${FUNCNAME[0]} <path>" >&2
+    return 1
+  fi
+  local file_path="$1"
+
+  if [[ ! -s "$file_path" ]]; then
+    echo "Error: The file path of \"$file_path\" does not exist or is 0 bytes." >&2
+    return 1
+  fi
+
+  local ssh_public_key_path="$HOME/.ssh/id_ed25519.pub"
+  if [[ ! -s "$ssh_public_key_path" ]]; then
+    echo "Error: The \"$ssh_public_key_path\" file does not exist or is 0 bytes." >&2
     exit 1
   fi
 
-  SECRETS_PATH="$REPOSITORIES_DIR/secrets"
-  if [[ ! -d "$SECRETS_PATH" ]]; then
+  local secrets_path="${REPOSITORIES_DIR:-}/secrets"
+  if [[ ! -d "$secrets_path" ]]; then
     echo "Error: The \"secrets\" repository does not exist." >&2
     exit 1
   fi
 
-  ENCRYPTED_ENV_PATH="$SECRETS_PATH/.env.age"
-  if [[ ! -s "$ENCRYPTED_ENV_PATH" ]]; then
-    echo "Error: The \"$ENCRYPTED_ENV_PATH\" file does not exist or is 0 bytes." >&2
-    exit 1
-  fi
+  local file_name
+  file_name=$(basename "$file_path")
+  local age_path="$secrets_path/$file_name.age"
 
-  git -C "$SECRETS_PATH" pull
-  ENV_PATH="$HOME/.env"
-  age --decrypt --identity "$SSH_PRIVATE_KEY_PATH" --output "$ENV_PATH" "$ENCRYPTED_ENV_PATH"
-
-  echo "Successfully updated: $OUTPUT_PATH"
+  git -C "$secrets_path" pull
+  age --encrypt --recipients-file "$ssh_public_key_path" --output "$age_path" "$file_path"
+  git -C "$secrets_path" add --all
+  git -C "$secrets_path" commit --message update
+  git -C "$secrets_path" push
+  echo "Successfully encrypted: $file_path --> $age_path"
 )
+
+alias full-path="readlink -f"
+
+alias get-env='decrypt "$HOME/.env"'
 
 # Turn off Gemini Code Assist prompts.
 alias gemini="gemini --yolo"
@@ -1252,42 +1299,7 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
   fi
 fi
 
-set-env() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if ! command -v age &> /dev/null; then
-    echo "Error: age is required to get/set secrets. If you are on Windows, you can install it with: winget install --exact --id FiloSottile.age" >&2
-    exit 1
-  fi
-
-  SSH_PUBLIC_KEY_PATH="$HOME/.ssh/id_ed25519.pub"
-  if [[ ! -s "$SSH_PUBLIC_KEY_PATH" ]]; then
-    echo "Error: The \"$SSH_PUBLIC_KEY_PATH\" file does not exist or is 0 bytes." >&2
-    exit 1
-  fi
-
-  ENV_PATH="$HOME/.env"
-  if [[ ! -s "$ENV_PATH" ]]; then
-    echo "Error: The \"$ENV_PATH\" file does not exist or is 0 bytes." >&2
-    exit 1
-  fi
-
-  SECRETS_PATH="$REPOSITORIES_DIR/secrets"
-  if [[ ! -d "$SECRETS_PATH" ]]; then
-    echo "Error: The \"secrets\" repository does not exist." >&2
-    exit 1
-  fi
-
-  OUTPUT_PATH="$SECRETS_PATH/.env.age"
-  age --recipients-file "$SSH_PUBLIC_KEY_PATH" --output "$OUTPUT_PATH" "$ENV_PATH"
-
-  git -C "$SECRETS_PATH" add --all
-  git -C "$SECRETS_PATH" commit --message update
-  git -C "$SECRETS_PATH" pull
-  git -C "$SECRETS_PATH" push
-
-  echo "Successfully updated: $OUTPUT_PATH"
-)
+alias set-env='encrypt "$HOME/.env"'
 
 # Alias "start" to "open" on macOS and "xdg-open" on Linux. ("start" is a Windows-only command to
 # open explorer at the given path.)
