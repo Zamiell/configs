@@ -275,6 +275,9 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # Dolphin (Explorer)
   # ------------------
 
+  # Details view mode (Ctrl + 3)
+  kwriteconfig5 --file dolphinrc --group Dolphin --key ViewMode 1
+
   # Hamburger menu --> Show Hidden Files
   kwriteconfig5 --file ~/.local/share/dolphin/view_properties/global/.directory --group Settings --key HiddenFilesShown true
 
@@ -349,32 +352,30 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
 
   # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin --> Maximize Window
   # ("Meta+PgUp" by default)
-  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Maximize" "Meta+Up,Maximize Window"
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Maximize" "Meta+Up,none,Maximize Window"
 
   # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin --> Minimize Window
   # ("Meta+PgDown" by default)
-  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Minimize" "Meta+Down,Minimize Window"
-
-  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin
-  # --> Quick Tile Window to the Top
-  # ("Meta+Up" by default)
-  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Top" "none,Quick Tile Window to the Top"
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Minimize" "Meta+Down,none,Minimize Window"
 
   # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin
   # --> Quick Tile Window to the Bottom
   # ("Meta+Down" by default)
-  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Bottom" "none,Quick Tile Window to the Bottom"
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Bottom" "none,none,Quick Tile Window to the Bottom"
+
+  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin
+  # --> Quick Tile Window to the Top
+  # ("Meta+Up" by default)
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Top" "none,none,Quick Tile Window to the Top"
 
   # System Settings --> Workspace --> Shortcuts --> Shortcuts --> Plasma --> Walk through activities
   # ("Meta+Tab" by default)
-  # kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "next activity" "none,none,Walk through activities"
-  # TODO
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "next activity" "none,none,Walk through activities"
 
   # System Settings --> Workspace --> Shortcuts --> Shortcuts --> Plasma
   # --> Walk through activities (Reverse)
   # ("Meta+Shift+Tab" by default)
-  # kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "previous activity" "none,none,Walk through activities (Reverse)"
-  # TODO
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "previous activity" "none,none,Walk through activities (Reverse)"
 
   # System Settings --> Workspace --> Shortcuts --> Custom Shortcuts
   # --> Disable the 3 vanilla groups.
@@ -462,6 +463,9 @@ if ! dpkg --status autokey-qt &> /dev/null; then
   rm "$AUTOKEY_QT_PATH"
 
   mkdir -p "$HOME/.config/autokey"
+  cp "$CONFIGS_PATH/autokey/autokey.json" "$HOME/.config/autokey/"
+  # The "userCodeDir" setting is only for custom modules and does not specify the destination
+  # directory. Thus, we revert to linking the entire data directory.
   ln --symbolic "$CONFIGS_PATH/autokey/data" "$HOME/.config/autokey/data"
 fi
 
