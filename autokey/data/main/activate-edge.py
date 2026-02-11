@@ -1,3 +1,5 @@
 import subprocess
 
-subprocess.run(["wmctrl", "-x", "-a", "microsoft-edge.Microsoft-edge"])
+result = subprocess.run(["wmctrl", "-x", "-a", "microsoft-edge.Microsoft-edge"])
+if result.returncode != 0:
+    subprocess.Popen(["microsoft-edge"])

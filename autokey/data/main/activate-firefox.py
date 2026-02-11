@@ -1,3 +1,5 @@
 import subprocess
 
-subprocess.run(["wmctrl", "-x", "-a", "Navigator.firefox"])
+result = subprocess.run(["wmctrl", "-x", "-a", "Navigator.firefox"])
+if result.returncode != 0:
+    subprocess.Popen(["firefox"])

@@ -1,3 +1,5 @@
 import subprocess
 
-subprocess.run(["wmctrl", "-x", "-a", "konsole.Konsole"])
+result = subprocess.run(["wmctrl", "-x", "-a", "konsole.Konsole"])
+if result.returncode != 0:
+    subprocess.Popen(["konsole"])

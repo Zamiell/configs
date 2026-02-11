@@ -749,6 +749,12 @@ append-path "/d/Apps/Misc/zig"
 # Other Environment Variables
 # ---------------------------
 
+# Load operating system information.
+if [[ -s "/etc/os-release" ]]; then
+  # shellcheck source=/dev/null
+  source /etc/os-release
+fi
+
 # Load secret environment variables that cannot be committed to Git.
 if [[ -s "$HOME/.env" ]]; then
   # shellcheck source=/dev/null
@@ -1184,16 +1190,22 @@ o() (
 
   if [[ "$url" == *"logixhealth"* ]] && command -v msedge &> /dev/null; then
     # We remove the output to prevent the "Opening in existing browser session." text from appearing
-    # on Linux.
+    # on Linux. (On Linux, if Edge is not yet open, it will launch normally and the terminal will
+    # not block like it does for Chrome.)
     msedge "$url" > /dev/null
     return
   fi
 
   if command -v chrome &> /dev/null; then
-    # We remove the output to prevent the "Opening in existing browser session." text from appearing
-    # on Linux.
-    chrome "$url" > /dev/null
-    return
+    if [[ "$ID" == "ubuntu" ]]; then
+      # On Linux, starting chrome from the terminal will block, so we have to have special handling.
+      # Furthermore, we remove the output to prevent the "Opening in existing browser session." text
+      # from appearing.
+      nohup chrome "$url" > /dev/null &
+    else
+      chrome "$url"
+      return
+    fi
   fi
 
   # macOS and Linux have the "open" command:
