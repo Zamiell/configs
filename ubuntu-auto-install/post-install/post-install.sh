@@ -482,7 +482,7 @@ fi
 sudo apt-get install -qq --yes microsoft-edge-stable
 
 # Make Microsoft Edge trust the company cert.
-sudo apt install -qq --yes libnss3-tools
+sudo apt-get install -qq --yes libnss3-tools
 NSSDB="sql:$HOME/.pki/nssdb"
 CERT_NICKNAME="LogixHealth Root CA"
 if ! certutil -L -d "$NSSDB" -n "$CERT_NICKNAME" > /dev/null 2>&1; then
@@ -566,7 +566,7 @@ fi
 sudo apt-get install -qq --yes globalprotect-openconnect
 
 # Install other software.
-sudo apt install -qq --yes podman
+sudo apt-get install -qq --yes podman
 
 # -----------------
 # Phase 6 - Network
