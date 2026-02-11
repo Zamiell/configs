@@ -1206,8 +1206,8 @@ o() (
       nohup google-chrome "$url" > /dev/null 2>&1 &
     else
       chrome "$url"
-      return
     fi
+    return
   fi
 
   # macOS and Linux have the "open" command:
