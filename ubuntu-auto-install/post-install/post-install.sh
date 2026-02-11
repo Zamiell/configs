@@ -483,8 +483,15 @@ sudo apt-get install -qq --yes microsoft-edge-stable
 
 # Make Microsoft Edge trust the company cert.
 sudo apt-get install -qq --yes libnss3-tools
-NSSDB="sql:$HOME/.pki/nssdb"
+NSSDB_PATH="$HOME/.pki/nssdb"
+NSSDB="sql:$NSSDB_PATH"
 CERT_NICKNAME="LogixHealth Root CA"
+mkdir -p "$NSSDB_PATH"
+if [[ ! -s "$NSSDB_PATH/cert9.db" ]]; then
+  # - "-N" creates a new DB.
+  # - "--empty-password" prevents a prompt.
+  certutil -d "$NSSDB" -N --empty-password
+fi
 if ! certutil -L -d "$NSSDB" -n "$CERT_NICKNAME" > /dev/null 2>&1; then
   certutil -d "$NSSDB" -A -t "C,," -n "$CERT_NICKNAME" -i "$ROOT_CERT_PATH"
 fi
