@@ -531,7 +531,7 @@ if ! command -v bun &> /dev/null; then
 
   # Bun does not have a flag like fnm's "--skip-shell", so the added entries to the ".bashrc" file
   # have to be manually deleted.
-  sed -i '/^# bun$/,+2d' ~/.bashrc ~/.bash_profile 2> /dev/null
+  sed --in-place "/^# bun$/,+3d" "$HOME/.bashrc" 2> /dev/null
 fi
 
 # Alias Python.
