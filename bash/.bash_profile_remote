@@ -2422,8 +2422,8 @@ grvl() (
 # is more terse.)
 alias gs="git status --porcelain"
 
-# "gso" is short for "git show".
-alias gso="git show"
+# "gsh" is short for "git show".
+alias gsh="git show"
 
 # "gsq" stands for "git squash", to squash N commits together.
 gsq() (
