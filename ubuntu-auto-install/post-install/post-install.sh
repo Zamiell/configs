@@ -69,6 +69,9 @@ if ! dpkg --status openssh-server &> /dev/null; then
 fi
 # (SSH keys are already set up from "autoinstall.yaml".)
 
+# Copy the SSH config.
+cp /post-install/.ssh/config "$HOME/.ssh/config"
+
 # Disable the message of the day.
 touch "$HOME/.hushlogin"
 
@@ -270,26 +273,29 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
   # --------
 
   # KDialog --> Options (in top-right corner) --> Check "Show Hidden Files"
+  # TODO: Does not work.
   kwriteconfig5 --file kdeglobals --group "KFileDialog Settings" --key "Show hidden files" true
 
-  # ------------------
-  # Appearance / Theme
-  # ------------------
+  # ------------------------------
+  # System Settings --> Appearance
+  # ------------------------------
 
-  # System Settings --> Window Management --> Task Switcher --> Change "Breeze" to "ClassicKDE".
-  # This changes the Alt-Tab UI to something simpler and faster.
-  # From: https://store.kde.org/p/2024371
-  if ! kpackagetool5 --list --type KWin/WindowSwitcher | grep "ClassicKde"; then
-    kpackagetool5 --type KWin/WindowSwitcher --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
-  fi
-  if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) != "ClassicKde" ]]; then
-    kwriteconfig5 --file kwinrc --group TabBox --key LayoutName ClassicKde
-  fi
+  # System Settings --> Appearance --> Window Decorations --> Change "Breeze" to "Win10OS-light".
+  # This gives Window 10 icons in the top-right of a window.
+  # From: https://store.kde.org/p/1464171
+  # TODO: Does not work, makes bugged 3 dots in the top left of the window.
+  # WIN10_WINDOW_DECORATION_PATH="$HOME/.local/share/aurorae/themes/Win10OS-light"
+  # if [[ ! -d "$WIN10_WINDOW_DECORATION_PATH" ]]; then
+  #   WINDOW_DECORATIONS_PATH=$(dirname "$WIN10_WINDOW_DECORATION_PATH")
+  #   mkdir -p "$WINDOW_DECORATIONS_PATH"
+  #   unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/Win10OS-light.zip" -d "$WINDOW_DECORATIONS_PATH"
+  # fi
+  # kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae
+  # kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key theme __aurorae__svg__Win10OS-light
 
   # System Settings --> Appearance --> Cursors --> Change "Breeze" to "PRA-DMZ".
   # This changes the cursors to Windows 10 cursors.
   # From: https://store.kde.org/p/1258818
-  # TODO: Does not work, makes bugged 3 dots.
   if [[ ! -d "$HOME/.icons/Win10OS-cursors" ]]; then
     mkdir -p "$HOME/.icons"
     tar -xf "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/PRA-DMZ.tar.gz" -C "$HOME/.icons/"
@@ -299,97 +305,85 @@ if [[ -s "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" ]]; then
     kwriteconfig5 --file kcminputrc --group Mouse --key cursorTheme PRA-DMZ
   fi
 
-  # System Settings --> Appearance --> Window Decorations --> Change "Breeze" to "Win10OS-light".
-  # This gives Window 10 icons in the top-right of a window.
-  # From: https://store.kde.org/p/1464171
-  WIN10_WINDOW_DECORATION_PATH="$HOME/.local/share/aurorae/themes/Win10OS-light"
-  if [[ ! -d "$WIN10_WINDOW_DECORATION_PATH" ]]; then
-    WINDOW_DECORATIONS_PATH=$(dirname "$WIN10_WINDOW_DECORATION_PATH")
-    mkdir -p "$WINDOW_DECORATIONS_PATH"
-    unzip -o "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/Win10OS-light.zip" -d "$WINDOW_DECORATIONS_PATH"
-  fi
-  kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae
-  kwriteconfig5 --file kwinrc --group org.kde.kdecoration2 --key theme __aurorae__svg__Win10OS-light
+  # -----------------------------
+  # System Settings --> Workspace
+  # -----------------------------
 
-  # -------
-  # Display
-  # -------
-
-  # System Settings --> Workspace Behavior --> Screen Locking --> Uncheck "After 5 minutes"
-  kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
-
-  # --------
-  # Hardware
-  # --------
-
-  # System Settings --> Input Devices --> Touchpad --> Right-click -->
-  # Change "Press bottom-right-corner" to "Press anywhere with two fingers"
-  kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
-  kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
-  kcminit kcm_touchpad
-
-  # ----------
-  # Animations
-  # ----------
-
-  # System Settings --> Workspace Behavior --> General Behavior --> Animation speed --> Instant
+  # System Settings --> Workspace --> Workspace Behavior --> General Behavior --> Animation speed --> Instant
   kwriteconfig5 --file kdeglobals --group KDE --key AnimationDurationFactor 0
 
-  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Login"
+  # System Settings --> Workspace --> Workspace Behavior --> Desktop Effects --> Uncheck "Login"
   # (Smoothly fade to teh desktop when logging in)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_loginEnabled false
 
-  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Logout"
+  # System Settings --> Workspace --> Workspace Behavior --> Desktop Effects --> Uncheck "Logout"
   # (Smoothly fade to the logout screen)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_logoutEnabled false
 
-  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Maximize"
+  # System Settings --> Workspace --> Workspace Behavior --> Desktop Effects --> Uncheck "Maximize"
   # (Animation for a window going to maximize/restore from maximize)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_maximizeEnabled false
 
-  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Squash"
+  # System Settings --> Workspace --> Workspace Behavior --> Desktop Effects --> Uncheck "Squash"
   # (Squash windows when they are minimized)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_squashEnabled false
 
-  # System Settings --> Workspace Behavior --> Desktop Effects --> Uncheck "Scale"
+  # System Settings --> Workspace --> Workspace Behavior --> Desktop Effects --> Uncheck "Scale"
   # (Make windows smoothly scale in and out when they are shown or hidden)
   kwriteconfig5 --file kwinrc --group Plugins --key kwin4_effect_scaleEnabled false
 
-  # ---------------
-  # Vanilla Hotkeys
-  # ---------------
+  # System Settings --> Workspace --> Workspace Behavior --> Screen Locking
+  # --> Uncheck "After 5 minutes"
+  kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
 
-  # System Settings --> Shortcuts --> Shortcuts --> KWin --> Maximize Window
+  # System Settings --> Workspace --> Window Management --> Window Behavior --> Focus stealing preventing: None
+  kwriteconfig5 --file kwinrc --group Windows --key FocusStealingPreventionLevel --type int 0
+
+  # System Settings --> Workspace --> Window Management --> Task Switcher
+  # --> Change "Breeze" to "ClassicKDE".
+  # This changes the Alt-Tab UI to something simpler and faster.
+  # From: https://store.kde.org/p/2024371
+  if ! kpackagetool5 --list --type KWin/WindowSwitcher | grep "ClassicKde"; then
+    kpackagetool5 --type KWin/WindowSwitcher --install "$CONFIGS_PATH/ubuntu-auto-install/post-install/misc/ClassicKde.tar.gz"
+  fi
+  if [[ $(kreadconfig5 --file kwinrc --group TabBox --key LayoutName) != "ClassicKde" ]]; then
+    kwriteconfig5 --file kwinrc --group TabBox --key LayoutName ClassicKde
+  fi
+
+  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin --> Maximize Window
   # ("Meta+PgUp" by default)
-  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Maximize" "Meta+Up,Meta+PgUp,Maximize Window"
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Maximize" "Meta+Up,Maximize Window"
 
-  # System Settings --> Shortcuts --> Shortcuts --> KWin --> Minimize Window
+  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin --> Minimize Window
   # ("Meta+PgDown" by default)
-  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Minimize" "Meta+Down,Meta+PgDown,Minimize Window"
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Minimize" "Meta+Down,Minimize Window"
 
-  # System Settings --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Top
+  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Top
   # ("Meta+Up" by default)
-  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Top" "none,Meta+Up,Quick Tile Window to the Top"
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Top" "none,Quick Tile Window to the Top"
 
-  # System Settings --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Bottom
+  # System Settings --> Workspace --> Shortcuts --> Shortcuts --> KWin --> Quick Tile Window to the Bottom
   # ("Meta+Down" by default)
-  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Bottom" "none,Meta+Down,Quick Tile Window to the Bottom"
+  kwriteconfig5 --file kglobalshortcutsrc --group kwin --key "Window Quick Tile Bottom" "none,Quick Tile Window to the Bottom"
 
-  # --------------
-  # Custom Hotkeys
-  # --------------
-
-  # Disable the 3 vanilla groups.
+  # System Settings --> Workspace --> Shortcuts --> Custom Shortcuts
+  # --> Disable the 3 vanilla groups.
   kwriteconfig5 --file khotkeysrc --group Data_1 --key Enabled false
   kwriteconfig5 --file khotkeysrc --group Data_2 --key Enabled false
   kwriteconfig5 --file khotkeysrc --group Data_3 --key Enabled false
 
-  # -------------
-  # Miscellaneous
-  # -------------
+  # ----------------------------
+  # System Settings --> Hardware
+  # ----------------------------
 
-  # System Settings --> Window Management --> Window Behavior --> Focus stealing preventing: None
-  kwriteconfig5 --file kwinrc --group Windows --key FocusStealingPreventionLevel --type int 0
+  # System Settings --> Hardware --> Input Devices --> Mouse --> Pointer speed --> 8 (from 6)
+  kwriteconfig5 --file kcminputrc --group Mouse --key XLbInptPointerAcceleration 0.4
+
+  # System Settings --> Hardware --> Input Devices --> Touchpad --> Right-click
+  # --> Change "Press bottom-right-corner" to "Press anywhere with two fingers"
+  kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodAreas false
+  kwriteconfig5 --file touchpadxlibinputrc --group "VEN_0488:00 0488:104B Touchpad" --key clickMethodClickfinger true
+  kcminit kcm_touchpad
 
   # -------
   # Cleanup
@@ -548,6 +542,9 @@ if [[ ! -s "/etc/apt/sources.list.d/yuezk-ubuntu-globalprotect-openconnect-noble
   sudo add-apt-repository ppa:yuezk/globalprotect-openconnect --yes
 fi
 sudo apt-get install -qq --yes globalprotect-openconnect
+
+# Install other software.
+sudo apt install -qq --yes podman
 
 # -----------------
 # Phase 6 - Network
