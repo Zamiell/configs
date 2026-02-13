@@ -178,6 +178,7 @@
     "Systray",
     "taskkill",
     "taskmanager",
+    "tflint",
     "tfstate",
     "timedatectl",
     "TITLEPREFIX",
