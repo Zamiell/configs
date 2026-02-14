@@ -2665,7 +2665,7 @@ gh-sync() (
 # Pulumi Commands
 # ---------------
 
-# "pc" is short for "pulumi cancel".
+# "pc" is short for "pulumi cancel". (This is the analog to "terraform force-unlock".)
 alias pc="pulumi cancel"
 
 # "pd" is short for "pulumi destroy".
