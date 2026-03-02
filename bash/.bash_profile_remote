@@ -2435,7 +2435,7 @@ grvc() (
   git revert --continue
 )
 
-# "grvl" is short for "git revert last". ("grh" is already taken by another command.)
+# "grvl" is short for "git revert last".
 grvl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
