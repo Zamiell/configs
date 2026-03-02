@@ -134,6 +134,15 @@ assert-main-branch() (
   fi
 )
 
+assert-git-remote-reachable() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! timeout 1 git ls-remote origin HEAD &> /dev/null; then
+    echo "Error: The Git remote is not reachable. Check that you are connected to the Internet or VPN." >&2
+    return 1
+  fi
+)
+
 # This will echo back the same input if the input is not a number.
 get-branch-name-from-number() (
   set -euo pipefail # Exit on errors and undefined variables.
@@ -1504,6 +1513,7 @@ gb() (
   set -- "${positional_args[@]}" # Restore positional parameters.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   local new_branch_name="misc"
   if [[ -n "${1:-}" ]]; then
@@ -1565,6 +1575,7 @@ gbc() (
   done
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
@@ -1593,6 +1604,7 @@ gbd() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   local branch_name_or_number=""
   local only_local="false"
@@ -1692,6 +1704,7 @@ gblr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   git fetch --prune --quiet
 
@@ -1730,6 +1743,7 @@ gbr() (
   set -- "${positional_args[@]}" # Restore positional parameters.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   local old_branch_name
   old_branch_name=$(git branch --show-current) # e.g. "feature/alice/fix-bug-1"
@@ -1776,6 +1790,7 @@ gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
   assert-feature-branch
 
   local branch_name
@@ -1827,6 +1842,7 @@ gc() (
   local commit_message="${commit_message_args[*]}"
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   if [[ -z "$(git config user.name)" ]]; then
     echo "Error: Git user name not set. Run: git config --global user.name \"Your Name\"" >&2
@@ -1976,6 +1992,7 @@ gcp() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   git cherry-pick "$@"
   git push
@@ -2063,6 +2080,7 @@ gpm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   git fetch origin --prune --quiet
 
@@ -2097,6 +2115,7 @@ gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
   assert-feature-branch
 
   local branch_name
@@ -2284,6 +2303,7 @@ gpr-dry() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
   assert-feature-branch
 
   read -r host organization project repository <<< "$(get-git-remote-details)"
@@ -2310,6 +2330,7 @@ grbc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   git add --all
   git rebase --continue
@@ -2321,6 +2342,7 @@ grbm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
   assert-feature-branch
 
   local main_branch_name
@@ -2410,6 +2432,7 @@ grv() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Commit SHA1 is required. Usage: ${FUNCNAME[0]} <commit_sha1>" >&2
@@ -2435,11 +2458,12 @@ grvc() (
   git revert --continue
 )
 
-# "grvl" is short for "git revert last". ("grh" is already taken by another command.)
+# "grvl" is short for "git revert last".
 grvl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   # "--no-edit" avoids prompting for a commit message and uses the default commit message.
   git revert HEAD --no-edit
@@ -2459,6 +2483,7 @@ gsq() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: You must provide the number of commits to squash." >&2
@@ -2520,6 +2545,7 @@ gswm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
@@ -2550,6 +2576,7 @@ gtc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+  assert-git-remote-reachable
 
   git tag -l | xargs git tag -d
   git fetch --tags
