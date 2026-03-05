@@ -1179,6 +1179,24 @@ encrypt() (
   local age_path="$secrets_path/$file_name.age"
 
   git -C "$secrets_path" pull --rebase
+
+  if [[ -f "$age_path" ]]; then
+    local ssh_private_key_path="$HOME/.ssh/id_ed25519"
+    if [[ ! -s "$ssh_private_key_path" ]]; then
+      echo "Error: The \"$ssh_private_key_path\" file does not exist or is 0 bytes." >&2
+      exit 1
+    fi
+
+    local tmp_file
+    tmp_file=$(mktemp)
+    trap 'rm -f "$tmp_file"' EXIT
+    age --decrypt --identity "$ssh_private_key_path" --output "$tmp_file" "$age_path"
+    if cmp --silent "$file_path" "$tmp_file"; then
+      echo "Error: The contents of \"$file_path\" are already encrypted in \"$age_path\". Nothing to do." >&2
+      exit 1
+    fi
+  fi
+
   age --encrypt --recipients-file "$ssh_public_key_path" --output "$age_path" "$file_path"
   git -C "$secrets_path" add --all
   git -C "$secrets_path" commit --message update
