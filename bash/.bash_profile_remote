@@ -771,6 +771,8 @@ elif [[ -s "/c/tls/BEDROOTCA001.crt" ]]; then
   export COMPANY_CERT_PATH="/c/tls/BEDROOTCA001.crt"
 elif [[ -s "/c/_IT/tls/BEDROOTCA001.crt" ]]; then
   export COMPANY_CERT_PATH="/c/_IT/tls/BEDROOTCA001.crt"
+else
+  echo "Warning: Not able to find the LogixHealth certificate."
 fi
 if [[ -n "${COMPANY_CERT_PATH-}" ]]; then
   export NODE_EXTRA_CA_CERTS="$COMPANY_CERT_PATH"
