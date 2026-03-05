@@ -1178,7 +1178,7 @@ encrypt() (
   file_name=$(basename "$file_path")
   local age_path="$secrets_path/$file_name.age"
 
-  git -C "$secrets_path" pull --rebase
+  git -C "$secrets_path" pull --rebase --quiet
 
   if [[ -f "$age_path" ]]; then
     local ssh_private_key_path="$HOME/.ssh/id_ed25519"
