@@ -1,0 +1,62 @@
+{
+  "chat.disableAIFeatures": true,
+  "editor.fontSize": 16,
+  "editor.renderWhitespace": "all",
+  "editor.wordWrap": "on",
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "git.blame.editorDecoration.enabled": false,
+  "git.blame.statusBarItem.enabled": true,
+
+  // Prevent the annoying security popup when opening new repositories.
+  "security.workspace.trust.untrustedFiles": "open",
+
+  // Show the full path of the file in the window title.
+  "window.title": "${activeEditorLong}${separator}${rootName}",
+
+  // Disable preview tabs (e.g. tab title in italics).
+  "workbench.editor.enablePreview": false,
+
+  // Prevent the tabs from changing colors because it makes it too hard to see what the active tab
+  // is.
+  "workbench.editor.decorations.badges": false,
+  "workbench.editor.decorations.colors": false,
+
+  // Don't show the welcome screen.
+  "workbench.startupEditor": "none",
+
+  // Prevent the annoying side bar on the right side.
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+
+  // Disable the annoying release notes popup every time that VSCode updates itself.
+  "update.showReleaseNotes": false,
+
+  // Enable blank new files (similar to the "blank new tab" Chrome extension).
+  "workbench.editor.empty.hint": "hidden",
+
+  // Extension settings
+  "claudeCode.preferredLocation": "panel",
+  "gitdoc.enabled": false, // Should only be enabled on the "notes" repository.
+  "yamlLintFix.yamllintPath": "C:\\Users\\jnesta\\AppData\\Roaming\\Python\\Python314\\Scripts\\yamllint.exe",
+
+  // --------------------------------
+  // Vanilla settings (from complete)
+  // --------------------------------
+
+  // This matches the Airbnb JavaScript style guide.
+  "editor.rulers": [100],
+  "editor.tabSize": 2,
+
+  // Always use "lf" to be consistent with all platforms.
+  "files.eol": "\n",
+
+  // Automatically insert a trailing newline when saving a file to match the POSIX standard.
+  "files.insertFinalNewline": true,
+
+  // Automatically remove all trailing whitespace when saving a file.
+  "files.trimTrailingWhitespace": true,
+
+  // ------------------------------------------------
+  // Other (automatically added things at the bottom)
+  // ------------------------------------------------
+}
