@@ -1,12 +1,18 @@
 {
   "chat.disableAIFeatures": true,
   "editor.fontSize": 16,
+  "editor.mouseWheelZoom": true,
   "editor.renderWhitespace": "all",
   "editor.wordWrap": "on",
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
   "git.blame.editorDecoration.enabled": false,
   "git.blame.statusBarItem.enabled": true,
+
+  // Allow custom schemas hosted on GitHub.
+  "json.schemaDownload.trustedDomains": {
+    "https://raw.githubusercontent.com/": true,
+  },
 
   // Prevent the annoying security popup when opening new repositories.
   "security.workspace.trust.untrustedFiles": "open",
