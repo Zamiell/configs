@@ -1004,7 +1004,14 @@ fi
 # ----------------------
 
 aks() (
-  "$REPOSITORIES_DIR/infrastructure/3_Applications/containers/aks-shell/aks-shell.sh"
+  SCRIPT_LOCATION="$REPOSITORIES_DIR/infrastructure/3_Applications/containers/aks-shell/aks-shell.sh"
+
+  if [[ ! -s "$SCRIPT_LOCATION" ]]; then
+    echo "Error: The \"$SCRIPT_LOCATION\" file does not exist or is 0 bytes." >&2
+    exit 1
+  fi
+
+  "$SCRIPT_LOCATION"
 )
 
 # Opens the Azure DevOps URL for the "History" tab of the corresponding file.
