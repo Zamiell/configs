@@ -2714,8 +2714,8 @@ alias pp="pulumi preview"
 # https://man7.org/linux/man-pages/man1/pr.1.html
 alias pr="pulumi refresh"
 
-# "pu" is short for "pulumi up".
-alias pu="pulumi up"
+# "pu" is short for "pulumi up --suppress-outputs".
+alias pu="pulumi up --suppress-outputs"
 
 # "puy" is short for "pulumi up --yes".
 alias puy="pulumi up --yes"
