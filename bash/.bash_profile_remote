@@ -1129,8 +1129,6 @@ decrypt() (
   fi
   local file_path="$1"
 
-  # We do not need to check to see if the destination file path already exists.
-
   local ssh_private_key_path="$HOME/.ssh/id_ed25519"
   if [[ ! -s "$ssh_private_key_path" ]]; then
     echo "Error: The \"$ssh_private_key_path\" file does not exist or is 0 bytes." >&2
@@ -1148,6 +1146,18 @@ decrypt() (
   local age_path="$secrets_path/$file_name.age"
 
   git -C "$secrets_path" pull --rebase --quiet
+
+  if [[ -f "$file_path" ]]; then
+    local tmp_file
+    tmp_file=$(mktemp)
+    trap 'rm -f "$tmp_file"' EXIT
+    age --decrypt --identity "$ssh_private_key_path" --output "$tmp_file" "$age_path"
+    if cmp --silent "$file_path" "$tmp_file"; then
+      echo "Error: The content of \"$age_path\" is already decrypted in \"$file_path\". Nothing to do." >&2
+      exit 1
+    fi
+  fi
+
   age --decrypt --identity "$ssh_private_key_path" --output "$file_path" "$age_path"
   echo "Successfully decrypted: $age_path --> $file_path"
 )
@@ -1201,7 +1211,7 @@ encrypt() (
     trap 'rm -f "$tmp_file"' EXIT
     age --decrypt --identity "$ssh_private_key_path" --output "$tmp_file" "$age_path"
     if cmp --silent "$file_path" "$tmp_file"; then
-      echo "Error: The contents of \"$file_path\" are already encrypted in \"$age_path\". Nothing to do." >&2
+      echo "Error: The content of \"$file_path\" is already encrypted in \"$age_path\". Nothing to do." >&2
       exit 1
     fi
   fi
