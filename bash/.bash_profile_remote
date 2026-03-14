@@ -989,11 +989,6 @@ if command -v npm &> /dev/null; then
   if ! grep --quiet "save-exact=true" "$NPM_CONFIG_PATH"; then
     npm config set save-exact=true
   fi
-
-  if [[ -n "$NODE_AUTH_TOKEN" ]]; then
-    sed --in-place "/registry.npmjs.org/d" "$HOME/.npmrc"
-    echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> "$HOME/.npmrc"
-  fi
 fi
 
 # endregion
