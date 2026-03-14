@@ -17,8 +17,8 @@
   // Prevent the annoying security popup when opening new repositories.
   "security.workspace.trust.untrustedFiles": "open",
 
-  // Show the full path of the file in the window title.
-  "window.title": "${activeEditorLong}${separator}${rootName}",
+  // By default, the window title will be the name of the current file instead of the workspace.
+  "window.title": "${rootName}",
 
   // Disable preview tabs (e.g. tab title in italics).
   "workbench.editor.enablePreview": false,

@@ -1,0 +1,29 @@
+[
+  // Fold hotkeys
+  {
+    "key": "ctrl+alt+f",
+    "command": "vikyd.FoldLevel.level1",
+  },
+  {
+    "key": "ctrl+shift+alt+1",
+    "command": "vikyd.FoldLevel.level1",
+  },
+  {
+    "key": "ctrl+shift+alt+2",
+    "command": "vikyd.FoldLevel.level2",
+  },
+  {
+    "key": "ctrl+shift+alt+3",
+    "command": "vikyd.FoldLevel.level3",
+  },
+  {
+    "key": "ctrl+shift+alt+f",
+    "command": "editor.unfoldAll",
+  },
+
+  // Other hotkeys
+  {
+    "key": "ctrl+shift+alt+c",
+    "command": "copyRelativeFilePath", // File: Copy Path of Relative File
+  },
+]
