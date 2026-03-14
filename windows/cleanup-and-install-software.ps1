@@ -109,7 +109,6 @@ $preferences -creplace ',"extensions":',',"download":{"directory_upgrade":true,"
 Install-WingetProgram "Mozilla.Firefox.ESR"
 
 # Programming
-Install-WingetProgram "Microsoft.WindowsTerminal"
 Install-WingetProgram "Git.Git"
 Install-WingetProgram "GitHub.cli"
 Install-WingetProgram "GnuWin32.Tree"
