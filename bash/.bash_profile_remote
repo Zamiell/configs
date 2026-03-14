@@ -2589,6 +2589,9 @@ alias gu="git push"
 # "guf" is short for "git push --force-with-lease".
 alias guf="git push --force-with-lease"
 
+# "gwl" is short for "git worktree list".
+alias gwl="git worktree list"
+
 # endregion
 
 # region: GitHub Commands
