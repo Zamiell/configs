@@ -9,8 +9,6 @@
 # Constants
 # ---------
 
-CSPELL_IGNORED_WORDS="knip,mypy,pyproject,pyright,pytest,shellcheck,sqlfluff,yamlfix"
-
 # endregion
 
 # region: Helper functions
@@ -1950,11 +1948,19 @@ gc() (
     if [[ "$edit_commit_message" == "true" ]]; then
       # "--amend" amends the previous commit instead of making a new commit.
       # "--allow-empty" allows amending the commit message without changing any files.
-      git commit --amend --allow-empty
+      if [[ -z "$commit_message" ]]; then
+        git commit --amend --allow-empty
+      else
+        git commit --amend --allow-empty --message "$commit_message"
+      fi
     else
       # "--amend" amends the previous commit instead of making a new commit.
       # "--no-edit" avoids prompting for a commit message and uses the default commit message.
-      git commit --amend --no-edit
+      if [[ -z "$commit_message" ]]; then
+        git commit --amend --no-edit
+      else
+        git commit --amend --message "$commit_message"
+      fi
     fi
 
     # We do not need to "git pull" because we already verified above that we are on the remote tip.
@@ -1992,9 +1998,9 @@ gca() (
 )
 
 # "gcam" is short for "git commit amend message". This is similar to "gca", but it will also allow
-# you to change the commit message.
+# you to change the commit message. If arguments are provided, they are used as the commit message.
 gcam() (
-  gc --amend --edit-commit-message
+  gc --amend --edit-commit-message "$@"
 )
 
 # "gcl" is short for "git clone".
@@ -2247,16 +2253,6 @@ gpr() (
     fi
   else
     pull_request_text="$*"
-
-    # A pull request title was provided at the command-line. Spell check it using CSpell.
-    if [[ -z "${NO_SPELL_CHECK-}" ]] && command -v bunx &> /dev/null; then
-      {
-        # https://cspell.org/docs/Configuration/document-settings#ignore
-        echo "# cSpell:ignore $CSPELL_IGNORED_WORDS"
-        echo "$pull_request_text"
-      } | exec-package cspell stdin --no-progress --no-summary
-      # - "--no-progress" and "--no-summary" make it only output errors.
-    fi
   fi
 
   local pull_request_title
