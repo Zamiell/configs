@@ -2269,7 +2269,7 @@ gpr() (
   fi
 
   local json_payload
-  json_payload=$(jq -n \
+  json_payload=$(jq --null-input \
     --arg source "refs/heads/$branch_name" \
     --arg target "refs/heads/$main_branch_name" \
     --arg title "$pull_request_title" \
