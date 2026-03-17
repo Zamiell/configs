@@ -1039,8 +1039,8 @@ azdo-history() (
     return 1
   fi
 
-  # e.g. https://azuredevops.logixhealth.com/LogixHealth/Infrastructure/_git/infrastructure?path=/infrastructure.code-workspace&_a=history
-  o "https://azuredevops.logixhealth.com/$organization/$project/_git/$repository?path=/$relative_path&_a=history"
+  # e.g. https://azuredevops.logixhealth.com/LogixHealth/Infrastructure/_git/infrastructure?path=/infrastructure.code-workspace&version=GBmaster&_a=history
+  o "https://azuredevops.logixhealth.com/$organization/$project/_git/$repository?path=/$relative_path&version=GBmaster&_a=history"
 )
 
 # "bwl" is short for "bw login --apikey". (This is the BitWarden CLI.)
