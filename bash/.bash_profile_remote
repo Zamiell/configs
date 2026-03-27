@@ -2149,6 +2149,21 @@ gpr() (
   fi
 
   if is-github-repository; then
+    # If no default repository is set, set it. This is necessary to prevent the error:
+    # No default remote repository has been set. To learn more about the default repository, run:
+    # gh repo set-default --help
+    if [[ -z "$(gh repo set-default --view 2> /dev/null)" ]]; then
+      local origin_url
+      origin_url=$(git remote get-url origin)
+      local origin_repo
+      origin_repo=$(echo "$origin_url" | sed -E 's|.*github\.com[:/]||; s|\.git$||')
+      local parent_repo
+      parent_repo=$(gh repo view "$origin_repo" --json isFork,parent --jq 'if .isFork then (.parent.owner.login + "/" + .parent.name) else "" end' 2> /dev/null)
+      if [[ -n "$parent_repo" ]]; then
+        gh repo set-default "$parent_repo"
+      fi
+    fi
+
     gh pr create --fill-first --web
     return
   fi
