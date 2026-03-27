@@ -2630,8 +2630,15 @@ alias gu="git push"
 # "guf" is short for "git push --force-with-lease".
 alias guf="git push --force-with-lease"
 
-# "gwa" is short for "git worktree add".
-gwa() (
+# "gwa" is short for "git worktree add". (We don't use a subshell because we need to change the
+# current working directory.)
+gwa() {
+  local new_worktree_directory
+  new_worktree_directory=$(gwa-subroutine)
+  cd "$new_worktree_directory"
+}
+
+gwa-subroutine() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
@@ -2670,6 +2677,8 @@ gwa() (
 
   # There is no long form for "-b".
   git worktree add -b "$new_branch_name" "$new_worktree_directory" "$main_branch_name"
+
+  echo "$new_worktree_directory"
 )
 
 # "gwd" is short for "git worktree delete". (Even though the real command is "git worktree remove",
