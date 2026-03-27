@@ -2606,7 +2606,26 @@ alias gu="git push"
 alias guf="git push --force-with-lease"
 
 # "gwl" is short for "git worktree list".
-alias gwl="git worktree list"
+gwl() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local worktrees
+  worktrees=$(git worktree list)
+
+  local total_lines
+  total_lines=$(echo "$worktrees" | wc -l | tr -d '[:space:]')
+  local width=${#total_lines}
+
+  echo "Current git worktrees:"
+
+  local count=1
+  while IFS= read -r worktree; do
+    printf "  %*d - %s\n" "$width" "$count" "$worktree"
+    ((count++))
+  done <<< "$worktrees"
+)
 
 # "gwa" is short for "git worktree add".
 gwa() (
