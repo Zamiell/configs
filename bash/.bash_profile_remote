@@ -161,6 +161,31 @@ get-branch-name-from-number() (
   echo "$branch_name"
 )
 
+# This will echo back the same input if the input is not a number.
+get-worktree-path-from-number() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The worktree path or number is required. Usage: ${FUNCNAME[0]} <worktree_path_or_number>" >&2
+    return 1
+  fi
+  local worktree_path_or_number="$1"
+
+  local worktree_path
+  if [[ "$worktree_path_or_number" =~ ^[0-9]+$ ]]; then
+    local worktree_number="$worktree_path_or_number"
+    worktree_path=$(git worktree list | sed --quiet "${worktree_number}p" | awk '{print $1}')
+    if [[ -z "$worktree_path" ]]; then
+      echo "Error: Worktree number $worktree_number does not exist." >&2
+      return 1
+    fi
+  else
+    worktree_path="$worktree_path_or_number"
+  fi
+
+  echo "$worktree_path"
+)
+
 get-first-branch-commit-description() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -2605,28 +2630,6 @@ alias gu="git push"
 # "guf" is short for "git push --force-with-lease".
 alias guf="git push --force-with-lease"
 
-# "gwl" is short for "git worktree list".
-gwl() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  assert-in-git-repository
-
-  local worktrees
-  worktrees=$(git worktree list)
-
-  local total_lines
-  total_lines=$(echo "$worktrees" | wc -l | tr -d '[:space:]')
-  local width=${#total_lines}
-
-  echo "Current git worktrees:"
-
-  local count=1
-  while IFS= read -r worktree; do
-    printf "  %*d - %s\n" "$width" "$count" "$worktree"
-    ((count++))
-  done <<< "$worktrees"
-)
-
 # "gwa" is short for "git worktree add".
 gwa() (
   set -euo pipefail # Exit on errors and undefined variables.
@@ -2649,12 +2652,11 @@ gwa() (
   local new_worktree_directory
   local new_branch_name
   while true; do
-    local new_branch_description="$repository_name$suffix"
-    new_worktree_directory="$repositories_directory/$new_branch_description"
+    new_worktree_directory="$repositories_directory/$repository_name$suffix"
     if is-github-repository; then
-      new_branch_name=$new_branch_description
+      new_branch_name="$suffix"
     else
-      new_branch_name="feature/$OS_USERNAME/$new_branch_description"
+      new_branch_name="feature/$OS_USERNAME/$suffix"
     fi
 
     if [[ ! -e "$new_worktree_directory" ]] \
@@ -2668,6 +2670,66 @@ gwa() (
 
   # There is no long form for "-b".
   git worktree add -b "$new_branch_name" "$new_worktree_directory" "$main_branch_name"
+)
+
+# "gwd" is short for "git worktree delete". (Even though the real command is "git worktree remove",
+# we use "gwd" to maintain parity with "gbd".) Note that this will only delete the worktree, not the
+# branch.
+gwd() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Worktree path or number is required. Usage: ${FUNCNAME[0]} <worktree-path-or-number>" >&2
+    return 1
+  fi
+  local worktree_path_or_number="$1"
+
+  local worktree_path
+  worktree_path=$(get-worktree-path-from-number "$worktree_path_or_number")
+
+  local listed_worktree_path
+  listed_worktree_path=$(git worktree list | awk '{print $1}' | grep --line-regexp --fixed-strings "$worktree_path" || true)
+  if [[ -z "$listed_worktree_path" ]]; then
+    echo "Error: Worktree \"$worktree_path\" does not exist." >&2
+    return 1
+  fi
+
+  local current_worktree_path
+  current_worktree_path=$(git rev-parse --show-toplevel)
+  if [[ "$worktree_path" == "$current_worktree_path" ]]; then
+    echo "Error: You are removing worktree \"$worktree_path\", but that is your current worktree. Switch to another worktree first." >&2
+    return 1
+  fi
+
+  git worktree remove "$worktree_path"
+  echo "Deleted worktree: $worktree_path"
+
+  echo
+  gwl
+)
+
+# "gwl" is short for "git worktree list".
+gwl() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local worktrees
+  worktrees=$(git worktree list)
+
+  local total_lines
+  total_lines=$(echo "$worktrees" | wc -l | tr -d '[:space:]')
+  local width=${#total_lines}
+
+  echo "Current git worktrees:"
+
+  local count=1
+  while IFS= read -r worktree; do
+    printf "  %*d - %s\n" "$width" "$count" "$worktree"
+    ((count++))
+  done <<< "$worktrees"
 )
 
 # endregion
