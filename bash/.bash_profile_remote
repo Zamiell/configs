@@ -2635,7 +2635,7 @@ alias guf="git push --force-with-lease"
 gwa() {
   local new_worktree_directory
   new_worktree_directory=$(gwa-subroutine)
-  cd "$new_worktree_directory"
+  builtin cd "$new_worktree_directory"
 }
 
 gwa-subroutine() (
@@ -2676,7 +2676,7 @@ gwa-subroutine() (
   done
 
   # There is no long form for "-b".
-  git worktree add -b "$new_branch_name" "$new_worktree_directory" "$main_branch_name"
+  git worktree add -b "$new_branch_name" "$new_worktree_directory" "$main_branch_name" > /dev/null
 
   echo "$new_worktree_directory"
 )
