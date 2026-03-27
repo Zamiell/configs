@@ -1769,6 +1769,37 @@ gblr() (
   done <<< "$remote_branches"
 )
 
+# "gbo" is short for "git branch open", which will open all of the changed files in this branch
+# inside Visual Studio Code. This command will throw an error if there are 10 or more files
+# changed as part of the branch.
+gbo() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+  assert-feature-branch
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  local changed_files
+  changed_files=$(git diff --name-only "$main_branch_name"...HEAD)
+
+  if [[ -z "$changed_files" ]]; then
+    echo "Error: There are no changed files in this branch when compared to the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  local num_changed_files
+  num_changed_files=$(echo "$changed_files" | wc -l | tr -d " ")
+
+  if [[ "$num_changed_files" -ge 10 ]]; then
+    echo "Error: There are $num_changed_files changed files in this branch. This command only supports branches with fewer than 10 changed files." >&2
+    return 1
+  fi
+
+  echo "$changed_files" | xargs code
+)
+
 # "gbr" is short for "git branch rename".
 # - You can use the "-n" or "--no-convention" flag to omit the LogixHealth naming convention.
 gbr() (
