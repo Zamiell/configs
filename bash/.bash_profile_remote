@@ -475,6 +475,49 @@ get-merge-base() (
   echo "$merge_base"
 )
 
+get-new-worktree-directory() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel)
+
+  local repositories_directory
+  repositories_directory=$(dirname "$repo_root")
+
+  local repository_name
+  repository_name=$(basename "$repo_root")
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  local suffix=2
+  local new_worktree_directory
+  local new_branch_name
+  while true; do
+    new_worktree_directory="$repositories_directory/$repository_name$suffix"
+    if is-github-repository; then
+      new_branch_name="$suffix"
+    else
+      new_branch_name="feature/$OS_USERNAME/$suffix"
+    fi
+
+    if [[ ! -e "$new_worktree_directory" ]] \
+      && ! git show-ref --verify --quiet "refs/heads/$new_branch_name" \
+      && ! git show-ref --verify --quiet "refs/remotes/origin/$new_branch_name"; then
+      break
+    fi
+
+    ((suffix++))
+  done
+
+  # There is no long form for "-b".
+  git worktree add -b "$new_branch_name" "$new_worktree_directory" "$main_branch_name" > /dev/null
+
+  echo "$new_worktree_directory"
+)
+
 get-num-commits-on-branch() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -2665,52 +2708,10 @@ alias guf="git push --force-with-lease"
 # current working directory.)
 gwa() {
   local new_worktree_directory
-  new_worktree_directory=$(gwa-subroutine)
+  new_worktree_directory=$(get-new-worktree-directory)
   builtin cd "$new_worktree_directory"
+  git push
 }
-
-gwa-subroutine() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  assert-in-git-repository
-
-  local repo_root
-  repo_root=$(git rev-parse --show-toplevel)
-
-  local repositories_directory
-  repositories_directory=$(dirname "$repo_root")
-
-  local repository_name
-  repository_name=$(basename "$repo_root")
-
-  local main_branch_name
-  main_branch_name=$(get-main-branch-name)
-
-  local suffix=2
-  local new_worktree_directory
-  local new_branch_name
-  while true; do
-    new_worktree_directory="$repositories_directory/$repository_name$suffix"
-    if is-github-repository; then
-      new_branch_name="$suffix"
-    else
-      new_branch_name="feature/$OS_USERNAME/$suffix"
-    fi
-
-    if [[ ! -e "$new_worktree_directory" ]] \
-      && ! git show-ref --verify --quiet "refs/heads/$new_branch_name" \
-      && ! git show-ref --verify --quiet "refs/remotes/origin/$new_branch_name"; then
-      break
-    fi
-
-    ((suffix++))
-  done
-
-  # There is no long form for "-b".
-  git worktree add -b "$new_branch_name" "$new_worktree_directory" "$main_branch_name" > /dev/null
-
-  echo "$new_worktree_directory"
-)
 
 # "gwd" is short for "git worktree delete". (Even though the real command is "git worktree remove",
 # we use "gwd" to maintain parity with "gbd".) Note that this will only delete the worktree, not the
