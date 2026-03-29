@@ -2451,7 +2451,9 @@ grbc() (
   assert-in-git-repository
 
   git add --all
-  git rebase --continue
+  # "--no-edit" does not exist for "git rebase", so we have to use the "GIT_EDITOR" environment
+  # variable to prevent vim from opening.
+  GIT_EDITOR=true git rebase --continue
   git push --force-with-lease
 )
 
