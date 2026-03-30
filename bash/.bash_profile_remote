@@ -1412,7 +1412,25 @@ if command -v python &> /dev/null && ! command -v pip &> /dev/null; then
   alias pip="python -m pip"
 fi
 
-alias set-claude-settings='mkdir -p "$HOME/.claude" && curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/claude/settings.json > "$HOME/.claude/settings.json"'
+set-claude-settings() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local settings_path="$HOME/.claude/settings.json"
+  local tmp_file
+  tmp_file=$(mktemp)
+  trap 'rm -f "$tmp_file"' EXIT
+
+  curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/claude/settings.json > "$tmp_file"
+
+  if [[ -f "$settings_path" ]] && cmp --silent "$settings_path" "$tmp_file"; then
+    echo "Error: The content of \"$settings_path\" is already up to date. Nothing to do." >&2
+    exit 1
+  fi
+
+  mkdir -p "$HOME/.claude"
+  cp "$tmp_file" "$settings_path"
+  echo "Successfully updated: $settings_path"
+)
 
 alias set-env='encrypt "$HOME/.env"'
 
