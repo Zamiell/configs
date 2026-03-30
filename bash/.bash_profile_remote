@@ -1303,8 +1303,6 @@ alias get-env='decrypt "$HOME/.env"'
 # Turn off Gemini Code Assist prompts.
 alias gemini="gemini --yolo"
 
-alias get-claude-settings='mkdir -p "$HOME/.claude" && curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/claude/settings.json > "$HOME/.claude/settings.json"'
-
 get-ssh-keys() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -1413,6 +1411,8 @@ o() (
 if command -v python &> /dev/null && ! command -v pip &> /dev/null; then
   alias pip="python -m pip"
 fi
+
+alias set-claude-settings='mkdir -p "$HOME/.claude" && curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/claude/settings.json > "$HOME/.claude/settings.json"'
 
 alias set-env='encrypt "$HOME/.env"'
 
