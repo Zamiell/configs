@@ -991,6 +991,13 @@ git config --global core.autocrlf false
 # Explicitly setting it to false can prevent problems with interop between Linux & Windows.
 git config --global core.ignorecase false
 
+# https://git-scm.com/docs/git-config#Documentation/git-config.txt-coresymlinks
+# Default value: true in some cases and false in some cases
+# Explicitly setting this to true is necessary for symlinks to be created properly when cloning a
+# repository on Windows. Note that this setting will not actually do anything unless Developer Mode
+# is also enabled: https://learn.microsoft.com/en-us/windows/advanced-settings/developer-mode
+git config --global core.symlinks true
+
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-diffcolorMoved
 # Default value: false
 # Setting zebra can make git diffs easier to read by having a different color for moved lines.
