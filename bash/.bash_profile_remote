@@ -2974,6 +2974,10 @@ alias tf="terraform fmt"
 # "ti" is short for "terraform init".
 alias ti="terraform init"
 
+# "tie" is short for "terraform init empty", which is useful for running "terraform validate"
+# without intending to deploy anything.
+alias tie="terraform init -backend=false"
+
 # "tiv" is short for "terraform init && terraform validate".
 alias tiv="terraform init && terraform validate"
 
