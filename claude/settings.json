@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "ffplay -nodisp -autoexit \"C:/Users/jnesta/blind6.mp3\""
+            "command": "ffplay -nodisp -autoexit \"C:/Users/jnesta/turn-blind6.mp3\""
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "ffplay -nodisp -autoexit \"C:/Users/jnesta/blind6.mp3\""
+            "command": "ffplay -nodisp -autoexit \"C:/Users/jnesta/turn-blind6.mp3\""
           }
         ]
       }

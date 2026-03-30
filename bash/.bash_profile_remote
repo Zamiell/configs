@@ -1430,6 +1430,13 @@ set-claude-settings() (
   mkdir -p "$HOME/.claude"
   cp "$tmp_file" "$settings_path"
   echo "Successfully updated: $settings_path"
+
+  # Validate that the sound file is in place.
+  local sound_path="$HOME/turn-blind6.mp3" # This must match what is in "settings.json".
+  if [[ ! -s "$sound_path" ]]; then
+    echo "Error: The sound file does not exist: $sound_path" >&2
+    exit 1
+  fi
 )
 
 alias set-env='encrypt "$HOME/.env"'
