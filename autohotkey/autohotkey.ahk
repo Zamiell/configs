@@ -20,8 +20,6 @@ SetWinDelay(-1) ; No delay
 ^+!s::Suspend
 #SuspendExempt False
 
-#Down::WinMinimize("A")
-
 ; Emulate the "Fn" key (since it does not work properly on Ducky keyboards).
 RCtrl & RWin::{
   Send("+{F10}")
