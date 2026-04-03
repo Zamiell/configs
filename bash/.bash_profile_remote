@@ -996,7 +996,9 @@ git config --global core.ignorecase false
 # Explicitly setting this to true is necessary for symlinks to be created properly when cloning a
 # repository on Windows. Note that this setting will not actually do anything unless Developer Mode
 # is also enabled: https://learn.microsoft.com/en-us/windows/advanced-settings/developer-mode
-git config --global core.symlinks true
+if is-git-bash; then
+  git config --global core.symlinks true
+fi
 
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-diffcolorMoved
 # Default value: false
