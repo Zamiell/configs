@@ -12,6 +12,13 @@ Start-Transcript -Path "$scriptsPath\install.log" -Append
 # Settings --> System
 # -------------------
 
+# Settings --> System --> Notifications --> Notifications --> Off
+# https://www.tenforums.com/tutorials/4111-turn-off-notifications-apps-senders-windows-10-a-4.html
+# - This prevents the popup from Nvidia when using a KVM, but notifications are unwanted more
+#   generally.
+# - This requires a restart of explorer to take effect.
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f
+
 # Settings --> System --> Power --> Power Mode --> Best Performance
 # https://www.tenforums.com/performance-maintenance/186847-how-do-i-set-high-performance-power-options-default.html
 # - This grays out the setting in the normal GUI, but it can be seen with:
@@ -22,16 +29,19 @@ powercfg /change monitor-timeout-ac 0
 # Set "Turn off display" to Never when on Battery
 powercfg /change monitor-timeout-dc 0
 
-# Settings --> System --> Multitasking --> Snap windows --> Uncheck "When I snap a window, suggest what I can snap next to it"
+# Settings --> System --> Multitasking --> Snap windows -->
+# Uncheck "When I snap a window, suggest what I can snap next to it"
 # https://www.tenforums.com/tutorials/4343-turn-off-aero-snap-windows-10-a.html
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v SnapAssist /t REG_DWORD /d 0 /f
 
-# Settings --> System --> Multitasking --> Snap windows --> Uncheck "Show snap layouts when I hover over a window's maximize button"
+# Settings --> System --> Multitasking --> Snap windows -->
+# Uncheck "Show snap layouts when I hover over a window's maximize button"
 # https://www.elevenforum.com/t/enable-or-disable-snap-layouts-for-maximize-button-in-windows-11.61/
 # - This requires a restart of explorer to take effect.
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v EnableSnapAssistFlyout /t REG_DWORD /d 0 /f
 
-# Settings --> System --> Multitasking --> Snap windows --> Uncheck "Show snap layouts when I drag a window to the top of the screen"
+# Settings --> System --> Multitasking --> Snap windows -->
+# Uncheck "Show snap layouts when I drag a window to the top of the screen"
 # https://www.elevenforum.com/t/enable-or-disable-snap-layouts-on-top-of-screen-in-windows-11.6142/
 # - This requires a restart of explorer to take effect.
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v EnableSnapBar /t REG_DWORD /d 0 /f
@@ -76,12 +86,14 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Sh
 # https://github.com/ixi-your-face/Useful-Windows-11-Scripts/blob/main/Scripts/Functions/Set-TaskbarAlignment.ps1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAl /t REG_DWORD /d 0 /f
 
-# Settings --> Personalization --> Taskbar --> Taskbar behaviors --> Uncheck "Show my taskbar on all displays"
+# Settings --> Personalization --> Taskbar --> Taskbar behaviors -->
+# Uncheck "Show my taskbar on all displays"
 # https://www.tenforums.com/tutorials/104832-enable-disable-show-taskbar-all-displays-windows-10-a.html
 # - This requires elevation because the "Policies" subkey is protected.
 reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v TaskbarNoMultimon /t REG_DWORD /d 1 /f
 
-# Settings --> Personalization --> Taskbar --> Taskbar behaviors --> Combine taskbar buttons and hide labels --> Never
+# Settings --> Personalization --> Taskbar --> Taskbar behaviors -->
+# Combine taskbar buttons and hide labels --> Never
 # https://ss64.com/nt/syntax-reghacks.html
 # - This requires a restart of explorer to take effect.
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarGlomLevel /t REG_DWORD /d 2 /f
@@ -101,12 +113,14 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "
 #   "Flag + Left" will still be removed.
 reg add "HKCU\Control Panel\Desktop\WindowMetrics" /v MinAnimate /t REG_SZ /d 0 /f
 
-# Settings --> Accessibility --> Keyboard --> Sticky keys --> Keyboard shortcut for Sticky keys --> Off
+# Settings --> Accessibility --> Keyboard --> Sticky keys --> Keyboard shortcut for Sticky keys -->
+# Off
 # https://answers.microsoft.com/en-us/windows/forum/windows_vista-desktop/i-cant-turn-off-sticky-keys/a7c9fc02-2d0f-4db6-89fb-e36eca3e2ac7
 # - This requires a restart of explorer to take effect.
 reg add "HKCU\Control Panel\Accessibility\StickyKeys" /v Flags /t REG_SZ /d 506 /f
 
-# Settings --> Accessibility --> Keyboard --> Filter keys --> Keyboard shortcut for Filter keys --> Off
+# Settings --> Accessibility --> Keyboard --> Filter keys --> Keyboard shortcut for Filter keys -->
+# Off
 # https://answers.microsoft.com/en-us/windows/forum/windows_vista-desktop/i-cant-turn-off-sticky-keys/a7c9fc02-2d0f-4db6-89fb-e36eca3e2ac7
 # - This requires a restart of explorer to take effect.
 reg add "HKCU\Control Panel\Accessibility\Keyboard Response" /v Flags /t REG_SZ /d 122 /f
@@ -131,7 +145,8 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Ic
 # https://www.ninjaone.com/blog/toggle-compact-view-in-file-explorer/#:~:text=Click%20on%20the%20three%20dots,Click%20Apply%2C%20then%20OK.
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v UseCompactMode /t REG_DWORD /d 1 /f
 
-# Start --> Run --> control folders --> View --> Hidden files and folders --> Show hidden files, folders, and drives
+# Start --> Run --> control folders --> View --> Hidden files and folders -->
+# Show hidden files, folders, and drives
 # https://www.isumsoft.com/windows-10/how-to-show-hidden-files-and-folders-in-windows-10.html
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f
 
@@ -295,8 +310,6 @@ shutdown /r /t 0
 #   Refresh rate: 164.917 Hz (the highest value)
 # - Settings --> System --> Sound --> Output --> Speakers (Scarlett Solo USB) --> Device properties
 #   --> Rename "Speakers" to "Headphones"
-# - Settings --> System --> Notifications --> NVIDIA Container --> Off
-#   (to prevent the popup when using a KVM)
 # - Install Windhawk mod "Disable Taskbar Thumbnails": https://windhawk.net/mods/taskbar-thumbnails
 #   (The popups are distracting when hovering over multiple taskbar elements in a row.)
 # - Install Windhawk mod "Taskbar Labels for Windows 11": https://windhawk.net/mods/taskbar-labels
