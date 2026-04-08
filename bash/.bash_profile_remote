@@ -2472,6 +2472,12 @@ gpr-dry() (
   o "$pr_url"
 )
 
+# "gprc" will both commit and open a pull request.
+gprc() (
+  gc "$@"
+  gpr "$@"
+)
+
 # "grb" is short for "git rebase".
 alias grb="git rebase"
 
