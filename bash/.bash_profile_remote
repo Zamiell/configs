@@ -1237,6 +1237,20 @@ decrypt() (
   echo "Successfully decrypted: $age_path --> $file_path"
 )
 
+docs() (
+  # TODO: Check to se
+  local parent_dir="$PWD" # TODO
+  if [[ "$parent_dir" != "$REPOSITORIES_DIR/infrastructure/0_Global_Library/terraform-modules/" ]]; then
+    echo "Error: You can only use this command inside of a Terraform module directory." >&2
+    exit 1
+  fi
+
+  local module_name="$PWD" # TODO: basename of current working directory
+  cdg
+  bun run generate-terraform-module-docs "$module_name"
+  gc "docs: update docs for $module_name"
+)
+
 encrypt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -1595,7 +1609,6 @@ run-package-script() (
 )
 
 alias b="run-package-script build"
-alias d="run-package-script dev"
 alias l="run-package-script lint"
 alias la="run-package-script lint-all"
 alias p="run-package-script publish"
