@@ -243,10 +243,10 @@ get-git-remote-details() (
     local author
     if [[ "$remote_url" == git@* ]]; then
       # SSH URL format: git@github.com:alice/my-repo.git
-      author=$(echo "$remote_url" | sed --regexp-extended 's/^git@github\.com:([^/]+)\/.*\.git/\1/')
+      author=$(echo "$clean_url" | sed --regexp-extended 's/^git@github\.com:([^/]+)\/.*/\1/')
     else
       # HTTPS URL format: https://github.com/alice/my-repo.git
-      author=$(echo "$remote_url" | sed --regexp-extended 's|https://github\.com/([^/]+)/.*\.git|\1|')
+      author=$(echo "$clean_url" | sed --regexp-extended 's|https://github\.com/([^/]+)/.*|\1|')
     fi
 
     # Check if we are on a branch created with "gh pr checkout".
