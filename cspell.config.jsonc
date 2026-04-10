@@ -178,6 +178,7 @@
     "taskkill",
     "taskmanager",
     "tdocs",
+    "tdocsf",
     "tflint",
     "tfstate",
     "timedatectl",

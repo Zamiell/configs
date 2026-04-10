@@ -1857,6 +1857,7 @@ gbo() (
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
+  # Three dots compares to the merge base (instead of the current HEAD).
   local changed_files
   changed_files=$(git diff --name-only "$main_branch_name"...HEAD)
 
@@ -2989,6 +2990,47 @@ tdocs() (
   if ! bun run generate-terraform-module-docs "$module_name"; then
     gc "docs: update docs for $module_name"
   fi
+)
+
+# "tdocsf" is short for "terraform docs fix". It is similar to "tdocs", but it will infer all of the
+# Terraform modules modified in the current feature branch.
+tdocsf() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  cd "$REPOSITORIES_DIR/infrastructure"
+
+  assert-feature-branch
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  # Three dots compares to the merge base (instead of the current HEAD).
+  local changed_files
+  changed_files=$(git diff --name-only "$main_branch_name"...HEAD)
+
+  if [[ -z "$changed_files" ]]; then
+    echo "Error: There are no changed files in this branch when compared to the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  # Extract unique Terraform module names from changed files.
+  local module_names
+  module_names=$(echo "$changed_files" | grep '^0_Global_Library/terraform-modules/' | sed 's|^0_Global_Library/terraform-modules/\([^/]*\)/.*|\1|' | sort -u)
+
+  if [[ -z "$module_names" ]]; then
+    echo "Error: No Terraform module files were changed in this feature branch." >&2
+    return 1
+  fi
+
+  # Run docs generation for each module.
+  while IFS= read -r module_name; do
+    bun run generate-terraform-module-docs "$module_name"
+  done <<< "$module_names"
+
+  # Make a single commit for all modules.
+  local modules_list
+  modules_list=$(echo "$module_names" | paste -sd ', ')
+  gc "docs: update docs for $modules_list"
 )
 
 # "tda" is short for "terraform destroy -auto-approve".
