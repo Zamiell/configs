@@ -1237,27 +1237,6 @@ decrypt() (
   echo "Successfully decrypted: $age_path --> $file_path"
 )
 
-docs() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  local parent_dir
-  parent_dir="$(dirname "$PWD")"
-
-  local module_name
-  module_name="$(basename "$PWD")"
-
-  if [[ "$parent_dir" != "$REPOSITORIES_DIR/infrastructure/0_Global_Library/terraform-modules" ]]; then
-    echo "Error: You can only use this command inside of a Terraform module directory." >&2
-    exit 1
-  fi
-
-  cd "$REPOSITORIES_DIR/infrastructure"
-
-  if ! bun run generate-terraform-module-docs "$module_name"; then
-    gc "docs: update docs for $module_name"
-  fi
-)
-
 encrypt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -2991,7 +2970,26 @@ alias tc="rm -rf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfst
 alias td="terraform destroy"
 
 # "tdocs" is short for "terraform-docs".
-alias tdocs="terraform-docs markdown table --output-file README.md --output-mode inject . && bunx --bun prettier README.md --write"
+tdocs() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local parent_dir
+  parent_dir="$(dirname "$PWD")"
+
+  local module_name
+  module_name="$(basename "$PWD")"
+
+  if [[ "$parent_dir" != "$REPOSITORIES_DIR/infrastructure/0_Global_Library/terraform-modules" ]]; then
+    echo "Error: You can only use this command inside of a Terraform module directory." >&2
+    exit 1
+  fi
+
+  cd "$REPOSITORIES_DIR/infrastructure"
+
+  if ! bun run generate-terraform-module-docs "$module_name"; then
+    gc "docs: update docs for $module_name"
+  fi
+)
 
 # "tda" is short for "terraform destroy -auto-approve".
 alias tda="terraform destroy -auto-approve"
