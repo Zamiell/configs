@@ -2997,7 +2997,7 @@ tdocs() (
 tdocsf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  cd "$REPOSITORIES_DIR/infrastructure"
+  builtin cd "$REPOSITORIES_DIR/infrastructure"
 
   assert-feature-branch
 
