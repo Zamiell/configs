@@ -2478,10 +2478,8 @@ gprc() (
   gpr "$@"
 )
 
-gprf() (
-  # TODO
-  echo
-)
+# "gprf" is short for "git pull request fix".
+alias gprf='(builtin cd "$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts" && bun run set-auto-reviewers-required)'
 
 # "grb" is short for "git rebase".
 alias grb="git rebase"
