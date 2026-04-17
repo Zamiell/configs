@@ -591,9 +591,9 @@ print-files-and-branches() (
   fi
 )
 
-remove-leading-and-trailing-whitespace() {
+remove-leading-and-trailing-whitespace() (
   sed --expression '/[^[:space:]]/,$!d' --expression 's/^[[:space:]]*//' --expression 's/[[:space:]]*$//'
-}
+)
 
 # - When using "gh pr checkout", the git remote will not be set up properly and "git pull" will have
 #   the following error:
