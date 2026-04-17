@@ -489,6 +489,10 @@ get-new-worktree-directory() (
   local repository_name
   repository_name=$(basename "$repo_root")
 
+  # Strip trailing digits so that running from e.g. "foo2" produces "foo3", not "foo23".
+  local repository_base_name
+  repository_base_name=$(printf '%s' "$repository_name" | sed 's/[0-9]*$//')
+
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
@@ -496,7 +500,7 @@ get-new-worktree-directory() (
   local new_worktree_directory
   local new_branch_name
   while true; do
-    new_worktree_directory="$repositories_directory/$repository_name$suffix"
+    new_worktree_directory="$repositories_directory/$repository_base_name$suffix"
     if is-github-repository; then
       new_branch_name="$suffix"
     else
