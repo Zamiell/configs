@@ -164,8 +164,8 @@ SortNumArray(arr) {
 }
 
 ^2::{
-  if (WinExist("ahk_exe cmd.exe")) {
-    WinActivate("ahk_exe cmd.exe")
+  if (WinExist("ahk_exe POWERPNT.exe")) {
+    WinActivate("ahk_exe POWERPNT.exe")
   }
 }
 
