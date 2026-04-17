@@ -6,26 +6,24 @@ Currently, the configs have [LogixHealth](https://www.logixhealth.com)-specific 
 
 ## Installation
 
+First, clone this repository. Second, we want to automatically source the Bash config, but the file to edit will depend on your operating system.
+
 ### Windows (Git Bash)
 
-On Windows, ".bash_profile" is automatically loaded, but not ".profile".
-
-```sh
-echo >> ~/.bash_profile && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.bash_profile
-```
+On Windows, ".bash_profile" is automatically loaded, but not ".profile". So add the below code snippet to your ".bash_profile".
 
 ### macOS
 
-First, [change the default shell from `zsh` to `bash`](https://stackoverflow.com/questions/77052638/changing-default-shell-from-zsh-to-bash-on-macos-catalina-and-beyond) using [Homebrew](https://brew.sh/). The ".bashrc" is not automatically loaded, so we use ".profile" instead.
-
-```sh
-echo >> ~/.profile && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.profile
-```
+First, [change the default shell from `zsh` to `bash`](https://stackoverflow.com/questions/77052638/changing-default-shell-from-zsh-to-bash-on-macos-catalina-and-beyond) using [Homebrew](https://brew.sh/). The ".bashrc" file is not automatically loaded, so add the below code snippet to your ".profile" file.
 
 ### Linux (Ubuntu)
 
-On Linux, both ".profile" and ".bash_profile" are automatically loaded, but ".profile" is preferred. However, ".profile" is not executed in terminals started by a GUI. Thus, the configs should be loaded from the ".bashrc" file.
+On Linux, both ".profile" and ".bash_profile" are automatically loaded, but ".profile" is preferred. However, ".profile" is not executed in terminals started by a GUI. Thus, add the below code snippet to your ".bashrc" file.
+
+### Code Snippet
 
 ```sh
-echo >> ~/.bashrc && curl --silent --fail --show-error https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile >> ~/.bashrc
+# Load the commands from the "configs" GitHub repository.
+CONFIGS_REPO_PATH="/c/Repositories/configs" # Change this to wherever you cloned it.
+source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ```

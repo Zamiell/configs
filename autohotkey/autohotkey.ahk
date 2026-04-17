@@ -230,13 +230,14 @@ SortNumArray(arr) {
   }
 }
 
-;^0::{
-;  if (WinExist("ahk_exe olk.exe")) {
-;    WinActivate "ahk_exe olk.exe"
-;  } else {
-;    Run("C:\Program Files\WindowsApps\Microsoft.OutlookForWindows_1.2024.619.100_x64__8wekyb3d8bbwe\olk.exe") ; cspell:disable-line
-;  }
-;}
+^0::{
+  if (WinExist("ahk_exe olk.exe")) {
+    WinActivate "ahk_exe olk.exe"
+  } else {
+    ; Does not work.
+    ;Run("C:\Program Files\WindowsApps\Microsoft.OutlookForWindows_1.2024.619.100_x64__8wekyb3d8bbwe\olk.exe") ; cspell:disable-line
+  }
+}
 
 ^+k::Run("C:\Users\jnesta\OneDrive - LogixHealth Inc\Documents\KiTTY\kitty_portable.exe")
 ^+s::Run(A_AppData . "\..\Local\Programs\WinSCP\WinSCP.exe")

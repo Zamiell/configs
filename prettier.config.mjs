@@ -18,13 +18,6 @@ const config = {
         parser: "jsonc",
       },
     },
-
-    {
-      files: [".bash_profile", ".bash_profile_remote"],
-      options: {
-        parser: "sh",
-      },
-    },
   ],
 
   // We break from the default Prettier config for only a single option: operator position. There

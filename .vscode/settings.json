@@ -10,7 +10,6 @@
 
   "files.associations": {
     "**/.ssh/config": "text",
-    ".bash_profile_remote": "shellscript",
     ".env*": "shellscript", // e.g. ".env.example" is the same as ".env".
   },
 
