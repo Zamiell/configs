@@ -1079,6 +1079,11 @@ fi
 # ----------------------
 
 aks() (
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
   SCRIPT_LOCATION="$REPOSITORIES_DIR/infrastructure/3_Applications/containers/aks-shell/aks-shell.sh"
 
   if [[ ! -s "$SCRIPT_LOCATION" ]]; then
@@ -1210,7 +1215,12 @@ decrypt() (
     exit 1
   fi
 
-  local secrets_path="${REPOSITORIES_DIR:-}/secrets"
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local secrets_path="$REPOSITORIES_DIR/secrets"
   if [[ ! -d "$secrets_path" ]]; then
     echo "Error: The \"secrets\" repository does not exist." >&2
     exit 1
@@ -1262,7 +1272,12 @@ encrypt() (
     exit 1
   fi
 
-  local secrets_path="${REPOSITORIES_DIR:-}/secrets"
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local secrets_path="$REPOSITORIES_DIR/secrets"
   if [[ ! -d "$secrets_path" ]]; then
     echo "Error: The \"secrets\" repository does not exist." >&2
     exit 1
@@ -1318,7 +1333,17 @@ get-ssh-keys() (
 )
 
 # "kb" is short for "kubernetes build".
-alias kb='(builtin cd $REPOSITORIES_DIR/infrastructure/3_Applications/kubernetes && npm run build)'
+kb() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  builtin cd "$REPOSITORIES_DIR/infrastructure/3_Applications/kubernetes"
+  bun run build
+)
 
 killapp() (
   set -euo pipefail # Exit on errors and undefined variables.
@@ -1460,6 +1485,13 @@ start() (
 
 # "tpr" is short for "test-pr".
 tpr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
   builtin cd "$REPOSITORIES_DIR/infrastructure/3_Applications/containers/logix-ci-cd-tasks"
   bun run test-pr "$@"
 )
@@ -2479,7 +2511,17 @@ gprc() (
 )
 
 # "gprf" is short for "git pull request fix".
-alias gprf='(builtin cd "$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts" && bun run set-auto-reviewers-required)'
+gprf() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  builtin cd "$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
+  bun run set-auto-reviewers-required
+)
 
 # "grb" is short for "git rebase".
 alias grb="git rebase"
@@ -2983,6 +3025,11 @@ tdocs() (
   local module_name
   module_name="$(basename "$PWD")"
 
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
   if [[ "$parent_dir" != "$REPOSITORIES_DIR/infrastructure/0_Global_Library/terraform-modules" ]]; then
     echo "Error: You can only use this command inside of a Terraform module directory." >&2
     exit 1
@@ -3000,7 +3047,19 @@ tdocs() (
 tdocsf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  builtin cd "$REPOSITORIES_DIR/infrastructure"
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local infrastructure_path="$REPOSITORIES_DIR/infrastructure"
+
+  if [[ ! -d "$infrastructure_path" ]]; then
+    echo "Error: The \"$infrastructure\" repository does not exist." >&2
+    exit 1
+  fi
+
+  builtin cd "$infrastructure_path"
 
   assert-feature-branch
 
@@ -3034,6 +3093,8 @@ tdocsf() (
   local modules_list
   modules_list=$(echo "$module_names" | paste -sd ', ')
   gc "docs: update docs for $modules_list"
+
+  echo "Terraform docs fixed: $modules_list"
 )
 
 # "tda" is short for "terraform destroy -auto-approve".
