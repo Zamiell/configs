@@ -733,7 +733,14 @@ if is-mac-os; then
     return 1
   fi
 
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+  _brew_cache="$HOME/.cache/brew-shellenv.bash"
+  if [[ ! -s "$_brew_cache" || "/opt/homebrew/bin/brew" -nt "$_brew_cache" ]]; then
+    mkdir -p "$HOME/.cache"
+    /opt/homebrew/bin/brew shellenv > "$_brew_cache"
+  fi
+  # shellcheck source=/dev/null
+  source "$_brew_cache"
+  unset _brew_cache
 
   if ! command -v gsed &> /dev/null; then
     echo "Error: On macOS, these Bash configs require the GNU version of sed to be installed (because the BSD version is very old). Run: brew install gnu-sed" >&2
@@ -941,7 +948,15 @@ if [[ $- == *i* ]]; then
   # We only enable this on Linux since it lags Windows for some reason.
   if is-ubuntu; then
     if command -v npm &> /dev/null; then
-      eval "$(npm completion)"
+      _npm_bin="$(command -v npm)"
+      _npm_cache="$HOME/.cache/npm-completion.bash"
+      if [[ ! -s "$_npm_cache" || "$_npm_bin" -nt "$_npm_cache" ]]; then
+        mkdir -p "$HOME/.cache"
+        npm completion > "$_npm_cache"
+      fi
+      # shellcheck source=/dev/null
+      source "$_npm_cache"
+      unset _npm_bin _npm_cache
     fi
   fi
 
