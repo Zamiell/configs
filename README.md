@@ -25,5 +25,6 @@ On Linux, both ".profile" and ".bash_profile" are automatically loaded, but ".pr
 ```sh
 # Load the commands from the "configs" GitHub repository: https://github.com/Zamiell/configs
 CONFIGS_REPO_PATH="/c/Repositories/configs" # Change this to wherever you cloned it.
+# shellcheck source=/dev/null
 source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ```
