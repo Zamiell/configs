@@ -541,7 +541,7 @@ is-git-bash() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local kernel_name
-  kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on MacOS.
+  kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on macOS.
   [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
 )
 
@@ -562,6 +562,14 @@ is-github-repository() (
 
   return 1 # False
 )
+
+is-mac-os() {
+  [[ "$(uname)" == "Darwin" ]]
+}
+
+is-ubuntu() {
+  [[ "${ID:-}" == "ubuntu" ]]
+}
 
 # When we "cd" to a Git repository, we want to show the branches. Otherwise, can we show the list of
 # files in the directory.
@@ -719,7 +727,7 @@ to-lowercase() (
 # Homebrew
 # https://brew.sh/
 # (Homebrew must come first so that other programs can enter the PATH.)
-if [[ "$(uname)" == "Darwin" ]]; then
+if is-mac-os; then
   if [[ ! -s "/opt/homebrew/bin/brew" ]]; then
     echo "Error: On macOS, these Bash configs require that you have Homebrew package manager installed. Run: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"" >&2
     return 1
@@ -777,11 +785,7 @@ if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
 fi
 
 # PostgreSQL
-# e.g. /c/Program Files/PostgreSQL/18/bin
-PG_PATH=$(find "/c/Program Files/PostgreSQL" -maxdepth 2 -type d -path "*/[0-9]*/bin" 2> /dev/null | sort --version-sort | tail -n 1)
-if [[ -n "$PG_PATH" ]]; then
-  append-path "$PG_PATH"
-fi
+append-path "/c/Program Files/PostgreSQL/18/bin"
 
 # "Programs" directory in OneDrive
 append-path "/c/Users/jnesta/OneDrive - LogixHealth Inc/Documents/Programs"
@@ -905,7 +909,7 @@ if [[ $- == *i* ]]; then
     source /etc/os-release
   fi
 
-  if [[ "${ID:-}" == "ubuntu" ]] || [[ "$(uname)" == "Darwin" ]]; then
+  if is-ubuntu || is-mac-os; then
     # We copy the prompt from Git Bash for Windows:
     # https://github.com/git-for-windows/build-extra/blob/main/git-extra/git-prompt.sh
     PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]' # set window title
@@ -930,7 +934,7 @@ if [[ $- == *i* ]]; then
   # bun auto-complete for e.g. "bun run"
   # We only enable this on Linux since it lags Windows for some reason and has a bug on macOS:
   # https://github.com/oven-sh/bun/issues/24847
-  if [[ "${ID:-}" == "ubuntu" ]]; then
+  if is-ubuntu; then
     if command -v bun &> /dev/null; then
       mkdir -p "$HOME/.bun"
       BUN_COMPLETIONS_PATH="$HOME/.bun/_bun"
@@ -942,7 +946,7 @@ if [[ $- == *i* ]]; then
 
   # npm auto-complete for e.g. "npm run"
   # We only enable this on Linux since it lags Windows for some reason.
-  if [[ "${ID:-}" == "ubuntu" ]]; then
+  if is-ubuntu; then
     if command -v npm &> /dev/null; then
       eval "$(npm completion)"
     fi
@@ -1285,7 +1289,7 @@ kb() (
 killapp() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if [[ "$(uname)" != "Darwin" ]]; then
+  if is-mac-os; then
     echo "Error: This command is only meant to be used on macOS." >&2
     return 1
   fi
@@ -1345,7 +1349,7 @@ o() (
 
   if command -v chrome &> /dev/null; then
     # Starting chrome from the terminal will block, so we have to have special handling.
-    if [[ "${ID:-}" == "ubuntu" ]]; then
+    if is-ubuntu; then
       # - We remove the output to prevent the "Created TensorFlow Lite XNNPACK delegate for CPU."
       #   output from appearing.
       # - We cannot use aliases with "nohup" so we revert to using "google-chrome".
@@ -1413,7 +1417,7 @@ start() (
   if is-git-bash; then
     # We must use "command" to invoke "start" to prevent an infinite loop.
     command start "$@"
-  elif [[ "$(uname)" == "Darwin" ]]; then
+  elif is-mac-os; then
     open "$@"
   else
     xdg-open "$@"
