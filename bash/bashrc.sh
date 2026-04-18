@@ -785,27 +785,20 @@ if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
 fi
 
 # PostgreSQL
+# (We do not use find to dynamically get the version for performance reasons.)
 append-path "/c/Program Files/PostgreSQL/18/bin"
 
 # "Programs" directory in OneDrive
 append-path "/c/Users/jnesta/OneDrive - LogixHealth Inc/Documents/Programs"
 
 # Python
-# e.g. $HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts (Microsoft Store install)
-PYTHON_PATH_WINDOWS_LOCAL=$(find "$HOME/AppData/Local/Python" -maxdepth 2 -type d -path "*/pythoncore-*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
-if [[ -n "$PYTHON_PATH_WINDOWS_LOCAL" ]]; then
-  append-path "$PYTHON_PATH_WINDOWS_LOCAL"
-fi
-# e.g. $HOME/AppData/Roaming/Python/Python314/Scripts (python.org install, pip --user)
-PYTHON_PATH_WINDOWS_ROAMING=$(find "$HOME/AppData/Roaming/Python" -maxdepth 2 -type d -path "*/Python*/Scripts" 2> /dev/null | sort --version-sort | tail -n 1)
-if [[ -n "$PYTHON_PATH_WINDOWS_ROAMING" ]]; then
-  append-path "$PYTHON_PATH_WINDOWS_ROAMING"
-fi
-# e.g. $HOME/Library/Python/3.9/bin
-PYTHON_PATH_MACOS=$(find "$HOME/Library/Python" -maxdepth 2 -type d -path "*/bin" 2> /dev/null | sort --version-sort | tail -n 1)
-if [[ -n "$PYTHON_PATH_MACOS" ]]; then
-  append-path "$PYTHON_PATH_MACOS"
-fi
+# (We do not use find to dynamically get the version for performance reasons.)
+# On Windows, the Microsoft Store installation goes to the "Local" directory.
+append-path "$HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts"
+# On Windows, the "python.org" install goes to the "Roaming" directory.
+append-path "$HOME/AppData/Roaming/Python/Python314/Scripts"
+# On macOS, Python is installed in the "Library" directory.
+append-path "$HOME/Library/Python/3.14/bin"
 
 # terraform-docs
 append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terraform-docs"
