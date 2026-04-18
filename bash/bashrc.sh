@@ -9,6 +9,10 @@
 # Constants
 # ---------
 
+# Get the directory of this script:
+# https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
+DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+
 # endregion
 
 # region: Helper functions
@@ -932,32 +936,24 @@ if [[ $- == *i* ]]; then
   fi
 
   # bun auto-complete for e.g. "bun run"
-  # We only enable this on Linux since it lags Windows for some reason and has a bug on macOS:
-  # https://github.com/oven-sh/bun/issues/24847
-  if is-ubuntu; then
-    if command -v bun &> /dev/null; then
-      mkdir -p "$HOME/.bun"
-      BUN_COMPLETIONS_PATH="$HOME/.bun/_bun"
-      bun completions > "$BUN_COMPLETIONS_PATH"
-      # shellcheck source=/dev/null
-      source "$BUN_COMPLETIONS_PATH"
-    fi
+  # See the comment in the "bun-completions.sh" file.
+  if command -v bun &> /dev/null; then
+    mkdir -p "$HOME/.bun"
+    # shellcheck source=/dev/null
+    source "$DIR/bun-completions.sh"
   fi
 
   # npm auto-complete for e.g. "npm run"
-  # We only enable this on Linux since it lags Windows for some reason.
-  if is-ubuntu; then
-    if command -v npm &> /dev/null; then
-      _npm_bin="$(command -v npm)"
-      _npm_cache="$HOME/.cache/npm-completion.bash"
-      if [[ ! -s "$_npm_cache" || "$_npm_bin" -nt "$_npm_cache" ]]; then
-        mkdir -p "$HOME/.cache"
-        npm completion > "$_npm_cache"
-      fi
-      # shellcheck source=/dev/null
-      source "$_npm_cache"
-      unset _npm_bin _npm_cache
+  if command -v npm &> /dev/null; then
+    _npm_bin="$(command -v npm)"
+    _npm_cache="$HOME/.cache/npm-completion.bash"
+    if [[ ! -s "$_npm_cache" || "$_npm_bin" -nt "$_npm_cache" ]]; then
+      mkdir -p "$HOME/.cache"
+      npm completion > "$_npm_cache"
     fi
+    # shellcheck source=/dev/null
+    source "$_npm_cache"
+    unset _npm_bin _npm_cache
   fi
 
   # zoxide (a better cd)
