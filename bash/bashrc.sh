@@ -872,6 +872,13 @@ else
   echo "Failed to derive the operating system username." >&2
 fi
 
+if is-git-bash; then
+  # Change the symbolic link mode from "deepcopy" to "nativestrict" so that symbolic links work
+  # properly on Windows.
+  # https://www.msys2.org/docs/symlinks/
+  export MSYS=winsymlinks:nativestrict
+fi
+
 # endregion
 
 # region: Terminal Settings
