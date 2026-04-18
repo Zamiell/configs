@@ -950,7 +950,16 @@ if [[ $- == *i* ]]; then
   if command -v zoxide &> /dev/null; then
     # We can use "zoxide init bash --cmd cd" to replace the "cd" command, but we do not need to do
     # this because we overwrite the "cd" command anyway.
-    eval "$(zoxide init bash)"
+    _zoxide_bin="$(command -v zoxide)"
+    _zoxide_cache="$HOME/.cache/zoxide-init.bash"
+    if [[ ! -s "$_zoxide_cache" || "$_zoxide_bin" -nt "$_zoxide_cache" ]]; then
+      mkdir -p "$HOME/.cache"
+      zoxide init bash > "$_zoxide_cache"
+    fi
+    # shellcheck source=/dev/null
+    source "$_zoxide_cache"
+    unset _zoxide_bin
+    unset _zoxide_cache
 
     # Overwrite the "zi" command so that it functions similar to our custom "cd" command.
     zi() {
@@ -961,7 +970,16 @@ if [[ $- == *i* ]]; then
   # fzf (for fuzzy matching file paths)
   # https://github.com/junegunn/fzf
   if command -v fzf &> /dev/null; then
-    eval "$(fzf --bash)"
+    _fzf_bin="$(command -v fzf)"
+    _fzf_cache="$HOME/.cache/fzf-init.bash"
+    if [[ ! -s "$_fzf_cache" || "$_fzf_bin" -nt "$_fzf_cache" ]]; then
+      mkdir -p "$HOME/.cache"
+      fzf --bash > "$_fzf_cache"
+    fi
+    # shellcheck source=/dev/null
+    source "$_fzf_cache"
+    unset _fzf_bin
+    unset _fzf_cache
 
     # https://github.com/junegunn/fzf?tab=readme-ov-file#advanced-topics
     # "--scheme=path" - Optimize the scoring for file paths.
