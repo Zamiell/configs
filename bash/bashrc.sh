@@ -2223,7 +2223,7 @@ alias gmc="git diff --name-only --diff-filter=U"
 # the files that need to be resolved in Visual Studio Code.
 alias gmco="git diff --name-only --diff-filter=U | xargs code"
 
-# "gp" is short for "git pull --rebase".
+# "gp" is short for "git pull". (We always include the "--rebase" flag, since it is best practice.)
 alias gp="git pull --rebase"
 
 # "gpm" is short for "git pull mine", which will fetch all remote branches that start with
@@ -2732,7 +2732,7 @@ gswm() (
   if git remote get-url upstream &> /dev/null; then
     gh-sync
   else
-    git pull --rebase
+    git pull --rebase origin "$main_branch_name"
   fi
 
   gbc --skip-fetch # git branch clean
