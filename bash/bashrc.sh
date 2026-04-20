@@ -2743,7 +2743,8 @@ gswm() (
   if git remote get-url upstream &> /dev/null; then
     gh-sync
   else
-    git pull --rebase --prune origin "$main_branch_name"
+    git fetch origin --prune --quiet
+    git rebase "origin/$main_branch_name"
   fi
 
   gbc --skip-fetch # git branch clean
