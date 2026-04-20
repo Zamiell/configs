@@ -1141,6 +1141,16 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
   export REPOSITORIES_DIR
   alias cdr='builtin cd $REPOSITORIES_DIR'
 
+  if [[ -d "$REPOSITORIES_DIR/database-services" ]]; then
+    alias cdd='builtin cd $REPOSITORIES_DIR/database-services'
+  fi
+  if [[ -d "$REPOSITORIES_DIR/infrastructure" ]]; then
+    alias cdi='builtin cd $REPOSITORIES_DIR/infrastructure'
+  fi
+  if [[ -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
+    alias cdi='builtin cd $REPOSITORIES_DIR/LogixApplications'
+  fi
+
   # By default, it is useful for shells to open in the repositories directory instead of the home
   # directory. (But only do this if the shell is interactive and we are starting in the home
   # directory.)
