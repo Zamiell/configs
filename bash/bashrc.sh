@@ -1148,7 +1148,7 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
     alias cdi='builtin cd $REPOSITORIES_DIR/infrastructure'
   fi
   if [[ -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
-    alias cdi='builtin cd $REPOSITORIES_DIR/LogixApplications'
+    alias cdl='builtin cd $REPOSITORIES_DIR/LogixApplications'
   fi
 
   # By default, it is useful for shells to open in the repositories directory instead of the home
