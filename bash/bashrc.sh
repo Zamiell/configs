@@ -1,8 +1,8 @@
 # Compatibility notes:
 # - "ls" does not support long flags on macOS.
 # - "mkdir" does not support "--parents" on macOS, so we use "-p" instead.
-# - "sed" does not support long flags on macOS, but we require that macOS users install "gnu-sed"
-#   from Brew.
+# - "sed" does not support long flags on macOS. We require that macOS users run:
+#   brew install gnu-sed
 
 # region: Constants
 # ---------
