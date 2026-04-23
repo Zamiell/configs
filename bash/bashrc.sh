@@ -1692,7 +1692,8 @@ gb() (
   if git remote get-url upstream &> /dev/null; then
     gh-sync
   else
-    git pull --rebase --prune origin "$main_branch_name"
+    git fetch --prune origin
+    git rebase "origin/$main_branch_name"
   fi
 
   git switch --create "$new_branch_name"
