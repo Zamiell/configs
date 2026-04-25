@@ -575,6 +575,10 @@ is-ubuntu() {
   [[ "${ID:-}" == "ubuntu" ]]
 }
 
+is-wsl() {
+  [[ -r "/proc/version" ]] && grep --ignore-case --quiet WSL /proc/version
+}
+
 # When we "cd" to a Git repository, we want to show the branches. Otherwise, can we show the list of
 # files in the directory.
 print-files-and-branches() (
@@ -769,6 +773,15 @@ if ! command -v msedge &> /dev/null && [[ -s "/c/Program Files (x86)/Microsoft/E
 fi
 if ! command -v msedge &> /dev/null && command -v microsoft-edge &> /dev/null; then
   alias msedge="microsoft-edge"
+fi
+if is-wsl; then
+  if ! command -v wslview &> /dev/null; then
+    echo "Error: wslview is required to use these configs on WSL. Run: sudo apt install wslu --yes" >&2
+    exit
+  fi
+
+  export BROWSER="wslview"
+  export GH_BROWSER="wslview"
 fi
 
 # bun
@@ -1387,6 +1400,11 @@ o() (
   fi
   local url="$1"
 
+  if is-wsl; then
+    wslview "$url" > /dev/null 2>&1
+    return
+  fi
+
   if [[ "$url" == *"logixhealth"* ]] && command -v msedge &> /dev/null; then
     # We remove the output to prevent the "Opening in existing browser session." text from appearing
     # on Linux. (On Linux, if Edge is not yet open, it will launch normally and the terminal will
@@ -1462,7 +1480,9 @@ alias set-env='encrypt "$HOME/.env"'
 start() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if is-git-bash; then
+  if is-wsl; then
+    wslview "$@"
+  elif is-git-bash; then
     # We must use "command" to invoke "start" to prevent an infinite loop.
     command start "$@"
   elif is-mac-os; then
