@@ -52,26 +52,43 @@ _read_scripts_in_package_json() {
   [[ -f "${working_dir}/package.json" ]] && package_json=$(< "${working_dir}/package.json")
 
   [[ "${package_json}" =~ "\"scripts\""[[:space:]]*":"[[:space:]]*\{(.*)\} ]] && {
-    local package_json_compreply
+    local package_json_compreply=()
     local matched="${BASH_REMATCH[@]:1}"
     local scripts="${matched%%\}*}"
-    scripts="${scripts//@(\"|\')/}"
+    scripts="${scripts//\"/}"
+    scripts="${scripts//\'/}"
     readarray -td, scripts <<< "${scripts}"
     for completion in "${scripts[@]}"; do
-      package_json_compreply+=("${completion%:*}")
+      local script_name="${completion%:*}"
+      script_name="${script_name#"${script_name%%[![:space:]]*}"}"
+      script_name="${script_name%"${script_name##*[![:space:]]}"}"
+      [[ -n "${script_name}" ]] && package_json_compreply+=("${script_name}")
     done
     COMPREPLY+=($(compgen -W "${package_json_compreply[*]}" -- "${cur_word}"))
   }
 
   # when a script is passed as an option, do not show other scripts as part of the completion anymore
-  local re_prev_script="(^| )${prev}($| )"
+  local -A package_json_script_lookup=()
+  local completion
+  for completion in "${package_json_compreply[@]}"; do
+    package_json_script_lookup["${completion}"]=1
+  done
+
+  local has_script_argument=""
+  for ((line = 1; line < COMP_CWORD; line += 1)); do
+    [[ -n "${package_json_script_lookup["${COMP_WORDS[${line}]}"]:-}" ]] && has_script_argument=1
+  done
+
   [[ 
-    ("${COMPREPLY[*]}" =~ ${re_prev_script} && -n "${COMP_WORDS[2]}") ||
-    ("${COMPREPLY[*]}" =~ ${re_comp_word_script}) ]] \
+    -n "${has_script_argument}" ||
+    (-n "${re_comp_word_script:-}" && "${COMPREPLY[*]}" =~ ${re_comp_word_script}) ]] \
     && {
-      local re_script=$(echo "${package_json_compreply[@]}" | sed 's/[^ ]*/(&)/g')
-      local new_reply=$(echo "${COMPREPLY[@]}" | sed -E "s/$re_script//")
-      COMPREPLY=($(compgen -W "${new_reply}" -- "${cur_word}"))
+      local -a new_reply=()
+      for completion in "${COMPREPLY[@]}"; do
+        [[ -n "${package_json_script_lookup["${completion}"]:-}" ]] && continue
+        new_reply+=("${completion}")
+      done
+      COMPREPLY=($(compgen -W "${new_reply[*]}" -- "${cur_word}"))
       replaced_script="${prev}"
     }
 }

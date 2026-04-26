@@ -1182,7 +1182,7 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
 fi
 
 # Turn off GitHub Copilot CLI prompts.
-alias copilot="copilot --yolo"
+alias copilot="copilot --yolo --no-ask-user"
 
 # Turn off Claude Code prompts.
 alias claude="claude --dangerously-skip-permissions"
