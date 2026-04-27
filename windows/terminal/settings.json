@@ -20,7 +20,7 @@
   ],
   "copyFormatting": "none",
   "copyOnSelect": false,
-  "defaultProfile": "{9199c579-aa83-5753-84f6-25e184beb0af}",
+  "defaultProfile": "{eb6834f6-2c29-4b84-86b1-794dd8a58c49}",
   "keybindings": [
     {
       "id": "User.copy",
@@ -46,13 +46,11 @@
       {
         "commandline": "%SystemRoot%\\System32\\cmd.exe",
         "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
-        "hidden": false,
         "name": "Command Prompt"
       },
       {
         "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
         "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-        "hidden": false,
         "name": "Windows PowerShell"
       },
       {
@@ -64,12 +62,10 @@
         "startingDirectory": "%USERPROFILE%"
       },
       {
-        "background": "#0c0c0c",
-        "guid": "{9199c579-aa83-5753-84f6-25e184beb0af}",
-        "fontFace": "Cascadia Mono",
-        "fontSize": 12,
+        "commandline": "C:\\Windows\\system32\\wsl.exe --distribution-id {7fc021d5-4c5c-4a62-b28d-003f89ace378}",
+        "guid": "{eb6834f6-2c29-4b84-86b1-794dd8a58c49}",
         "name": "Ubuntu",
-        "source": "Microsoft.WSL"
+        "startingDirectory": "~"
       }
     ]
   },
