@@ -62,6 +62,7 @@
         "startingDirectory": "%USERPROFILE%"
       },
       {
+        "closeOnExit": "always",
         "commandline": "C:\\Windows\\system32\\wsl.exe --distribution-id {7fc021d5-4c5c-4a62-b28d-003f89ace378}",
         "guid": "{eb6834f6-2c29-4b84-86b1-794dd8a58c49}",
         "name": "Ubuntu",
