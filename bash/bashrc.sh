@@ -1108,6 +1108,8 @@ azdo-history() (
   o "https://azuredevops.logixhealth.com/$organization/$project/_git/$repository?path=/$relative_path&version=GBmaster&_a=history"
 )
 
+alias azwhoami="az account show --query user.name -o tsv"
+
 # "bwl" is short for "bw login --apikey". (This is the BitWarden CLI.)
 alias bwl="bw login --apikey"
 
