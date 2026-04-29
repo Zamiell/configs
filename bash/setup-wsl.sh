@@ -5,7 +5,12 @@ set -euo pipefail # Exit on errors and undefined variables.
 # Update.
 sudo apt update
 sudo apt upgrade --yes
-sudo apt install age jq shellcheck unzip wslu --yes
+sudo apt install --yes \
+  age \
+  jq \
+  shellcheck \
+  unzip \
+  wslu
 
 # Set up SSH.
 SSH_DIR="$HOME/.ssh"
@@ -79,12 +84,44 @@ if [[ ! -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications
 fi
 
+# ----------------
+# Install software
+# ----------------
+
 # Install GitHub Copilot CLI.
-if ! command -v copilot; then
+# https://github.com/features/copilot/cli/
+if ! command -v copilot &> /dev/null; then
   curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" | bash
 fi
 
 # Install Bun.
-if ! command -v bun; then
+# https://bun.sh/
+if ! command -v bun &> /dev/null; then
   curl --silent --fail --show-error --location https://bun.com/install | bash
+fi
+
+# Install zoxide.
+# https://github.com/ajeetdsouza/zoxide
+if ! command -v zoxide &> /dev/null; then
+  curl --silent --fail --show-error --location https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+fi
+
+# Install fzf.
+# https://github.com/junegunn/fzf
+if command -v fzf &> /dev/null; then
+  LATEST_RELEASE_JSON=$(curl --silent --fail --show-error --location https://api.github.com/repos/junegunn/fzf/releases/latest)
+  TAG_NAME=$(jq --raw-output '.tag_name' <<< "$LATEST_RELEASE_JSON")
+  # Check if TAG_NAME is empty or literal "null" (which jq returns if the key is missing)
+  if [[ -z "$TAG_NAME" ]] || [[ "$TAG_NAME" == "null" ]]; then
+    echo "Failed to fetch the latest version of fzf."
+    exit
+  fi
+  VERSION="${TAG_NAME#v}"
+  FILENAME="fzf-${VERSION}-linux_amd64.tar.gz"
+  DOWNLOAD_URL="https://github.com/junegunn/fzf/releases/download/${TAG_NAME}/${FILENAME}"
+  TMP_PATH="/tmp/$FILENAME"
+  curl --silent --fail --show-error --location --output "$TMP_PATH" "$DOWNLOAD_URL"
+  tar -xzf "/tmp/$FILENAME" -C /tmp
+  sudo mv /tmp/fzf /usr/local/bin/
+  rm "$TMP_PATH"
 fi
