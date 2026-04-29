@@ -5,6 +5,7 @@ set -euo pipefail # Exit on errors and undefined variables.
 # Update.
 sudo apt update
 sudo apt upgrade --yes
+sudo apt install wslu --yes
 
 # Set up SSH.
 SSH_DIR="$HOME/.ssh"
