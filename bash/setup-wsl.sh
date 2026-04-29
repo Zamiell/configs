@@ -45,6 +45,9 @@ fi
 if [[ ! -d "$REPOSITORIES_DIR/notes" ]]; then
   git clone git@github.com:Zamiell/notes.git
 fi
+if [[ ! -d "$REPOSITORIES_DIR/secrets" ]]; then
+  git clone git@github.com:Zamiell/secrets.git
+fi
 
 # Load Git settings.
 "$REPOSITORIES_DIR/configs/bash/set-git-settings.sh"
