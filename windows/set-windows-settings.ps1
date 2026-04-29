@@ -46,6 +46,9 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v En
 # - This requires a restart of explorer to take effect.
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v EnableSnapBar /t REG_DWORD /d 0 /f
 
+# Settings --> System --> Multitasking --> Show tabs from apps when snapping or pressing Alt-Tab --> Don't show tabs
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v EnableSnapBar /t REG_DWORD /d 0 /f
+
 # --------------------------------
 # Settings --> Bluetooth & devices
 # --------------------------------
