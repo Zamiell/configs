@@ -94,10 +94,33 @@ if ! command -v copilot &> /dev/null; then
   curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" | bash
 fi
 
+# Install fnm.
+# https://github.com/Schniz/fnm
+if ! command -v fnm &> /dev/null; then
+  # The "--skip-shell" is necessary to prevent fnm from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash -s -- --skip-shell
+
+  # Add it to PATH.
+  FNM_PATH="$HOME/.local/share/fnm"
+  export PATH="$FNM_PATH:$PATH"
+  eval "$(fnm env --shell bash)"
+fi
+
+# Install Node.js
+if ! command -v node &> /dev/null && command -v fnm &> /dev/null; then
+  fnm install --lts
+fi
+
 # Install Bun.
 # https://bun.sh/
 if ! command -v bun &> /dev/null; then
   curl --silent --fail --show-error --location https://bun.com/install | bash
+fi
+
+# Install uv.
+# https://docs.astral.sh/uv/getting-started/installation/
+if ! command -v uv &> /dev/null; then
+  curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | sh
 fi
 
 # Install zoxide.
