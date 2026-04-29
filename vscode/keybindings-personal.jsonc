@@ -26,9 +26,4 @@
     "key": "ctrl+shift+alt+c",
     "command": "copyRelativeFilePath", // File: Copy Path of Relative File
   },
-  {
-    "key": "ctrl+o",
-    "command": "workbench.action.files.openLocalFile",
-    "when": "remoteName == 'wsl'",
-  },
 ]
