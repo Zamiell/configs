@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
-$scriptsPath = "C:\Windows\Setup\scripts"
+$scriptsPath = Join-Path -Path $env:TEMP -ChildPath "scripts"
 if (-not (Test-Path $scriptsPath)) {
     New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
 }
