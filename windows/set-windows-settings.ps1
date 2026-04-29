@@ -279,18 +279,6 @@ $terminalAppDataPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8we
 New-Item -ItemType Directory -Force -Path $terminalAppDataPath | Out-Null
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/terminal/settings.json" -OutFile "$terminalAppDataPath\settings.json"
 
-# Bash
-$bashProfilePath = "$HOME/.bash_profile"
-if (-not (Test-Path -Path $bashProfilePath)) {
-    New-Item -ItemType File -Path $bashProfilePath -Force | Out-Null
-}
-$searchString = 'Load the commands from the "configs" GitHub repository.'
-$patternExists = Select-String -Path $bashProfilePath -Pattern $searchString -SimpleMatch -Quiet
-if (-not $patternExists) {
-    $response = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/.bash_profile" -UseBasicParsing
-    Add-Content -Path $bashProfilePath -Value $response.Content
-}
-
 # ---
 # End
 # ---
