@@ -777,7 +777,6 @@ fi
 if is-wsl; then
   if ! command -v wslview &> /dev/null; then
     echo "Error: wslview is required to use these configs on WSL. Run: sudo apt install wslu --yes" >&2
-    exit
   fi
 
   export BROWSER="wslview"

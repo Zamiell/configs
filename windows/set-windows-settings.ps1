@@ -1,5 +1,3 @@
-#Requires -RunAsAdministrator
-
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $scriptsPath = "C:\Windows\Setup\scripts"
@@ -46,8 +44,9 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v En
 # - This requires a restart of explorer to take effect.
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v EnableSnapBar /t REG_DWORD /d 0 /f
 
-# Settings --> System --> Multitasking --> Show tabs from apps when snapping or pressing Alt-Tab --> Don't show tabs
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v EnableSnapBar /t REG_DWORD /d 0 /f
+# Settings --> System --> Multitasking --> Show tabs from apps when snapping or pressing Alt-Tab -->
+# Don't show tabs
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v MultiTaskingAltTabFilter /t REG_DWORD /d 3 /f
 
 # --------------------------------
 # Settings --> Bluetooth & devices
@@ -71,12 +70,6 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "
 # Choose your default app mode (2/2)
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "AppsUseLightTheme" /t REG_DWORD /d 0 /f
 
-# Settings --> Personalization --> Themes --> Desktop icon settings --> Uncheck "Recycle Bin"
-# https://stackoverflow.com/questions/77420778/remove-recycle-bin-from-desktop-with-powershell
-# - This requires elevation because the "Policies" subkey is protected.
-# - This requires a restart of explorer to take effect.
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\NonEnum" /v "{645FF040-5081-101B-9F08-00AA002F954E}" /t REG_DWORD /d 1 /f
-
 # Settings --> Personalization --> Taskbar --> Taskbar items --> Search --> Hide
 # https://www.tenforums.com/tutorials/2854-hide-show-search-box-cortana-icon-taskbar-windows-10-a.html
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /t REG_DWORD /d 0 /f
@@ -85,15 +78,16 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTask
 # https://www.askvg.com/how-to-remove-search-and-task-view-icons-from-windows-10-taskbar/
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowTaskViewButton /t REG_DWORD /d 0 /f
 
+# Settings --> Personalization --> Taskbar --> Taskbar items --> Widgets --> Off
+# - This requires using a temporary registry binary to bypass the UserChoice Protection Driver
+#   (UCPD).
+Copy-Item "C:\Windows\System32\reg.exe" "$env:TEMP\reg_temp.exe"
+& "$env:TEMP\reg_temp.exe" add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa /t REG_DWORD /d 0 /f
+Remove-Item "$env:TEMP\reg_temp.exe"
+
 # Settings --> Personalization --> Taskbar --> Taskbar behaviors --> Taskbar alignment --> Left
 # https://github.com/ixi-your-face/Useful-Windows-11-Scripts/blob/main/Scripts/Functions/Set-TaskbarAlignment.ps1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAl /t REG_DWORD /d 0 /f
-
-# Settings --> Personalization --> Taskbar --> Taskbar behaviors -->
-# Uncheck "Show my taskbar on all displays"
-# https://www.tenforums.com/tutorials/104832-enable-disable-show-taskbar-all-displays-windows-10-a.html
-# - This requires elevation because the "Policies" subkey is protected.
-reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v TaskbarNoMultimon /t REG_DWORD /d 1 /f
 
 # Settings --> Personalization --> Taskbar --> Taskbar behaviors -->
 # Combine taskbar buttons and hide labels --> Never
@@ -219,18 +213,6 @@ reg add "HKCU\Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}" /v 
 taskkill /f /im explorer.exe
 reg add "HKCU\Software\Microsoft\Windows\Shell\Bags\1\Desktop" /v FFlags /t REG_DWORD /d 1075839525 /f
 Start-Process explorer.exe
-
-# Right click "Recycle Bin" --> Properties --> Don't move files to the Recycle Bin. Remove files
-# immediately when deleted.
-# https://superuser.com/questions/1616394/how-to-use-registry-to-disable-recycle-bin-for-all-users-on-all-drives-and-disp
-# - This requires elevation because the "Policies" subkey is protected.
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoRecycleFiles /t REG_DWORD /d 1 /f
-
-# Right click "Recycle Bin" --> Properties --> Display delete confirmation dialog
-# https://superuser.com/questions/1616394/how-to-use-registry-to-disable-recycle-bin-for-all-users-on-all-drives-and-disp
-# - This requires elevation because the "Policies" subkey is protected.
-# - This requires a restart of explorer to take effect.
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v ConfirmFileDelete /t REG_DWORD /d 1 /f
 
 # Start --> Run --> lusrmgr.msc --> Users --> james --> General --> Check "Password never expires"
 # https://old.reddit.com/r/sysadmin/comments/1ijux6b/wmic_has_been_deprecated_how_to_set_user_pw/

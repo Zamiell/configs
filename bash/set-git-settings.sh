@@ -11,6 +11,14 @@ is-developer-mode-enabled() {
   echo "$reg_output" | grep --quiet "0x1"
 }
 
+is-git-bash() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local kernel_name
+  kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on macOS.
+  [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
+)
+
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-coreautocrlf
 # Default value: input
 # Explicitly setting it to false prevents Git from changing line endings at any point, which can
