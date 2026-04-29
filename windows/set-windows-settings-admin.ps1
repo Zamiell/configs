@@ -1,5 +1,13 @@
 #Requires -RunAsAdministrator
 
+$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
+$scriptsPath = Join-Path -Path $env:TEMP -ChildPath "scripts"
+if (-not (Test-Path $scriptsPath)) {
+    New-Item -Path $scriptsPath -ItemType Directory -Force | Out-Null
+}
+Start-Transcript -Path "$scriptsPath\install.log" -Append
+
 # ----------------------------
 # Settings --> Personalization
 # ----------------------------
