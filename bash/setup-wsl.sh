@@ -5,7 +5,7 @@ set -euo pipefail # Exit on errors and undefined variables.
 # Update.
 sudo apt update
 sudo apt upgrade --yes
-sudo apt install wslu --yes
+sudo apt install shellcheck unzip wslu --yes
 
 # Set up SSH.
 SSH_DIR="$HOME/.ssh"
@@ -32,7 +32,7 @@ if [[ ! -s "$CERT_PATH" ]]; then
   sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH" && sudo update-ca-certificates
 fi
 
-# Clone repositories.
+# Clone personal repositories.
 if ! ssh-keygen -F github.com &> /dev/null; then
   ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
 fi
@@ -48,10 +48,12 @@ fi
 
 # Load Git settings.
 "$REPOSITORIES_DIR/configs/bash/set-git-settings.sh"
+cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$SSH_DIR/config"
 
 # Load the Bash configs.
 BASHRC_PATH="$HOME/.bashrc"
-if ! grep --quiet "Load the commands from the \"configs\"" "$BASHRC_PATH"
+if ! grep --quiet "Load the commands from the \"configs\"" "$BASHRC_PATH"; then
+  # shellcheck disable=SC2016
   echo '
 # Load the commands from the "configs" GitHub repository: https://github.com/Zamiell/configs
 CONFIGS_REPO_PATH="/home/jnesta/repositories/configs"
@@ -60,7 +62,26 @@ source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ' >> "$BASHRC_PATH"
 fi
 
+# Clone work repositories.
+if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
+  ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
+fi
+if [[ ! -d "$REPOSITORIES_DIR/database-services" ]]; then
+  git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services
+fi
+if [[ ! -d "$REPOSITORIES_DIR/infrastructure" ]]; then
+  git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure
+fi
+if [[ ! -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
+  git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications
+fi
+
 # Install GitHub Copilot CLI.
 if ! command -v copilot; then
   curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" | bash
+fi
+
+# Install Bun.
+if ! command -v bun; then
+  curl --silent --fail --show-error --location https://bun.com/install | bash
 fi
