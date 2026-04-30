@@ -1566,19 +1566,19 @@ exec-package() (
   local package_manager
   package_manager="$(get-package-manager)"
 
-  local exec_command
+  local -a exec_command
   case $package_manager in
     npm)
-      exec_command="npx"
+      exec_command=(npx)
       ;;
     yarn)
-      exec_command="npx"
+      exec_command=(npx)
       ;;
     pnpm)
-      exec_command="pnpm exec"
+      exec_command=(pnpm exec)
       ;;
     bun)
-      exec_command="bunx"
+      exec_command=(bunx)
       ;;
     *)
       echo "Error: Not able to determine the exec command for the package manager of: $package_manager" >&2
@@ -1586,7 +1586,7 @@ exec-package() (
       ;;
   esac
 
-  "$exec_command" "$@"
+  "${exec_command[@]}" "$@"
 )
 
 get-package-manager() (
@@ -1642,7 +1642,33 @@ alias la="run-package-script lint-all"
 alias p="run-package-script publish"
 alias s="run-package-script start"
 alias t="run-package-script test"
-alias u="run-package-script update || exec-package complete-cli@latest update"
+
+# If the "package.json" file for the project has an "update" script, then run the script. Otherwise,
+# invoke the "update" command of "complete-cli".
+u() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local current_dir="$PWD"
+  local package_json_path=""
+  while [[ "$current_dir" != "/" ]]; do
+    if [[ -s "$current_dir/package.json" ]]; then
+      package_json_path="$current_dir/package.json"
+      break
+    fi
+
+    current_dir="$(dirname "$current_dir")"
+  done
+
+  if [[ -n "$package_json_path" ]]; then
+    assert-jq-installed
+    if jq --exit-status '.scripts.update? | type == "string"' "$package_json_path" > /dev/null; then
+      run-package-script update "$@"
+      return
+    fi
+  fi
+
+  exec-package complete-cli@latest update "$@"
+)
 
 # endregion
 
