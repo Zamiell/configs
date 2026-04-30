@@ -2018,7 +2018,7 @@ gc() (
 
   local amend="false"
   local edit_commit_message="false"
-  local no_browser="false"
+  local browser="true"
   local commit_message_args=()
 
   while [[ $# -gt 0 ]]; do
@@ -2032,7 +2032,7 @@ gc() (
         shift
         ;;
       --no-browser)
-        no_browser="true"
+        browser="false"
         shift
         ;;
       *)
@@ -2167,7 +2167,7 @@ gc() (
     git push
   fi
 
-  if [[ "$no_browser" == "false" ]]; then
+  if [[ "$browser" == "true" ]]; then
     gcs
   fi
 )
