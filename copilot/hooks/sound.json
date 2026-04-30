@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "ffplay.exe -nodisp -autoexit \"C:\\Users\\jnesta\\turn-blind1.mp3\" &",
+        "timeoutSec": 1
+      }
+    ]
+  }
+}
