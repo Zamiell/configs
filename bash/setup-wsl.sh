@@ -3,9 +3,9 @@
 set -euo pipefail # Exit on errors and undefined variables.
 
 # Update.
-sudo apt update
-sudo apt upgrade --yes
-sudo apt install --yes \
+sudo apt-get update
+sudo apt-get upgrade --yes
+sudo apt-get install --yes \
   age \
   jq \
   podman \
@@ -164,12 +164,24 @@ fi
 # Install tools
 # -------------
 
-# Install GitHub Copilot CLI.
+# Install the GitHub CLI.
+# https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
+if ! command -v gh &> /dev/null; then
+  sudo mkdir -p -m 755 /etc/apt/keyrings
+  curl --silent --fail --show-error --location https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+  sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+  sudo mkdir -p -m 755 /etc/apt/sources.list.d
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+  sudo apt update
+  sudo apt install gh -y
+fi
+
+# Install the GitHub Copilot CLI.
 # https://github.com/features/copilot/cli/
 if ! command -v copilot &> /dev/null; then
   curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" | bash
 fi
 
-# Install Azure CLI.
+# Install the Azure CLI.
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
 curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash

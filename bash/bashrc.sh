@@ -2018,6 +2018,7 @@ gc() (
 
   local amend="false"
   local edit_commit_message="false"
+  local no_browser="false"
   local commit_message_args=()
 
   while [[ $# -gt 0 ]]; do
@@ -2028,6 +2029,10 @@ gc() (
         ;;
       --edit-commit-message)
         edit_commit_message="true"
+        shift
+        ;;
+      --no-browser)
+        no_browser="true"
         shift
         ;;
       *)
@@ -2162,7 +2167,9 @@ gc() (
     git push
   fi
 
-  gcs
+  if [[ "$no_browser" == "false" ]]; then
+    gcs
+  fi
 )
 
 # "gca" is short for "git commit amend". This is similar to "gc", but it will amend the previous
