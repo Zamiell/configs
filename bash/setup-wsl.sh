@@ -8,6 +8,7 @@ sudo apt upgrade --yes
 sudo apt install --yes \
   age \
   jq \
+  podman \
   shellcheck \
   unzip \
   wslu
@@ -84,15 +85,9 @@ if [[ ! -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications
 fi
 
-# ----------------
-# Install software
-# ----------------
-
-# Install GitHub Copilot CLI.
-# https://github.com/features/copilot/cli/
-if ! command -v copilot &> /dev/null; then
-  curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" | bash
-fi
+# -----------------------------
+# Install programming languages
+# -----------------------------
 
 # Install fnm.
 # https://github.com/Schniz/fnm
@@ -123,6 +118,10 @@ if ! command -v uv &> /dev/null; then
   curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | sh
 fi
 
+# --------------------------------
+# Install quality of life software
+# --------------------------------
+
 # Install zoxide.
 # https://github.com/ajeetdsouza/zoxide
 if ! command -v zoxide &> /dev/null; then
@@ -148,3 +147,17 @@ if command -v fzf &> /dev/null; then
   sudo mv /tmp/fzf /usr/local/bin/
   rm "$TMP_PATH"
 fi
+
+# -------------
+# Install tools
+# -------------
+
+# Install GitHub Copilot CLI.
+# https://github.com/features/copilot/cli/
+if ! command -v copilot &> /dev/null; then
+  curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" | bash
+fi
+
+# Install Azure CLI.
+# https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
+curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
