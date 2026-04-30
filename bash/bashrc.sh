@@ -1182,8 +1182,8 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
   fi
 fi
 
-# Turn off GitHub Copilot CLI prompts.
-alias copilot="copilot --yolo --no-ask-user"
+# Turn off GitHub Copilot CLI prompts and the annoying "Ctrl + C" hotkey to copy text.
+alias copilot="copilot --yolo --no-ask-user --no-mouse"
 
 # Turn off Claude Code prompts.
 alias claude="claude --dangerously-skip-permissions"
