@@ -1758,10 +1758,10 @@ gb() (
 # "gb_" is an alias for "gb --no-convention".
 alias gb_="gb --no-convention"
 
-# "gbc" is short for "git branch clean", which will remove all local branches that do not exist on
+# "gbcl" is short for "git branch clean", which will remove all local branches that do not exist on
 # the remote repository.
 # https://stackoverflow.com/questions/7726949/remove-tracking-branches-no-longer-on-remote
-gbc() (
+gbcl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local skip_fetch=false
@@ -2823,7 +2823,7 @@ gswm() (
     git rebase "origin/$main_branch_name"
   fi
 
-  gbc --skip-fetch # git branch clean
+  gbcl --skip-fetch # git branch clean
   git stash list
 )
 
