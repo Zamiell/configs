@@ -23,6 +23,10 @@
 
   // Other hotkeys
   {
+    "key": "ctrl+o",
+    "command": "betterOpenFile.openFile",
+  },
+  {
     "key": "ctrl+shift+alt+c",
     "command": "copyRelativeFilePath", // File: Copy Path of Relative File
   },
