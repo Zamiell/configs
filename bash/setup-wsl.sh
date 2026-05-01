@@ -131,6 +131,26 @@ if ! command -v terraform &> /dev/null; then
   sudo apt-get install terraform --yes
 fi
 
+# Install `terraform-docs`.
+# https://github.com/terraform-docs/terraform-docs
+if ! command -v terraform-docs &> /dev/null; then
+  LATEST_RELEASE_JSON=$(curl --silent --fail --show-error --location https://api.github.com/repos/terraform-docs/terraform-docs/releases/latest)
+  TAG_NAME=$(jq --raw-output '.tag_name' <<< "$LATEST_RELEASE_JSON")
+  # Check if TAG_NAME is empty or literal "null" (which jq returns if the key is missing)
+  if [[ -z "$TAG_NAME" ]] || [[ "$TAG_NAME" == "null" ]]; then
+    echo "Failed to fetch the latest version of: terraform-docs/terraform-docs"
+    exit
+  fi
+  VERSION="${TAG_NAME#v}"
+  FILENAME="terraform-docs-v${VERSION}-linux-amd64.tar.gz"
+  DOWNLOAD_URL="https://github.com/terraform-docs/terraform-docs/releases/download/${TAG_NAME}/${FILENAME}"
+  TMP_PATH="/tmp/$FILENAME"
+  curl --silent --fail --show-error --location --output "$TMP_PATH" "$DOWNLOAD_URL"
+  tar -xzf "/tmp/$FILENAME" -C /tmp
+  sudo mv /tmp/terraform-docs /usr/local/bin/
+  rm "$TMP_PATH"
+fi
+
 # --------------------------------
 # Install quality of life software
 # --------------------------------
@@ -148,7 +168,7 @@ if command -v fzf &> /dev/null; then
   TAG_NAME=$(jq --raw-output '.tag_name' <<< "$LATEST_RELEASE_JSON")
   # Check if TAG_NAME is empty or literal "null" (which jq returns if the key is missing)
   if [[ -z "$TAG_NAME" ]] || [[ "$TAG_NAME" == "null" ]]; then
-    echo "Failed to fetch the latest version of fzf."
+    echo "Failed to fetch the latest version of: junegunn/fzf"
     exit
   fi
   VERSION="${TAG_NAME#v}"
