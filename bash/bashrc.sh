@@ -3143,7 +3143,7 @@ tpf() (
     exit 1
   fi
 
-  cd "$infrastructure_path"
+  builtin cd "$infrastructure_path"
 
   local yaml_path="0_Global_Library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
   if [[ ! -s "$yaml_path" ]]; then
@@ -3173,7 +3173,7 @@ tph() (
     exit 1
   fi
 
-  cd "$infrastructure_path"
+  builtin cd "$infrastructure_path"
 
   local yaml_path="0_Global_Library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
   if [[ ! -s "$yaml_path" ]]; then
