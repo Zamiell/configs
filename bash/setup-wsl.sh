@@ -9,6 +9,7 @@ sudo apt-get install --yes \
   age \
   jq \
   podman \
+  ripgrep \
   shellcheck \
   unzip \
   wslu
