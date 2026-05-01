@@ -40,9 +40,34 @@ get-github-latest-release-url() {
   echo "https://github.com/${repository}/releases/download/${tag_name}/${filename}"
 }
 
-# ----
-# Main
-# ----
+install-binary-from-tar-url() {
+  local download_url="$1"
+  if [[ -z "$download_url" ]]; then
+    echo "You must pass this function the tar download URL as the first argument." >&2
+    exit 1
+  fi
+
+  local binary_name="$2"
+  if [[ -z "$binary_name" ]]; then
+    echo "You must pass this function the binary name as the second argument." >&2
+    exit 1
+  fi
+
+  local filename
+  filename="${download_url##*/}"
+
+  local tmp_path
+  tmp_path="/tmp/$filename"
+
+  curl --silent --fail --show-error --location --output "$tmp_path" "$download_url"
+  tar -xzf "$tmp_path" -C /tmp
+  sudo mv "/tmp/$binary_name" /usr/local/bin/
+  rm "$tmp_path"
+}
+
+# ----------
+# Main setup
+# ----------
 
 # Update.
 sudo apt-get update
@@ -177,12 +202,7 @@ fi
 # https://github.com/terraform-docs/terraform-docs
 if ! command -v terraform-docs &> /dev/null; then
   DOWNLOAD_URL=$(get-github-latest-release-url "terraform-docs/terraform-docs" "terraform-docs-v{version}-linux-amd64.tar.gz")
-  FILENAME="${DOWNLOAD_URL##*/}"
-  TMP_PATH="/tmp/$FILENAME"
-  curl --silent --fail --show-error --location --output "$TMP_PATH" "$DOWNLOAD_URL"
-  tar -xzf "/tmp/$FILENAME" -C /tmp
-  sudo mv /tmp/terraform-docs /usr/local/bin/
-  rm "$TMP_PATH"
+  install-binary-from-tar-url "$DOWNLOAD_URL" "terraform-docs"
 fi
 
 # --------------------------------
@@ -199,12 +219,7 @@ fi
 # https://github.com/junegunn/fzf
 if command -v fzf &> /dev/null; then
   DOWNLOAD_URL=$(get-github-latest-release-url "junegunn/fzf" "fzf-{version}-linux_amd64.tar.gz")
-  FILENAME="${DOWNLOAD_URL##*/}"
-  TMP_PATH="/tmp/$FILENAME"
-  curl --silent --fail --show-error --location --output "$TMP_PATH" "$DOWNLOAD_URL"
-  tar -xzf "/tmp/$FILENAME" -C /tmp
-  sudo mv /tmp/fzf /usr/local/bin/
-  rm "$TMP_PATH"
+  install-binary-from-tar-url "$DOWNLOAD_URL" "fzf"
 fi
 
 # -------------
