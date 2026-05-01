@@ -3073,36 +3073,9 @@ alias tc="rm -rf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfst
 # "td" is short for "terraform destroy".
 alias td="terraform destroy"
 
-# "tdocs" is short for "terraform-docs".
-tdocs() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  local parent_dir
-  parent_dir="$(dirname "$PWD")"
-
-  local module_name
-  module_name="$(basename "$PWD")"
-
-  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
-    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
-    exit 1
-  fi
-
-  if [[ "$parent_dir" != "$REPOSITORIES_DIR/infrastructure/0_Global_Library/terraform-modules" ]]; then
-    echo "Error: You can only use this command inside of a Terraform module directory." >&2
-    exit 1
-  fi
-
-  cd "$REPOSITORIES_DIR/infrastructure"
-
-  if ! bun run generate-terraform-module-docs "$module_name"; then
-    gc "docs: update docs for $module_name"
-  fi
-)
-
-# "tdocsf" is short for "terraform docs fix". It is similar to "tdocs", but it will infer all of the
-# Terraform modules modified in the current feature branch.
-tdocsf() (
+# "tdf" is short for "terraform docs fix". It will infer all of the Terraform modules modified in
+# the current feature branch.
+tdf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
