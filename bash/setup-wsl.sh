@@ -2,6 +2,48 @@
 
 set -euo pipefail # Exit on errors and undefined variables.
 
+# -----------
+# Subroutines
+# -----------
+
+get-github-latest-release-url() {
+  local repository="$1"
+  if [[ -z "$repository" ]]; then
+    echo "You must pass this function the GitHub author and repository name as the first argument." >&2
+    exit 1
+  fi
+
+  local filename_template="$2"
+  if [[ -z "$filename_template" ]]; then
+    echo "You must pass this function the filename template as the second argument." >&2
+    exit 1
+  fi
+
+  local latest_release_json
+  latest_release_json=$(curl --silent --fail --show-error --location "https://api.github.com/repos/${repository}/releases/latest")
+
+  local tag_name
+  tag_name=$(jq --raw-output '.tag_name' <<< "$latest_release_json")
+
+  # Check if TAG_NAME is empty or literal "null" (which jq returns if the key is missing).
+  if [[ -z "$tag_name" ]] || [[ "$tag_name" == "null" ]]; then
+    echo "Failed to fetch the latest version of: $repository" >&2
+    exit 1
+  fi
+
+  local version
+  version="${tag_name#v}"
+
+  local filename
+  filename="${filename_template//\{tag_name\}/$tag_name}"
+  filename="${filename//\{version\}/$version}"
+  echo "https://github.com/${repository}/releases/download/${tag_name}/${filename}"
+}
+
+# ----
+# Main
+# ----
+
 # Update.
 sudo apt-get update
 sudo apt-get upgrade --yes
@@ -134,16 +176,8 @@ fi
 # Install `terraform-docs`.
 # https://github.com/terraform-docs/terraform-docs
 if ! command -v terraform-docs &> /dev/null; then
-  LATEST_RELEASE_JSON=$(curl --silent --fail --show-error --location https://api.github.com/repos/terraform-docs/terraform-docs/releases/latest)
-  TAG_NAME=$(jq --raw-output '.tag_name' <<< "$LATEST_RELEASE_JSON")
-  # Check if TAG_NAME is empty or literal "null" (which jq returns if the key is missing)
-  if [[ -z "$TAG_NAME" ]] || [[ "$TAG_NAME" == "null" ]]; then
-    echo "Failed to fetch the latest version of: terraform-docs/terraform-docs"
-    exit
-  fi
-  VERSION="${TAG_NAME#v}"
-  FILENAME="terraform-docs-v${VERSION}-linux-amd64.tar.gz"
-  DOWNLOAD_URL="https://github.com/terraform-docs/terraform-docs/releases/download/${TAG_NAME}/${FILENAME}"
+  DOWNLOAD_URL=$(get-github-latest-release-url "terraform-docs/terraform-docs" "terraform-docs-v{version}-linux-amd64.tar.gz")
+  FILENAME="${DOWNLOAD_URL##*/}"
   TMP_PATH="/tmp/$FILENAME"
   curl --silent --fail --show-error --location --output "$TMP_PATH" "$DOWNLOAD_URL"
   tar -xzf "/tmp/$FILENAME" -C /tmp
@@ -164,16 +198,8 @@ fi
 # Install fzf.
 # https://github.com/junegunn/fzf
 if command -v fzf &> /dev/null; then
-  LATEST_RELEASE_JSON=$(curl --silent --fail --show-error --location https://api.github.com/repos/junegunn/fzf/releases/latest)
-  TAG_NAME=$(jq --raw-output '.tag_name' <<< "$LATEST_RELEASE_JSON")
-  # Check if TAG_NAME is empty or literal "null" (which jq returns if the key is missing)
-  if [[ -z "$TAG_NAME" ]] || [[ "$TAG_NAME" == "null" ]]; then
-    echo "Failed to fetch the latest version of: junegunn/fzf"
-    exit
-  fi
-  VERSION="${TAG_NAME#v}"
-  FILENAME="fzf-${VERSION}-linux_amd64.tar.gz"
-  DOWNLOAD_URL="https://github.com/junegunn/fzf/releases/download/${TAG_NAME}/${FILENAME}"
+  DOWNLOAD_URL=$(get-github-latest-release-url "junegunn/fzf" "fzf-{version}-linux_amd64.tar.gz")
+  FILENAME="${DOWNLOAD_URL##*/}"
   TMP_PATH="/tmp/$FILENAME"
   curl --silent --fail --show-error --location --output "$TMP_PATH" "$DOWNLOAD_URL"
   tar -xzf "/tmp/$FILENAME" -C /tmp
