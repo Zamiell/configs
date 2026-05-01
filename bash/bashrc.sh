@@ -1804,7 +1804,7 @@ gbcp() (
 
   local branch_name
   branch_name=$(git branch --show-current)
-  echo "$branch_name" | clip.exe
+  printf "%s" "$branch_name" | clip.exe
 )
 
 # "gbd" is short for "git branch delete", which will delete the branch both locally and remotely.
