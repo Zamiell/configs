@@ -2669,7 +2669,7 @@ grshm() (
   git push --force-with-lease
 )
 
-# "grt" is short for "git restore". It will the feature branch's merge base as the source.
+# "grt" is short for "git restore".
 grt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -2681,11 +2681,11 @@ grt() (
     return 1
   fi
 
-  local merge_base
-  merge_base=$(get-merge-base)
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
 
   # We use "git checkout" instead of "git restore" since it works in more situations.
-  git checkout "$merge_base" -- "$@"
+  git checkout "$main_branch_name" -- "$@"
 )
 
 # "grv" is short for "git revert".
@@ -3126,6 +3126,70 @@ tdf() (
   gc "docs: update docs for $modules_list"
 
   echo "Terraform docs fixed: $modules_list"
+)
+
+# The analog to "tph". Will put the "terraform-plan-approve-apply.yml" file back to normal.
+tpf() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local infrastructure_path="$REPOSITORIES_DIR/infrastructure"
+  if [[ ! -d "$infrastructure_path" ]]; then
+    echo "Error: The \"infrastructure\" repository does not exist." >&2
+    exit 1
+  fi
+
+  cd "$infrastructure_path"
+
+  local yaml_path="0_Global_Library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
+  if [[ ! -s "$yaml_path" ]]; then
+    echo "Error: The \"$yaml_path\" file was not found." >&2
+    exit 1
+  fi
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  git checkout "$main_branch_name" -- "$yaml_path"
+  gc "chore: revert terraform-plan-approve-apply.yml"
+  echo "The Terraform pipeline was successfully reset back to normal."
+)
+
+tph() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local infrastructure_path="$REPOSITORIES_DIR/infrastructure"
+  if [[ ! -d "$infrastructure_path" ]]; then
+    echo "Error: The \"infrastructure\" repository does not exist." >&2
+    exit 1
+  fi
+
+  cd "$infrastructure_path"
+
+  local yaml_path="0_Global_Library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
+  if [[ ! -s "$yaml_path" ]]; then
+    echo "Error: The \"$yaml_path\" file was not found." >&2
+    exit 1
+  fi
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  sed --in-place "s#refs/heads/$main_branch_name#refs/heads/$branch_name#g" "$yaml_path"
+  gc "chore: hack terraform-plan-approve-apply.yml"
+  echo "The Terraform pipeline was successfully hacked to use this branch instead of the master branch."
 )
 
 # "tda" is short for "terraform destroy -auto-approve".
