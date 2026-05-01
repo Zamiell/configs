@@ -2551,7 +2551,7 @@ gpr-dry() (
 
 # "gprc" will both commit and open a pull request.
 gprc() (
-  gc "$@"
+  gc --no-browser "$@"
   gpr "$@"
 )
 
