@@ -1795,6 +1795,18 @@ gbc() (
   gbl
 )
 
+# "gbcp" is short for "git branch copy", which will put the branch name into the clipboard.
+gbcp() (
+  if ! command -v clip.exe &> /dev/null; then
+    echo "Error: \"clip.exe\" was not found. This command is intended to be run inside of Git Bash or WSL." >&2
+    return 1
+  fi
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+  echo "$branch_name" | clip.exe
+)
+
 # "gbd" is short for "git branch delete", which will delete the branch both locally and remotely.
 gbd() (
   set -euo pipefail # Exit on errors and undefined variables.
