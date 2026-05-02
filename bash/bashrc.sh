@@ -1193,7 +1193,6 @@ csf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
-
   cdg
   exec-package cspell-check-unused-words --fix
 
@@ -1674,18 +1673,10 @@ alias t="run-package-script test"
 u() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local current_dir="$PWD"
-  local package_json_path=""
-  while [[ "$current_dir" != "/" ]]; do
-    if [[ -s "$current_dir/package.json" ]]; then
-      package_json_path="$current_dir/package.json"
-      break
-    fi
+  assert-in-git-repository
+  cdg
 
-    current_dir="$(dirname "$current_dir")"
-  done
-
-  if [[ -n "$package_json_path" ]]; then
+  if [[ -s "package.json" ]]; then
     assert-jq-installed
     if jq --exit-status '.scripts.update? | type == "string"' "$package_json_path" > /dev/null; then
       run-package-script update "$@"
