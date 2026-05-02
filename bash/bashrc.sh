@@ -1508,30 +1508,54 @@ tpr() (
 
 # Establishes a connection to the LogixHealth VPN in the background. (This is intended to be used on
 # Linux devices.)
+# vpn() (
+#   set -euo pipefail # Exit on errors and undefined variables.
+
+#   MICROSOFT_EDGE_PATH="/opt/microsoft/msedge/msedge"
+#   if [[ ! -s "$MICROSOFT_EDGE_PATH" ]]; then
+#     echo "Error: Microsoft Edge must be installed at: $MICROSOFT_EDGE_PATH" >&2
+#     return 1
+#   fi
+
+#   if pgrep --exact gpclient > /dev/null; then
+#     sudo killall gpclient
+#     for _ in $(seq 1 10); do
+#       pgrep --exact gpclient > /dev/null || break
+#       sleep 1
+#     done
+#     if pgrep --exact gpclient > /dev/null; then
+#       echo "Error: gpclient did not exit within 10 seconds." >&2
+#       return 1
+#     fi
+#   fi
+
+#   # sudo is required to modify the tun0 interface.
+#   sudo --validate
+#   sudo nohup gpclient connect lhvpn.logixhealth.com --browser "$MICROSOFT_EDGE_PATH" 2>&1 | sudo tee --append /var/log/vpn.log &
+# )
+
+# Kills and restarts Palo Alto GlobalProtect.
 vpn() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  MICROSOFT_EDGE_PATH="/opt/microsoft/msedge/msedge"
-  if [[ ! -s "$MICROSOFT_EDGE_PATH" ]]; then
-    echo "Error: Microsoft Edge must be installed at: $MICROSOFT_EDGE_PATH" >&2
+  if ! command -v powershell.exe > /dev/null; then
+    echo "Error: powershell.exe is not available. WSL Windows interop must be enabled." >&2
     return 1
   fi
 
-  if pgrep --exact gpclient > /dev/null; then
-    sudo killall gpclient
-    for _ in $(seq 1 10); do
-      pgrep --exact gpclient > /dev/null || break
-      sleep 1
-    done
-    if pgrep --exact gpclient > /dev/null; then
-      echo "Error: gpclient did not exit within 10 seconds." >&2
-      return 1
-    fi
-  fi
+  # shellcheck disable=SC2016
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '
+    $ErrorActionPreference = "Stop"
 
-  # sudo is required to modify the tun0 interface.
-  sudo --validate
-  sudo nohup gpclient connect lhvpn.logixhealth.com --browser "$MICROSOFT_EDGE_PATH" 2>&1 | sudo tee --append /var/log/vpn.log &
+    $panGpaPath = Join-Path $env:ProgramFiles "Palo Alto Networks\GlobalProtect\PanGPA.exe"
+    if (-not (Test-Path -LiteralPath $panGpaPath)) {
+      throw "PanGPA.exe was not found in the Program Files directory."
+    }
+
+    Get-Process -Name PanGPA -ErrorAction SilentlyContinue | Stop-Process -Force
+    Start-Sleep -Seconds 2
+    Start-Process -FilePath $panGpaPath
+  '
 )
 
 # endregion
