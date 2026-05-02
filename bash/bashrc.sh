@@ -1193,6 +1193,8 @@ csf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
+
+  cdg
   exec-package cspell-check-unused-words --fix
 
   if [[ -n "$(git status --porcelain)" ]]; then
