@@ -1221,7 +1221,15 @@ csf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
-  cdg
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
+  if [[ -z "$repo_root" ]]; then
+    echo "Error: Failed to get the root of the current git repository." >&2
+    return 1
+  fi
+
+  builtin cd "$repo_root"
   exec-package cspell-check-unused-words --fix
 
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -1702,7 +1710,15 @@ u() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
-  cdg
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
+  if [[ -z "$repo_root" ]]; then
+    echo "Error: Failed to get the root of the current git repository." >&2
+    return 1
+  fi
+
+  builtin cd "$repo_root"
 
   if [[ -s "package.json" ]]; then
     assert-jq-installed
