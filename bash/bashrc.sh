@@ -623,11 +623,12 @@ set-cd-alias() {
   fi
   local repository_name="$1"
 
-  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+  if [[ -z "${REPOSITORIES_DIR:-}" ]] || [[ ! -d "$REPOSITORIES_DIR/$repository_name" ]]; then
     return
   fi
 
-  local first_letter="${repository_name:0:1}"
+  local first_letter
+  first_letter=$(to-lowercase "${repository_name:0:1}")
 
   # Throw an error if the alias for this letter is already taken.
   # TODO
