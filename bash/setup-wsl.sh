@@ -155,6 +155,9 @@ fi
 if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
   ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
 fi
+if [[ ! -d "$REPOSITORIES_DIR/allscripts-external" ]]; then
+  git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external
+fi
 if [[ ! -d "$REPOSITORIES_DIR/database-services" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services
 fi

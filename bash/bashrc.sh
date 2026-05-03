@@ -1209,6 +1209,7 @@ if [[ -n "${REPOSITORIES_DIR:-}" ]]; then
   set-cd-alias secrets
 
   # Make various "cd" hotkeys for switching to specific work repositories.
+  set-cd-alias allscripts-external
   set-cd-alias database-services
   # "databricks-data" also starts with a "d".
   set-cd-alias infrastructure
