@@ -51,14 +51,14 @@ add-logix-cert-to-requests-ca-bundle() (
 # If we use a subshell, the changes to PATH would be lost.
 append-path() {
   if [[ -z "${1:-}" ]]; then
-    echo "Error: The path is required. Usage: ${FUNCNAME[0]} <path>" >&2
+    echo "Error: The directory path is required. Usage: ${FUNCNAME[0]} <path>" >&2
     return 1
   fi
-  local directory="$1"
+  local directory_path="$1"
 
   # Check if the directory exists and is not already in the PATH.
-  if [[ -d "$directory" ]] && [[ ":$PATH:" != *":$directory:"* ]]; then
-    export PATH="$PATH:$directory"
+  if [[ -d "$directory_path" ]] && [[ ":$PATH:" != *":$directory_path:"* ]]; then
+    export PATH="$PATH:$directory_path"
   fi
 }
 
@@ -80,18 +80,18 @@ assert-feature-branch() (
 assert-in-git-repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local directory="${1-}"
-  if [[ -z "$directory" ]]; then
-    directory="$PWD"
+  local directory_path="${1-}"
+  if [[ -z "$directory_path" ]]; then
+    directory_path="$PWD"
   fi
 
-  if [[ ! -d "$directory" ]]; then
-    echo "Error: The provided directory does not exist: $directory" >&2
+  if [[ ! -d "$directory_path" ]]; then
+    echo "Error: The provided directory path does not exist: $directory_path" >&2
     return 1
   fi
 
-  if ! git -C "$directory" rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: The \"$directory\" directory is not inside a Git repository." >&2
+  if ! git -C "$directory_path" rev-parse --is-inside-work-tree &> /dev/null; then
+    echo "Error: The \"$directory_path\" directory path is not inside a Git repository." >&2
     return 1
   fi
 )
@@ -99,15 +99,15 @@ assert-in-git-repository() (
 assert-in-github-repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local directory="${1-}"
-  if [[ -z "$directory" ]]; then
-    directory="$PWD"
+  local directory_path="${1-}"
+  if [[ -z "$directory_path" ]]; then
+    directory_path="$PWD"
   fi
 
-  assert-in-git-repository "$directory"
+  assert-in-git-repository "$directory_path"
 
   if ! is-github-repository; then
-    echo "Error: The \"$directory\" directory is not inside a GitHub repository." >&2
+    echo "Error: The \"$directory_path\" directory path is not inside a GitHub repository." >&2
     return 1
   fi
 )
@@ -218,20 +218,20 @@ get-first-branch-commit-description() (
 get-git-remote-details() (
   set -euo pipefail
 
-  local directory="${1-}"
-  if [[ -z "$directory" ]]; then
-    directory="$PWD"
+  local directory_path="${1-}"
+  if [[ -z "$directory_path" ]]; then
+    directory_path="$PWD"
   fi
 
-  if [[ ! -d "$directory" ]]; then
-    echo "Error: The provided directory does not exist: $directory" >&2
+  if [[ ! -d "$directory_path" ]]; then
+    echo "Error: The provided directory path does not exist: $directory_path" >&2
     return 1
   fi
 
-  assert-in-git-repository "$directory"
+  assert-in-git-repository "$directory_path"
 
   local remote_url
-  remote_url=$(git -C "$directory" remote get-url origin)
+  remote_url=$(git -C "$directory_path" remote get-url origin)
 
   local clean_url="${remote_url%.git}" # Remove the trailing ".git".
   local repository="${clean_url##*/}"  # Everything after the final slash.
@@ -259,7 +259,7 @@ get-git-remote-details() (
     branch_name=$(git branch --show-current)
     local remote_config
     # This should be equal to "origin" or the GitHub username.
-    remote_config=$(git -C "$directory" config "branch.$branch_name.remote")
+    remote_config=$(git -C "$directory_path" config "branch.$branch_name.remote")
     if [[ "$remote_config" != "origin" ]]; then
       author="$remote_config"
     fi
@@ -615,6 +615,32 @@ remove-leading-and-trailing-whitespace() (
   sed --expression '/[^[:space:]]/,$!d' --expression 's/^[[:space:]]*//' --expression 's/[[:space:]]*$//'
 )
 
+# This cannot be in a subshell because the alias would not persist.
+set-cd-alias() {
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The repository name is required. Usage: ${FUNCNAME[0]} <repository_name>" >&2
+    return 1
+  fi
+  local repository_name="$1"
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    return
+  fi
+
+  local first_letter="${repository_name:0:1}"
+
+  # Throw an error if the alias for this letter is already taken.
+  # TODO
+
+  # shellcheck disable=SC2139
+  alias "cd$first_letter"="builtin cd $REPOSITORIES_DIR/$repository_name"
+  local directory_number
+  for directory_number in {2..9}; do
+    # shellcheck disable=SC2139
+    alias "cd$first_letter$directory_number"="builtin cd $REPOSITORIES_DIR/$repository_name$directory_number"
+  done
+}
+
 # - When using "gh pr checkout", the git remote will not be set up properly and "git pull" will have
 #   the following error:
 #   Your configuration specifies to merge with the ref 'refs/heads/main'
@@ -629,22 +655,22 @@ remove-leading-and-trailing-whitespace() (
 set-gh-remote() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local directory="${1-}"
-  if [[ -z "$directory" ]]; then
-    directory="$PWD"
+  local directory_path="${1-}"
+  if [[ -z "$directory_path" ]]; then
+    directory_path="$PWD"
   fi
 
-  assert-in-git-repository "$directory"
+  assert-in-git-repository "$directory_path"
 
   local branch_name
-  branch_name=$(git -C "$directory" branch --show-current)
+  branch_name=$(git -C "$directory_path" branch --show-current)
 
   # Check to see if this is a branch freshly created from "gh pr checkout".
   local remote_config
   # This will be "origin" on normal branches and "alice" on branches already touched by this
   # function and e.g. "git@github.com:alice/foo.git" or "https://github.com/alice/foo" on branches
   # freshly created from "gh pr checkout".
-  remote_config=$(git -C "$directory" config "branch.$branch_name.remote")
+  remote_config=$(git -C "$directory_path" config "branch.$branch_name.remote")
 
   if [[ -z "$remote_config" ]]; then
     echo "Error: Failed to parse the Git branch remote config of: $remote_config" >&2
@@ -661,7 +687,7 @@ set-gh-remote() (
     github_username="${BASH_REMATCH[1]}"
 
     local existing_url
-    existing_url=$(git -C "$directory" remote get-url "$github_username" 2> /dev/null || true)
+    existing_url=$(git -C "$directory_path" remote get-url "$github_username" 2> /dev/null || true)
 
     if [[ -n "$existing_url" ]]; then
       # The remote has already been set up on this repository. Verify that it matches.
@@ -671,18 +697,18 @@ set-gh-remote() (
       fi
     else
       # The remote for this username does not already exist.
-      git -C "$directory" remote add "$github_username" "$remote_config"
+      git -C "$directory_path" remote add "$github_username" "$remote_config"
 
       # Now that the repository has more than one remote, the GitHub CLI will become confused and
       # complain that "no default remote repository has been set" when running commands. Manually
       # set the default to the non-forked remote.
       local origin_url
-      origin_url=$(git -C "$directory" remote get-url origin)
+      origin_url=$(git -C "$directory_path" remote get-url origin)
       # The GitHub CLI does not support the "-C" flag, so we use a subshell.
-      (builtin cd "$directory" && gh repo set-default "$origin_url")
+      (builtin cd "$directory_path" && gh repo set-default "$origin_url")
     fi
 
-    git -C "$directory" fetch "$github_username"
+    git -C "$directory_path" fetch "$github_username"
   else
     # The remote is already set (e.g. "alice").
     github_username="$remote_config"
@@ -693,7 +719,7 @@ set-gh-remote() (
   # this will be a no-op.
   local merge_ref
   # This will be something like: refs/heads/main
-  merge_ref=$(git -C "$directory" config branch."$branch_name".merge)
+  merge_ref=$(git -C "$directory_path" config branch."$branch_name".merge)
 
   if [[ -z "$merge_ref" ]]; then
     echo "Error: Failed to parse the Git branch merge config." >&2
@@ -706,11 +732,11 @@ set-gh-remote() (
   local target_ref
   # This will be something like: refs/remotes/alice/main
   target_ref="refs/remotes/$github_username/$branch_short_name"
-  git -C "$directory" branch --set-upstream-to="$target_ref"
+  git -C "$directory_path" branch --set-upstream-to="$target_ref"
 
   # Set "push.default" to "upstream". This ensures that "git push" works even when the local branch
   # name (e.g. "pr-123") differs from the remote branch name.
-  git -C "$directory" config push.default upstream
+  git -C "$directory_path" config push.default upstream
 )
 
 to-lowercase() (
@@ -741,14 +767,14 @@ if is-mac-os; then
     return 1
   fi
 
-  _brew_cache="$HOME/.cache/brew-shellenv.bash"
-  if [[ ! -s "$_brew_cache" || "/opt/homebrew/bin/brew" -nt "$_brew_cache" ]]; then
+  brew_cache="$HOME/.cache/brew-shellenv.bash"
+  if [[ ! -s "$brew_cache" || "/opt/homebrew/bin/brew" -nt "$brew_cache" ]]; then
     mkdir -p "$HOME/.cache"
-    /opt/homebrew/bin/brew shellenv > "$_brew_cache"
+    /opt/homebrew/bin/brew shellenv > "$brew_cache"
   fi
   # shellcheck source=/dev/null
-  source "$_brew_cache"
-  unset _brew_cache
+  source "$brew_cache"
+  unset brew_cache
 
   if ! command -v gsed &> /dev/null; then
     echo "Error: On macOS, these Bash configs require the GNU version of sed to be installed (because the BSD version is very old). Run: brew install gnu-sed" >&2
@@ -889,6 +915,29 @@ if is-git-bash; then
   # properly on Windows.
   # https://www.msys2.org/docs/symlinks/
   export MSYS=winsymlinks:nativestrict
+fi
+
+# Attempt to find the user's "repositories" directory.
+if [[ -d "$HOME/Repositories" ]]; then # Windows / macOS
+  REPOSITORIES_DIR="$HOME/Repositories"
+elif [[ -d "$HOME/repositories" ]]; then # Linux
+  REPOSITORIES_DIR="$HOME/repositories"
+elif [[ -d "/d/Repositories" ]]; then # Windows D drive (should have priority over C drive)
+  REPOSITORIES_DIR="/d/Repositories"
+elif [[ -d "/c/Repositories" ]]; then # Windows C drive
+  REPOSITORIES_DIR="/c/Repositories"
+fi
+if [[ -n "$REPOSITORIES_DIR" ]]; then
+  # Now that it has been located, other commands will attempt to use the global environment
+  # variable.
+  export REPOSITORIES_DIR
+
+  # By default, it is useful for shells to open in the repositories directory instead of the home
+  # directory. (But only do this if the shell is interactive and we are starting in the home
+  # directory.)
+  if [[ $- == *i* ]] && [[ "$PWD" == "$HOME" ]]; then
+    builtin cd "$REPOSITORIES_DIR"
+  fi
 fi
 
 # endregion
@@ -1141,50 +1190,20 @@ cdg() {
   cd "$repo_root"
 }
 
-# "cdr" is short for switching to the repositories directory.
-if [[ -d "$HOME/Repositories" ]]; then # Windows / macOS
-  REPOSITORIES_DIR="$HOME/Repositories"
-elif [[ -d "$HOME/repositories" ]]; then # Linux
-  REPOSITORIES_DIR="$HOME/repositories"
-elif [[ -d "/d/Repositories" ]]; then # Windows D drive (should have priority over C drive)
-  REPOSITORIES_DIR="/d/Repositories"
-elif [[ -d "/c/Repositories" ]]; then # Windows C drive
-  REPOSITORIES_DIR="/c/Repositories"
-fi
-if [[ -n "$REPOSITORIES_DIR" ]]; then
-  export REPOSITORIES_DIR
+if [[ -n "${REPOSITORIES_DIR:-}" ]]; then
+  # "cdr" is short for "change directory repositories".
   alias cdr='builtin cd $REPOSITORIES_DIR'
 
-  if [[ -d "$REPOSITORIES_DIR/configs" ]]; then
-    alias cdc='builtin cd $REPOSITORIES_DIR/configs'
-  fi
-  if [[ -d "$REPOSITORIES_DIR/database-services" ]]; then
-    alias cdd='builtin cd $REPOSITORIES_DIR/database-services'
-  fi
-  if [[ -d "$REPOSITORIES_DIR/infrastructure" ]]; then
-    alias cdi='builtin cd $REPOSITORIES_DIR/infrastructure'
-    for infrastructure_dir_number in {2..9}; do
-      # shellcheck disable=SC2139
-      alias "cdi${infrastructure_dir_number}=builtin cd \$REPOSITORIES_DIR/infrastructure${infrastructure_dir_number}"
-    done
-    unset infrastructure_dir_number
-  fi
-  if [[ -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
-    alias cdl='builtin cd $REPOSITORIES_DIR/LogixApplications'
-  fi
-  if [[ -d "$REPOSITORIES_DIR/notes" ]]; then
-    alias cdn='builtin cd $REPOSITORIES_DIR/notes'
-  fi
-  if [[ -d "$REPOSITORIES_DIR/secrets" ]]; then
-    alias cds='builtin cd $REPOSITORIES_DIR/secrets'
-  fi
+  # Make various "cd" hotkeys for switching to specific personal repositories.
+  set-cd-alias configs
+  set-cd-alias notes
+  set-cd-alias secrets
 
-  # By default, it is useful for shells to open in the repositories directory instead of the home
-  # directory. (But only do this if the shell is interactive and we are starting in the home
-  # directory.)
-  if [[ $- == *i* ]] && [[ "$PWD" == "$HOME" ]]; then
-    builtin cd "$REPOSITORIES_DIR"
-  fi
+  # Make various "cd" hotkeys for switching to specific work repositories.
+  set-cd-alias database-services
+  # "databricks-data" also starts with a "d".
+  set-cd-alias infrastructure
+  set-cd-alias LogixApplications
 fi
 
 # Turn off GitHub Copilot CLI prompts.
