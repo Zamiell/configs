@@ -91,19 +91,19 @@ sudo apt-get install --yes \
 if [[ "$USER" == "jnesta" ]]; then
   SSH_DIR="$HOME/.ssh"
   mkdir -p "$SSH_DIR"
-  if [[ ! -s "/mnt/c/Users/jnesta/.ssh/id_ed25519" ]]; then
+  if [[ ! -s "$SSH_DIR/id_ed25519" ]]; then
     cp "/mnt/c/Users/jnesta/.ssh/id_ed25519" "$SSH_DIR/id_ed25519"
     chmod 600 "$SSH_DIR/id_ed25519"
   fi
-  if [[ ! -s "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" ]]; then
+  if [[ ! -s "$SSH_DIR/id_ed25519.pub" ]]; then
     cp "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" "$SSH_DIR/id_ed25519.pub"
   fi
   mkdir -p "$SSH_DIR/work"
-  if [[ ! -s "/mnt/c/Users/jnesta/.ssh/work/id_rsa" ]]; then
+  if [[ ! -s "$SSH_DIR/work/id_rsa" ]]; then
     cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa" "$SSH_DIR/work/id_rsa"
     chmod 600 "$SSH_DIR/work/id_rsa"
   fi
-  if [[ ! -s "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" ]]; then
+  if [[ ! -s "$SSH_DIR/work/id_rsa.pub" ]]; then
     cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" "$SSH_DIR/work/id_rsa.pub"
   fi
 fi
