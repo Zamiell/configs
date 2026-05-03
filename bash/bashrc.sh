@@ -1706,7 +1706,7 @@ u() (
 
   if [[ -s "package.json" ]]; then
     assert-jq-installed
-    if jq --exit-status '.scripts.update? | type == "string"' "$package_json_path" > /dev/null; then
+    if jq --exit-status '.scripts.update? | type == "string"' package.json > /dev/null; then
       run-package-script update "$@"
       return
     fi
