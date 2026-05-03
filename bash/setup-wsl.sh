@@ -81,6 +81,7 @@ sudo apt-get install --yes \
   age \
   jq \
   podman \
+  python-is-python3 \
   ripgrep \
   shellcheck \
   unzip \
