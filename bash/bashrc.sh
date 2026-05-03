@@ -630,15 +630,18 @@ set-cd-alias() {
   local first_letter
   first_letter=$(to-lowercase "${repository_name:0:1}")
 
-  # Throw an error if the alias for this letter is already taken.
-  # TODO
+  local alias_name="cd$first_letter"
+  if alias "$alias_name" &> /dev/null; then
+    echo "Error: The \"$alias_name\" alias already exists, so it cannot be used for the \"$repository_name\" repository." >&2
+    return 1
+  fi
 
   # shellcheck disable=SC2139
-  alias "cd$first_letter"="builtin cd $REPOSITORIES_DIR/$repository_name"
+  alias "$alias_name"="builtin cd $REPOSITORIES_DIR/$repository_name"
   local directory_number
   for directory_number in {2..9}; do
     # shellcheck disable=SC2139
-    alias "cd$first_letter$directory_number"="builtin cd $REPOSITORIES_DIR/$repository_name$directory_number"
+    alias "$alias_name$directory_number"="builtin cd $REPOSITORIES_DIR/$repository_name$directory_number"
   done
 }
 
