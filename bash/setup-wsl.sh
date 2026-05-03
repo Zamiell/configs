@@ -82,22 +82,24 @@ sudo apt-get install --yes \
   wslu
 
 # Set up SSH.
-SSH_DIR="$HOME/.ssh"
-mkdir -p "$SSH_DIR"
-if [[ ! -s "/mnt/c/Users/jnesta/.ssh/id_ed25519" ]]; then
-  cp "/mnt/c/Users/jnesta/.ssh/id_ed25519" "$SSH_DIR/id_ed25519"
-  chmod 600 "$SSH_DIR/id_ed25519"
-fi
-if [[ ! -s "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" ]]; then
-  cp "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" "$SSH_DIR/id_ed25519.pub"
-fi
-mkdir -p "$SSH_DIR/work"
-if [[ ! -s "/mnt/c/Users/jnesta/.ssh/work/id_rsa" ]]; then
-  cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa" "$SSH_DIR/work/id_rsa"
-  chmod 600 "$SSH_DIR/work/id_rsa"
-fi
-if [[ ! -s "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" ]]; then
-  cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" "$SSH_DIR/work/id_rsa.pub"
+if [[ "$USER" == "jnesta" ]]; then
+  SSH_DIR="$HOME/.ssh"
+  mkdir -p "$SSH_DIR"
+  if [[ ! -s "/mnt/c/Users/jnesta/.ssh/id_ed25519" ]]; then
+    cp "/mnt/c/Users/jnesta/.ssh/id_ed25519" "$SSH_DIR/id_ed25519"
+    chmod 600 "$SSH_DIR/id_ed25519"
+  fi
+  if [[ ! -s "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" ]]; then
+    cp "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" "$SSH_DIR/id_ed25519.pub"
+  fi
+  mkdir -p "$SSH_DIR/work"
+  if [[ ! -s "/mnt/c/Users/jnesta/.ssh/work/id_rsa" ]]; then
+    cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa" "$SSH_DIR/work/id_rsa"
+    chmod 600 "$SSH_DIR/work/id_rsa"
+  fi
+  if [[ ! -s "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" ]]; then
+    cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" "$SSH_DIR/work/id_rsa.pub"
+  fi
 fi
 
 # Set up company certificates.
@@ -116,16 +118,20 @@ cd "$REPOSITORIES_DIR"
 if [[ ! -d "$REPOSITORIES_DIR/configs" ]]; then
   git clone git@github.com:Zamiell/configs.git
 fi
-if [[ ! -d "$REPOSITORIES_DIR/notes" ]]; then
-  git clone git@github.com:Zamiell/notes.git
-fi
-if [[ ! -d "$REPOSITORIES_DIR/secrets" ]]; then
-  git clone git@github.com:Zamiell/secrets.git
+if [[ "$USER" == "jnesta" ]]; then
+  if [[ ! -d "$REPOSITORIES_DIR/notes" ]]; then
+    git clone git@github.com:Zamiell/notes.git
+  fi
+  if [[ ! -d "$REPOSITORIES_DIR/secrets" ]]; then
+    git clone git@github.com:Zamiell/secrets.git
+  fi
 fi
 
 # Load Git settings.
 "$REPOSITORIES_DIR/configs/bash/set-git-settings.sh"
-cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$SSH_DIR/config"
+if [[ "$USER" == "jnesta" ]]; then
+  cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$SSH_DIR/config"
+fi
 
 # Load the Bash configs.
 BASHRC_PATH="$HOME/.bashrc"

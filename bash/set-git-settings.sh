@@ -5,6 +5,17 @@
 
 set -euo pipefail # Exit on errors and undefined variables.
 
+get-username() (
+  if [[ -n "$USER" ]]; then # macOS/Linux
+    echo "$USER"
+  elif [[ -n "$USERNAME" ]]; then # Windows
+    echo "$USERNAME"
+  else
+    echo "Failed to derive the operating system username." >&2
+    return 1
+  fi
+)
+
 is-developer-mode-enabled() {
   local reg_output
   reg_output=$(MSYS_NO_PATHCONV=1 reg query 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock' /v AllowDevelopmentWithoutDevLicense 2> /dev/null)
@@ -78,6 +89,7 @@ git config --global pull.rebase true
 # branch.
 git config --global push.autoSetupRemote true
 
+OS_USERNAME=$(get-username)
 if [[ "$OS_USERNAME" == "james" || "$OS_USERNAME" == "jnesta" ]]; then
   git config --global user.name "Zamiell"
   git config --global user.email "5511220+Zamiell@users.noreply.github.com"

@@ -165,31 +165,6 @@ get-branch-name-from-number() (
   echo "$branch_name"
 )
 
-# This will echo back the same input if the input is not a number.
-get-worktree-path-from-number() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ -z "${1:-}" ]]; then
-    echo "Error: The worktree path or number is required. Usage: ${FUNCNAME[0]} <worktree_path_or_number>" >&2
-    return 1
-  fi
-  local worktree_path_or_number="$1"
-
-  local worktree_path
-  if [[ "$worktree_path_or_number" =~ ^[0-9]+$ ]]; then
-    local worktree_number="$worktree_path_or_number"
-    worktree_path=$(git worktree list | sed --quiet "${worktree_number}p" | awk '{print $1}')
-    if [[ -z "$worktree_path" ]]; then
-      echo "Error: Worktree number $worktree_number does not exist." >&2
-      return 1
-    fi
-  else
-    worktree_path="$worktree_path_or_number"
-  fi
-
-  echo "$worktree_path"
-)
-
 get-first-branch-commit-description() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -508,7 +483,9 @@ get-new-worktree-directory() (
     if is-github-repository; then
       new_branch_name="$suffix"
     else
-      new_branch_name="feature/$OS_USERNAME/$suffix"
+      local username
+      username=$(get-username)
+      new_branch_name="feature/$username/$suffix"
     fi
 
     if [[ ! -e "$new_worktree_directory" ]] \
@@ -539,6 +516,43 @@ get-num-commits-on-branch() (
   merge_base=$(get-merge-base)
 
   git rev-list --count "$merge_base..$branch_name"
+)
+
+# Get the current username in an operating system agnostic way.
+get-username() (
+  if [[ -n "$USER" ]]; then # macOS/Linux
+    echo "$USER"
+  elif [[ -n "$USERNAME" ]]; then # Windows
+    echo "$USERNAME"
+  else
+    echo "Failed to derive the operating system username." >&2
+    return 1
+  fi
+)
+
+# This will echo back the same input if the input is not a number.
+get-worktree-path-from-number() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The worktree path or number is required. Usage: ${FUNCNAME[0]} <worktree_path_or_number>" >&2
+    return 1
+  fi
+  local worktree_path_or_number="$1"
+
+  local worktree_path
+  if [[ "$worktree_path_or_number" =~ ^[0-9]+$ ]]; then
+    local worktree_number="$worktree_path_or_number"
+    worktree_path=$(git worktree list | sed --quiet "${worktree_number}p" | awk '{print $1}')
+    if [[ -z "$worktree_path" ]]; then
+      echo "Error: Worktree number $worktree_number does not exist." >&2
+      return 1
+    fi
+  else
+    worktree_path="$worktree_path_or_number"
+  fi
+
+  echo "$worktree_path"
 )
 
 is-git-bash() (
@@ -904,15 +918,6 @@ elif [[ -s "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/opt/az/lib/python3.13/site-packages/certifi/cacert.pem"
 fi
 add-logix-cert-to-requests-ca-bundle
-
-# Get the username in an operating system agnostic way.
-if [[ -n "$USER" ]]; then # macOS/Linux
-  export OS_USERNAME="$USER"
-elif [[ -n "$USERNAME" ]]; then # Windows
-  export OS_USERNAME="$USERNAME"
-else
-  echo "Failed to derive the operating system username." >&2
-fi
 
 if is-git-bash; then
   # Change the symbolic link mode from "deepcopy" to "nativestrict" so that symbolic links work
@@ -1782,7 +1787,9 @@ gb() (
   fi
 
   if [[ "$use_logixhealth_convention" == "true" ]] && ! is-github-repository; then
-    new_branch_name="feature/$OS_USERNAME/$new_branch_name"
+    local username
+    username=$(get-username)
+    new_branch_name="feature/$username/$new_branch_name"
   fi
 
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -2164,7 +2171,9 @@ gc() (
     fi
   else
     if [[ "$user_email" == *github.com || "$user_email" == *gmail.com ]]; then
-      if [[ "$OS_USERNAME" == "james" || "$OS_USERNAME" == "jnesta" ]]; then
+      local username
+      username=$(get-username)
+      if [[ "$username" == "james" || "$username" == "jnesta" ]]; then
         git config user.name "James Nesta"
         git config user.email "jnesta@logixhealth.com"
       else
@@ -2384,7 +2393,9 @@ gpm() (
 
   git fetch origin --prune --quiet
 
-  local prefix="feature/$OS_USERNAME/"
+  local username
+  username=$(get-username)
+  local prefix="feature/$username/"
 
   # We use "--list" to filter the branches directly via Git.
   local remote_branches
