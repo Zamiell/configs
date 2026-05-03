@@ -11,6 +11,10 @@ fi
 # Subroutines
 # -----------
 
+is-james() {
+  [[ "$USER" == "jnesta" ]]
+}
+
 get-github-latest-release-url() {
   local repository="$1"
   if [[ -z "$repository" ]]; then
@@ -88,7 +92,7 @@ sudo apt-get install --yes \
   wslu
 
 # Set up SSH.
-if [[ "$USER" == "jnesta" ]]; then
+if is-james; then
   SSH_DIR="$HOME/.ssh"
   mkdir -p "$SSH_DIR"
   if [[ ! -s "$SSH_DIR/id_ed25519" ]]; then
@@ -124,7 +128,7 @@ cd "$REPOSITORIES_DIR"
 if [[ ! -d "$REPOSITORIES_DIR/configs" ]]; then
   git clone git@github.com:Zamiell/configs.git
 fi
-if [[ "$USER" == "jnesta" ]]; then
+if is-james; then
   if [[ ! -d "$REPOSITORIES_DIR/notes" ]]; then
     git clone git@github.com:Zamiell/notes.git
   fi
@@ -135,7 +139,7 @@ fi
 
 # Load Git settings.
 "$REPOSITORIES_DIR/configs/bash/set-git-settings.sh"
-if [[ "$USER" == "jnesta" ]]; then
+if is-james; then
   cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$SSH_DIR/config"
 fi
 
@@ -157,28 +161,28 @@ if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
 fi
 if [[ ! -d "$REPOSITORIES_DIR/allscripts-external" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external
-  if [[ "$USER" == "jnesta" ]]; then
+  if is-james; then
     git -C "$REPOSITORIES_DIR/allscripts-external" config user.name "James Nesta"
     git -C "$REPOSITORIES_DIR/allscripts-external" config user.email "jnesta@logixhealth.com"
   fi
 fi
 if [[ ! -d "$REPOSITORIES_DIR/database-services" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services
-  if [[ "$USER" == "jnesta" ]]; then
+  if is-james; then
     git -C "$REPOSITORIES_DIR/database-services" config user.name "James Nesta"
     git -C "$REPOSITORIES_DIR/database-services" config user.email "jnesta@logixhealth.com"
   fi
 fi
 if [[ ! -d "$REPOSITORIES_DIR/infrastructure" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure
-  if [[ "$USER" == "jnesta" ]]; then
+  if is-james; then
     git -C "$REPOSITORIES_DIR/infrastructure" config user.name "James Nesta"
     git -C "$REPOSITORIES_DIR/infrastructure" config user.email "jnesta@logixhealth.com"
   fi
 fi
 if [[ ! -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications
-  if [[ "$USER" == "jnesta" ]]; then
+  if is-james; then
     git -C "$REPOSITORIES_DIR/LogixApplications" config user.name "James Nesta"
     git -C "$REPOSITORIES_DIR/LogixApplications" config user.email "jnesta@logixhealth.com"
   fi
