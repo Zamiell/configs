@@ -2,6 +2,11 @@
 
 set -euo pipefail # Exit on errors and undefined variables.
 
+if [[ "${ID:-}" != "ubuntu" ]]; then
+  echo "Error: This script is intended to be run inside Ubuntu WSL (Windows Subsystem for Linux)." >&2
+  exit
+fi
+
 # -----------
 # Subroutines
 # -----------
@@ -139,7 +144,7 @@ if ! grep --quiet "Load the commands from the \"configs\"" "$BASHRC_PATH"; then
   # shellcheck disable=SC2016
   echo '
 # Load the commands from the "configs" GitHub repository: https://github.com/Zamiell/configs
-CONFIGS_REPO_PATH="/home/jnesta/repositories/configs"
+CONFIGS_REPO_PATH="~/repositories/configs"
 # shellcheck source=/dev/null
 source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ' >> "$BASHRC_PATH"
@@ -265,4 +270,6 @@ fi
 
 # Install the Azure CLI.
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
-curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
+if ! command -v az &> /dev/null; then
+  curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
+fi

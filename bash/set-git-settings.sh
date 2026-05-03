@@ -5,6 +5,10 @@
 
 set -euo pipefail # Exit on errors and undefined variables.
 
+# -----------
+# Subroutines
+# -----------
+
 get-username() (
   if [[ -n "$USER" ]]; then # macOS/Linux
     echo "$USER"
@@ -29,6 +33,10 @@ is-git-bash() (
   kernel_name=$(uname -s) # The "--kernel-name" flag is not supported on macOS.
   [[ "$kernel_name" =~ ^MINGW || "$kernel_name" =~ ^MSYS_NT ]]
 )
+
+# ------------
+# Git settings
+# ------------
 
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-coreautocrlf
 # Default value: input
