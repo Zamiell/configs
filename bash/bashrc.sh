@@ -1163,6 +1163,11 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
   fi
   if [[ -d "$REPOSITORIES_DIR/infrastructure" ]]; then
     alias cdi='builtin cd $REPOSITORIES_DIR/infrastructure'
+    for infrastructure_dir_number in {2..9}; do
+      # shellcheck disable=SC2139
+      alias "cdi${infrastructure_dir_number}=builtin cd \$REPOSITORIES_DIR/infrastructure${infrastructure_dir_number}"
+    done
+    unset infrastructure_dir_number
   fi
   if [[ -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
     alias cdl='builtin cd $REPOSITORIES_DIR/LogixApplications'
