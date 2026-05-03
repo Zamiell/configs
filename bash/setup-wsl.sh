@@ -11,6 +11,29 @@ fi
 # Subroutines
 # -----------
 
+clone-work-repo() {
+  if [[ -z "${1:-}" ]]; then
+    echo "You must pass the repository URL as the first argument." >&2
+    return 1
+  fi
+  local repository_url="$1"
+
+  local directory_name="${repository_url##*/}"
+  if [[ -z "$directory_name" ]]; then
+    echo "Failed to derive the repository directory name from the repository URL of: $repository_url" >&2
+    return 1
+  fi
+
+  local repository_path="$REPOSITORIES_DIR/$directory_name"
+  if [[ ! -d "$repository_path" ]]; then
+    git clone "$repository_url" "$repository_path"
+    if is-james; then
+      git -C "$repository_path" config user.name "James Nesta"
+      git -C "$repository_path" config user.email "jnesta@logixhealth.com"
+    fi
+  fi
+}
+
 is-james() {
   [[ "$USER" == "jnesta" ]]
 }
@@ -159,34 +182,10 @@ fi
 if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
   ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
 fi
-if [[ ! -d "$REPOSITORIES_DIR/allscripts-external" ]]; then
-  git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external
-  if is-james; then
-    git -C "$REPOSITORIES_DIR/allscripts-external" config user.name "James Nesta"
-    git -C "$REPOSITORIES_DIR/allscripts-external" config user.email "jnesta@logixhealth.com"
-  fi
-fi
-if [[ ! -d "$REPOSITORIES_DIR/database-services" ]]; then
-  git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services
-  if is-james; then
-    git -C "$REPOSITORIES_DIR/database-services" config user.name "James Nesta"
-    git -C "$REPOSITORIES_DIR/database-services" config user.email "jnesta@logixhealth.com"
-  fi
-fi
-if [[ ! -d "$REPOSITORIES_DIR/infrastructure" ]]; then
-  git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure
-  if is-james; then
-    git -C "$REPOSITORIES_DIR/infrastructure" config user.name "James Nesta"
-    git -C "$REPOSITORIES_DIR/infrastructure" config user.email "jnesta@logixhealth.com"
-  fi
-fi
-if [[ ! -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
-  git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications
-  if is-james; then
-    git -C "$REPOSITORIES_DIR/LogixApplications" config user.name "James Nesta"
-    git -C "$REPOSITORIES_DIR/LogixApplications" config user.email "jnesta@logixhealth.com"
-  fi
-fi
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
 
 # -----------------------------
 # Install programming languages
