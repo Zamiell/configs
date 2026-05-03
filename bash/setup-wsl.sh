@@ -228,7 +228,7 @@ if ! command -v pwsh &> /dev/null; then
   source /etc/os-release
   DEB_PATH="/tmp/packages-microsoft-prod.deb"
   curl --silent --fail --show-error --location --output "$DEB_PATH" "https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb"
-  sudo dpkg --install packages-microsoft-prod.deb
+  sudo dpkg --install "$DEB_PATH"
   rm "$DEB_PATH"
   sudo apt-get update
   sudo apt-get install powershell --yes
@@ -270,7 +270,7 @@ fi
 
 # Install fzf.
 # https://github.com/junegunn/fzf
-if command -v fzf &> /dev/null; then
+if ! command -v fzf &> /dev/null; then
   DOWNLOAD_URL=$(get-github-latest-release-url "junegunn/fzf" "fzf-{version}-linux_amd64.tar.gz")
   install-binary-from-tar-url "$DOWNLOAD_URL" "fzf"
 fi
