@@ -157,15 +157,31 @@ if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
 fi
 if [[ ! -d "$REPOSITORIES_DIR/allscripts-external" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external
+  if [[ "$USER" == "jnesta" ]]; then
+    git -C "$REPOSITORIES_DIR/allscripts-external" config user.name "James Nesta"
+    git -C "$REPOSITORIES_DIR/allscripts-external" config user.email "jnesta@logixhealth.com"
+  fi
 fi
 if [[ ! -d "$REPOSITORIES_DIR/database-services" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services
+  if [[ "$USER" == "jnesta" ]]; then
+    git -C "$REPOSITORIES_DIR/database-services" config user.name "James Nesta"
+    git -C "$REPOSITORIES_DIR/database-services" config user.email "jnesta@logixhealth.com"
+  fi
 fi
 if [[ ! -d "$REPOSITORIES_DIR/infrastructure" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure
+  if [[ "$USER" == "jnesta" ]]; then
+    git -C "$REPOSITORIES_DIR/infrastructure" config user.name "James Nesta"
+    git -C "$REPOSITORIES_DIR/infrastructure" config user.email "jnesta@logixhealth.com"
+  fi
 fi
 if [[ ! -d "$REPOSITORIES_DIR/LogixApplications" ]]; then
   git clone ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications
+  if [[ "$USER" == "jnesta" ]]; then
+    git -C "$REPOSITORIES_DIR/LogixApplications" config user.name "James Nesta"
+    git -C "$REPOSITORIES_DIR/LogixApplications" config user.email "jnesta@logixhealth.com"
+  fi
 fi
 
 # -----------------------------
