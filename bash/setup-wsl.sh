@@ -174,7 +174,7 @@ if ! command -v fnm &> /dev/null; then
   # The "--skip-shell" is necessary to prevent fnm from modifying the ".bashrc" file.
   curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash -s -- --skip-shell
 
-  # Add it to PATH.
+  # Add it to PATH for the current session.
   FNM_PATH="$HOME/.local/share/fnm"
   export PATH="$FNM_PATH:$PATH"
   eval "$(fnm env --shell bash)"
@@ -227,6 +227,11 @@ fi
 if ! command -v terraform-docs &> /dev/null; then
   DOWNLOAD_URL=$(get-github-latest-release-url "terraform-docs/terraform-docs" "terraform-docs-v{version}-linux-amd64.tar.gz")
   install-binary-from-tar-url "$DOWNLOAD_URL" "terraform-docs"
+fi
+
+# Install Pulumi
+if ! command -v pulumi &> /dev/null; then
+  curl --silent --fail --show-error --location https://get.pulumi.com | sh
 fi
 
 # --------------------------------
