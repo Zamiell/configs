@@ -9,10 +9,13 @@ set -euo pipefail # Exit on errors and undefined variables.
 # Subroutines
 # -----------
 
+# Get the current username in an operating system agnostic way.
 get-username() (
-  if [[ -n "$USER" ]]; then # macOS/Linux
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -n "${USER:-}" ]]; then # macOS/Linux
     echo "$USER"
-  elif [[ -n "$USERNAME" ]]; then # Windows
+  elif [[ -n "${USERNAME:-}" ]]; then # Windows
     echo "$USERNAME"
   else
     echo "Failed to derive the operating system username." >&2
@@ -20,11 +23,13 @@ get-username() (
   fi
 )
 
-is-developer-mode-enabled() {
+is-developer-mode-enabled() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
   local reg_output
   reg_output=$(MSYS_NO_PATHCONV=1 reg query 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock' /v AllowDevelopmentWithoutDevLicense 2> /dev/null)
   echo "$reg_output" | grep --quiet "0x1"
-}
+)
 
 is-git-bash() (
   set -euo pipefail # Exit on errors and undefined variables.

@@ -520,9 +520,11 @@ get-num-commits-on-branch() (
 
 # Get the current username in an operating system agnostic way.
 get-username() (
-  if [[ -n "$USER" ]]; then # macOS/Linux
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -n "${USER:-}" ]]; then # macOS/Linux
     echo "$USER"
-  elif [[ -n "$USERNAME" ]]; then # Windows
+  elif [[ -n "${USERNAME:-}" ]]; then # Windows
     echo "$USERNAME"
   else
     echo "Failed to derive the operating system username." >&2

@@ -106,6 +106,7 @@ sudo apt-get update
 sudo apt-get upgrade --yes
 sudo apt-get install --yes \
   age \
+  golang \
   jq \
   podman \
   python-is-python3 \
@@ -186,10 +187,21 @@ clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Eng
 clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
 clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
 clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
+if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
+  ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
+fi
+clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 
 # -----------------------------
 # Install programming languages
 # -----------------------------
+
+# Install Golang.
+if ! command -v go &> /dev/null; then
+  curl --silent --fail --location --output /tmp/go.tar.gz "https://go.dev/dl/$LATEST_GO_VERSION.linux-amd64.tar.gz"
+  sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+  rm /tmp/go.tar.gz
+fi
 
 # Install fnm.
 # https://github.com/Schniz/fnm
