@@ -270,7 +270,7 @@ if ! command -v terraform-docs &> /dev/null; then
   install-binary-from-tar-url "$DOWNLOAD_URL" "terraform-docs"
 fi
 
-# Install Pulumi
+# Install Pulumi.
 if ! command -v pulumi &> /dev/null; then
   curl --silent --fail --show-error --location https://get.pulumi.com | sh
 fi
