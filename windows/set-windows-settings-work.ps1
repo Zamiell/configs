@@ -9,3 +9,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "Hid
 # https://learn.microsoft.com/en-us/answers/questions/1302097/how-to-configure-windows-10-to-show-only-smart-car
 # TODO: Does this work?
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "ExcludeCredentialProviders" /t REG_SZ /d "{8FD7E19C-3BF7-489B-A72C-846AB3678C96}" /f
+
+# Internet Options --> Security --> Local intranet --> Sites --> Advanced -->
+# azuredevops.logixhealth.com --> Add
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains\logixhealth.com\azuredevops" /v https /t REG_DWORD /d 1 /f
