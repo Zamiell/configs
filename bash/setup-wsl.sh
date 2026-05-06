@@ -114,6 +114,7 @@ sudo apt-get update
 sudo apt-get upgrade --yes
 sudo apt-get install --yes \
   age \
+  bind9-dnsutils \
   golang \
   jq \
   podman \

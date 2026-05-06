@@ -51,6 +51,7 @@
     "deepcopy",
     "devicenotifier",
     "digitalclock",
+    "dnsutils",
     "dolphinrc",
     "esbenp",
     "ethernets",
