@@ -1185,6 +1185,11 @@ if [[ $- == *i* ]]; then
   }
 fi
 
+# "cd.." works on Windows for some reason and is convenient.
+cd..() {
+  cd ..
+}
+
 # "cdg" stands for "change directory git", which will change the working directory to the root of
 # the current git repository. If used in a directory that is not part of a Git repository, it will
 # throw an error.

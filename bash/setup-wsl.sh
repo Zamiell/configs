@@ -2,6 +2,14 @@
 
 set -euo pipefail # Exit on errors and undefined variables.
 
+if [[ ! -s "/etc/os-release" ]]; then
+  echo "Error: This script is intended to be run inside Ubuntu WSL (Windows Subsystem for Linux)." >&2
+  exit
+fi
+
+# shellcheck source=/dev/null
+source /etc/os-release
+
 if [[ "${ID:-}" != "ubuntu" ]]; then
   echo "Error: This script is intended to be run inside Ubuntu WSL (Windows Subsystem for Linux)." >&2
   exit
@@ -235,8 +243,6 @@ fi
 # Install PowerShell.
 # https://learn.microsoft.com/en-us/powershell/scripting/install/install-ubuntu
 if ! command -v pwsh &> /dev/null; then
-  # shellcheck source=/dev/null
-  source /etc/os-release
   DEB_PATH="/tmp/packages-microsoft-prod.deb"
   curl --silent --fail --show-error --location --output "$DEB_PATH" "https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb"
   sudo dpkg --install "$DEB_PATH"

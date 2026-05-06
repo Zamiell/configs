@@ -59,6 +59,11 @@ reg add "HKCU\Control Panel\Mouse" /v MouseSpeed /t REG_SZ /d 0 /f
 reg add "HKCU\Control Panel\Mouse" /v MouseThreshold1 /t REG_SZ /d 0 /f
 reg add "HKCU\Control Panel\Mouse" /v MouseThreshold2 /t REG_SZ /d 0 /f
 
+# Settings --> Bluetooth & devices --> Touchpad --> Gestures & interaction --> Scroll & zoom -->
+# Scrolling direction --> Down motion scrolls down
+# https://www.elevenforum.com/t/change-touchpad-scrolling-direction-in-windows-11.7513/
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v ScrollDirection /t REG_DWORD /d 1 /f
+
 # ----------------------------
 # Settings --> Personalization
 # ----------------------------
