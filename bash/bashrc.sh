@@ -2034,6 +2034,7 @@ gbo() (
     return 1
   fi
 
+  echo "$changed_files"
   echo "$changed_files" | xargs code
 )
 
@@ -2956,6 +2957,7 @@ guo() (
     return 1
   fi
 
+  echo "$changed_files"
   echo "$changed_files" | xargs code
 )
 
