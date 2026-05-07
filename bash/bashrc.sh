@@ -1223,6 +1223,9 @@ if [[ -n "${REPOSITORIES_DIR:-}" ]]; then
   set-cd-alias LogixApplications
 fi
 
+# "co" is short for "copilot". (See below.)
+alias co="copilot --yolo --no-ask-user"
+
 # Turn off GitHub Copilot CLI prompts.
 alias copilot="copilot --yolo --no-ask-user"
 

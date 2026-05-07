@@ -7,9 +7,9 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "Hid
 
 # Banish YubiKey from the login screen.
 # https://learn.microsoft.com/en-us/answers/questions/1302097/how-to-configure-windows-10-to-show-only-smart-car
-# TODO: Does this work?
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "ExcludedCredentialProviders" /t REG_SZ /d "{8FD7E19C-3BF7-489B-A72C-846AB3678C96}" /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "ExcludedCredentialProviders" /t REG_SZ /d "{8FD7E19C-3BF7-489B-A72C-846AB3678C96}" /f
+# TODO: Does not work.
+#reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "ExcludedCredentialProviders" /t REG_SZ /d "{8FD7E19C-3BF7-489B-A72C-846AB3678C96}" /f
+#reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "ExcludedCredentialProviders" /t REG_SZ /d "{8FD7E19C-3BF7-489B-A72C-846AB3678C96}" /f
 
 # Internet Options --> Security --> Local intranet --> Sites --> Advanced -->
 # azuredevops.logixhealth.com --> Add
