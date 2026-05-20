@@ -252,30 +252,6 @@ if ! command -v pwsh &> /dev/null; then
   sudo apt-get install powershell --yes
 fi
 
-# Install Terraform.
-# https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
-if ! command -v terraform &> /dev/null; then
-  curl --silent --fail --show-error --location https://apt.releases.hashicorp.com/gpg \
-    | gpg --dearmor \
-    | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
-  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
-    | sudo tee /etc/apt/sources.list.d/hashicorp.list
-  sudo apt-get update
-  sudo apt-get install terraform --yes
-fi
-
-# Install `terraform-docs`.
-# https://github.com/terraform-docs/terraform-docs
-if ! command -v terraform-docs &> /dev/null; then
-  DOWNLOAD_URL=$(get-github-latest-release-url "terraform-docs/terraform-docs" "terraform-docs-v{version}-linux-amd64.tar.gz")
-  install-binary-from-tar-url "$DOWNLOAD_URL" "terraform-docs"
-fi
-
-# Install Pulumi.
-if ! command -v pulumi &> /dev/null; then
-  curl --silent --fail --show-error --location https://get.pulumi.com | sh
-fi
-
 # --------------------------------
 # Install quality of life software
 # --------------------------------
@@ -305,8 +281,8 @@ if ! command -v gh &> /dev/null; then
   sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
   sudo mkdir -p -m 755 /etc/apt/sources.list.d
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-  sudo apt update
-  sudo apt install gh -y
+  sudo apt-get update
+  sudo apt-get install gh --yes
 fi
 
 # Install the GitHub Copilot CLI.
@@ -319,4 +295,37 @@ fi
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
 if ! command -v az &> /dev/null; then
   curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
+fi
+
+# Install Terraform.
+# https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
+if ! command -v terraform &> /dev/null; then
+  curl --silent --fail --show-error --location https://apt.releases.hashicorp.com/gpg \
+    | gpg --dearmor \
+    | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
+    | sudo tee /etc/apt/sources.list.d/hashicorp.list
+  sudo apt-get update
+  sudo apt-get install terraform --yes
+fi
+
+# Install `terraform-docs`.
+# https://github.com/terraform-docs/terraform-docs
+if ! command -v terraform-docs &> /dev/null; then
+  DOWNLOAD_URL=$(get-github-latest-release-url "terraform-docs/terraform-docs" "terraform-docs-v{version}-linux-amd64.tar.gz")
+  install-binary-from-tar-url "$DOWNLOAD_URL" "terraform-docs"
+fi
+
+# Install Pulumi.
+if ! command -v pulumi &> /dev/null; then
+  curl --silent --fail --show-error --location https://get.pulumi.com | sh
+fi
+
+# Install Helm.
+# https://helm.sh/docs/intro/install/
+if ! command -v helm &> /dev/null; then
+  curl --silent --fail --show-error --location https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+  echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+  sudo apt-get update
+  sudo apt-get install helm --yes
 fi
