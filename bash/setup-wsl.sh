@@ -329,3 +329,9 @@ if ! command -v helm &> /dev/null; then
   sudo apt-get update
   sudo apt-get install helm --yes
 fi
+
+# Install helmfmt.
+# https://github.com/digitalstudium/helmfmt
+if ! command -v helmfmt &> /dev/null; then
+  curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | sudo tar -xzf - -C /usr/local/bin/ helmfmt
+fi
