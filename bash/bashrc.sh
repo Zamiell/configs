@@ -1229,6 +1229,9 @@ alias co="copilot --yolo --no-ask-user"
 # Turn off GitHub Copilot CLI prompts.
 alias copilot="copilot --yolo --no-ask-user"
 
+# "cl" is short for "claude". (See below.)
+alias cl="claude --dangerously-skip-permissions"
+
 # Turn off Claude Code prompts.
 alias claude="claude --dangerously-skip-permissions"
 
