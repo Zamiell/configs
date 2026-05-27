@@ -2392,7 +2392,27 @@ alias gmc="git diff --name-only --diff-filter=U"
 
 # "gmco" is short for "git merge conflicts open", which is similar to "gmc", but will open all of
 # the files that need to be resolved in Visual Studio Code.
-alias gmco="git diff --name-only --diff-filter=U | xargs code"
+gmco() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel)
+
+  local conflicted_files=()
+  local conflicted_file
+  while IFS= read -r -d "" conflicted_file; do
+    conflicted_files+=("$repo_root/$conflicted_file")
+  done < <(git -C "$repo_root" diff --name-only --diff-filter=U -z)
+
+  if [[ "${#conflicted_files[@]}" -eq 0 ]]; then
+    echo "Error: There are no merge conflicts in this repository." >&2
+    return 1
+  fi
+
+  code "${conflicted_files[@]}"
+)
 
 # "gp" is short for "git pull". (We always include the "--rebase" and "--prune" flags, since they
 # are best practice.)
