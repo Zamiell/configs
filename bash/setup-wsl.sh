@@ -289,6 +289,10 @@ fi
 # https://github.com/features/copilot/cli/
 if ! command -v copilot &> /dev/null; then
   curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" | bash
+
+  mkdir -p "$HOME/.copilot/hooks"
+  cp "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"
+  cp "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"
 fi
 
 # Install the Azure CLI.
