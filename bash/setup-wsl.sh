@@ -124,9 +124,9 @@ sudo apt-get install --yes \
   unzip
 
 # Set up SSH.
+SSH_DIR="$HOME/.ssh"
+mkdir -p "$SSH_DIR"
 if is-james; then
-  SSH_DIR="$HOME/.ssh"
-  mkdir -p "$SSH_DIR"
   if [[ ! -s "$SSH_DIR/id_ed25519" ]]; then
     cp "/mnt/c/Users/jnesta/.ssh/id_ed25519" "$SSH_DIR/id_ed25519"
     chmod 600 "$SSH_DIR/id_ed25519"
