@@ -821,10 +821,6 @@ if ! command -v msedge &> /dev/null && command -v microsoft-edge &> /dev/null; t
   alias msedge="microsoft-edge"
 fi
 if is-wsl; then
-  if ! command -v wslview &> /dev/null; then
-    echo "Error: wslview is required to use these configs on WSL. Run: sudo apt install wslu --yes" >&2
-  fi
-
   export BROWSER="wslview"
   export GH_BROWSER="wslview"
 fi
