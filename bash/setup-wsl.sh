@@ -181,7 +181,7 @@ if ! grep --quiet "Load the commands from the \"configs\"" "$BASHRC_PATH"; then
   # shellcheck disable=SC2016
   echo '
 # Load the commands from the "configs" GitHub repository: https://github.com/Zamiell/configs
-CONFIGS_REPO_PATH="~/repositories/configs"
+CONFIGS_REPO_PATH="$HOME/repositories/configs"
 # shellcheck source=/dev/null
 source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ' >> "$BASHRC_PATH"
