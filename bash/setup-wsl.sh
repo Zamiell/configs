@@ -346,6 +346,7 @@ fi
 # Install Pulumi.
 if ! command -v pulumi &> /dev/null; then
   curl --silent --fail --show-error --location https://get.pulumi.com | sh
+  export PATH="$PATH:$HOME/.pulumi/bin"
 fi
 
 # Install Helm.
