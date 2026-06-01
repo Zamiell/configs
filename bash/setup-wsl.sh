@@ -308,6 +308,20 @@ fi
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
 if ! command -v az &> /dev/null; then
   curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+  # Install the LogixHealth certificate.
+  if [[ ! -s "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
+    echo "Error: Failed to find the \"cacert.pem\" file in the Azure CLI directory." >&2
+    exit
+  fi
+
+  export REQUESTS_CA_BUNDLE="/opt/az/lib/python3.13/site-packages/certifi/cacert.pem"
+  CERTIFICATE_NAME="BEDROOTCA001"
+  {
+    echo
+    echo "# $CERTIFICATE_NAME"
+    curl --silent --fail --show-error --location "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/$CERTIFICATE_NAME.crt"
+  } | sudo tee -a "$REQUESTS_CA_BUNDLE" > /dev/null
 fi
 
 # Install Terraform.

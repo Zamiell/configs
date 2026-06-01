@@ -43,7 +43,7 @@ add-logix-cert-to-requests-ca-bundle() (
     echo >&2
     echo "Run this command to fix it:" >&2
     echo >&2
-    echo "{ echo; echo \"# $certificate_name\"; curl --silent --fail --show-error --location \"https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/$certificate_name.crt\"; } >> \"$REQUESTS_CA_BUNDLE\"" >&2
+    echo "{ echo; echo \"# $certificate_name\"; curl --silent --fail --show-error --location \"https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/$certificate_name.crt\"; } | sudo tee -a \"$REQUESTS_CA_BUNDLE\" > /dev/null" >&2
     return 1
   fi
 )
