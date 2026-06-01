@@ -248,7 +248,17 @@ if ! command -v pwsh &> /dev/null; then
   sudo dpkg --install "$DEB_PATH"
   rm "$DEB_PATH"
   sudo apt-get update
-  sudo apt-get install powershell --yes
+  if apt-cache show powershell &> /dev/null; then
+    sudo apt-get install powershell --yes
+  else
+    # In some cases, the version of Ubuntu can be so new that there is no corresponding aptitude
+    # package.
+    DOWNLOAD_URL=$(get-github-latest-release-url "PowerShell/PowerShell" "powershell_{version}-1.deb_amd64.deb")
+    DEB_PATH="/tmp/${DOWNLOAD_URL##*/}"
+    curl --silent --fail --show-error --location --output "$DEB_PATH" "$DOWNLOAD_URL"
+    sudo apt-get install "$DEB_PATH" --yes
+    rm "$DEB_PATH"
+  fi
 fi
 
 # --------------------------------
