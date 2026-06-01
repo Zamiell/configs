@@ -121,8 +121,7 @@ sudo apt-get install --yes \
   python-is-python3 \
   ripgrep \
   shellcheck \
-  unzip \
-  wslu
+  unzip
 
 # Set up SSH.
 if is-james; then
