@@ -1821,6 +1821,11 @@ gb() (
     git rebase "origin/$main_branch_name"
   fi
 
+  if git show-ref --verify --quiet "refs/remotes/origin/$new_branch_name"; then
+    echo "Error: The branch name of \"$new_branch_name\" already exists on the remote." >&2
+    return 1
+  fi
+
   git switch --create "$new_branch_name"
   git push
 
@@ -2320,6 +2325,16 @@ gcp() (
 
 # "gprc" will both commit and open a pull request.
 gcpr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+  if [[ "$branch_name" == "main" ]] || [[ "$branch_name" == "master" ]]; then
+    gb
+  fi
+
   gc --no-browser "$@"
   gpr "$@"
 )
