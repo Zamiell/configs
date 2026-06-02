@@ -2318,6 +2318,12 @@ gcp() (
   git push
 )
 
+# "gprc" will both commit and open a pull request.
+gcpr() (
+  gc --no-browser "$@"
+  gpr "$@"
+)
+
 # "gcs" is short for "git commit show", which will open a browser to view the last commit. You can
 # optionally supply a SHA1 to show a custom commit.
 gcs() (
@@ -2662,12 +2668,6 @@ gpr-dry() (
 
   local pr_url="https://azuredevops.logixhealth.com/$organization/$project/_git/$repository/pullrequestcreate?sourceRef=$branch_name"
   o "$pr_url"
-)
-
-# "gprc" will both commit and open a pull request.
-gprc() (
-  gc --no-browser "$@"
-  gpr "$@"
 )
 
 # "gprf" is short for "git pull request fix".
