@@ -3187,6 +3187,9 @@ alias pc="pulumi cancel"
 # "pd" is short for "pulumi destroy".
 alias pd="pulumi destroy"
 
+# "pl" is short for "pulumi login".
+alias pl="pulumi login azblob://pulumi-state?storage_account=lhdevopstfstate"
+
 # "pp" is short for "pulumi preview".
 alias pp="pulumi preview"
 
