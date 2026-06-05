@@ -459,8 +459,9 @@ if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
   # immediately invoke "podman machine start".
 fi
 
-# Install Visual Studio Code extensions into the WSL remote extension host.
+# Set up Visual Studio Code.
 install-vscode-extensions "$REPOSITORIES_DIR/configs/.vscode/extensions.json"
+install-vscode-extensions "$REPOSITORIES_DIR/infrastructure/infrastructure.code-workspace"
 
 # endregion
 
