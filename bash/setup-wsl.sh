@@ -297,7 +297,10 @@ fi
 # Install the GitHub Copilot CLI.
 # https://github.com/features/copilot/cli/
 if ! command -v copilot &> /dev/null; then
-  curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" | bash
+  # We need to supply "PREFIX" and "PATH" to prevent the installer from prompting us about adding
+  # itself to the PATH.
+  curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" \
+    | PREFIX="$HOME/.local" PATH="$HOME/.local/bin:$PATH" bash
 
   mkdir -p "$HOME/.copilot/hooks"
   cp "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"
