@@ -130,7 +130,7 @@ install-vscode-extensions() {
   local jq_filter
   case "$file_path" in
     *.code-workspace)
-      jq_filter=".extensions[]"
+      jq_filter='.extensions | if type == "array" then .[] else .recommendations[] end'
       ;;
     *.json)
       jq_filter=".recommendations[]"
@@ -148,8 +148,7 @@ install-vscode-extensions() {
 
   local extensions_output
   if ! extensions_output=$(
-    sed -E 's@[[:space:]]*//.*$@@' "$file_path" \
-      | sed -E ':a;N;$!ba;s/,[[:space:]]*\n([[:space:]]*[]}])/\n\1/g' \
+    bunx json5 "$file_path" \
       | jq --raw-output "$jq_filter"
   ); then
     echo "Error: Failed to parse VS Code extensions from: $file_path" >&2
@@ -301,8 +300,7 @@ if ! command -v fnm &> /dev/null; then
   curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash -s -- --skip-shell
 
   # Add it to PATH for the current session.
-  FNM_PATH="$HOME/.local/share/fnm"
-  export PATH="$FNM_PATH:$PATH"
+  export PATH="$HOME/.local/share/fnm:$PATH"
   eval "$(fnm env --shell bash)"
 fi
 
@@ -315,6 +313,7 @@ fi
 # https://bun.sh/
 if ! command -v bun &> /dev/null; then
   curl --silent --fail --show-error --location https://bun.com/install | bash
+  export PATH="$HOME/.bun/bin:$PATH"
 fi
 
 # Install uv.
@@ -438,7 +437,7 @@ fi
 # Install Pulumi.
 if ! command -v pulumi &> /dev/null; then
   curl --silent --fail --show-error --location https://get.pulumi.com | sh
-  export PATH="$PATH:$HOME/.pulumi/bin"
+  export PATH="$HOME/.pulumi/bin:$PATH"
 fi
 
 # Install Helm.

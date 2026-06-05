@@ -58,7 +58,7 @@ append-path() {
 
   # Check if the directory exists and is not already in the PATH.
   if [[ -d "$directory_path" ]] && [[ ":$PATH:" != *":$directory_path:"* ]]; then
-    export PATH="$PATH:$directory_path"
+    export PATH="$directory_path:$PATH"
   fi
 }
 
@@ -806,16 +806,16 @@ fi
 
 # Add browsers to the path, which is necessary for the GitHub CLI.
 if ! command -v chrome &> /dev/null && [[ -s "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
-  export PATH="$PATH:/c/Program Files/Google/Chrome/Application"
+  export PATH="/c/Program Files/Google/Chrome/Application:$PATH"
 fi
 if ! command -v chrome &> /dev/null && [[ -s "$HOME/AppData/Local/Google/Chrome/Application/chrome.exe" ]]; then
-  export PATH="$PATH:$HOME/AppData/Local/Google/Chrome/Application"
+  export PATH="$HOME/AppData/Local/Google/Chrome/Application:$PATH"
 fi
 if ! command -v chrome &> /dev/null && command -v google-chrome &> /dev/null; then
   alias chrome="google-chrome"
 fi
 if ! command -v msedge &> /dev/null && [[ -s "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ]]; then
-  export PATH="$PATH:/c/Program Files (x86)/Microsoft/Edge/Application"
+  export PATH="/c/Program Files (x86)/Microsoft/Edge/Application:$PATH"
 fi
 if ! command -v msedge &> /dev/null && command -v microsoft-edge &> /dev/null; then
   alias msedge="microsoft-edge"
