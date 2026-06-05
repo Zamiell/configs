@@ -213,14 +213,14 @@ fi
 if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
   ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
 fi
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
+#clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
+#clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
+#clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
+#clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
 if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
   ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
 fi
-clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
+#clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 
 # -----------------------------
 # Install programming languages
