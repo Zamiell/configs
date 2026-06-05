@@ -117,15 +117,29 @@ install-binary-from-tar-url() {
 
 install-vscode-extensions() {
   if [[ -z "${1:-}" ]]; then
-    echo "You must pass this function the \"extensions.json\" path as the first argument." >&2
+    echo "You must pass this function the file path as the first argument." >&2
     return 1
   fi
-  local extensions_json_path="$1"
+  local file_path="$1"
 
-  if [[ ! -s "$extensions_json_path" ]]; then
-    echo "Error: The \"extensions.json\" file does not exist at: $extensions_json_path" >&2
+  if [[ ! -s "$file_path" ]]; then
+    echo "Error: The file does not exist at: $file_path" >&2
     return 1
   fi
+
+  local jq_filter
+  case "$file_path" in
+    *.code-workspace)
+      jq_filter=".extensions[]"
+      ;;
+    *.json)
+      jq_filter=".recommendations[]"
+      ;;
+    *)
+      echo "Error: The file must be a \".json\" file or a \".code-workspace\" file: $file_path" >&2
+      return 1
+      ;;
+  esac
 
   if ! command -v code &> /dev/null; then
     echo "Error: The \"code\" command is not available. Install the \"WSL\" extension in Visual Studio Code and then re-run this script." >&2
@@ -134,9 +148,9 @@ install-vscode-extensions() {
 
   local -a extensions
   mapfile -t extensions < <(
-    sed -E 's@[[:space:]]*//.*$@@' "$extensions_json_path" \
+    sed -E 's@[[:space:]]*//.*$@@' "$file_path" \
       | sed -E ':a;N;$!ba;s/,[[:space:]]*\n([[:space:]]*[]}])/\n\1/g' \
-      | jq --raw-output ".recommendations[]"
+      | jq --raw-output "$jq_filter"
   )
 
   local extension
@@ -250,14 +264,14 @@ fi
 if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
   ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
 fi
-#clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
-#clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
-#clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
-#clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
 if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
   ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
 fi
-#clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
+clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 
 # endregion
 
