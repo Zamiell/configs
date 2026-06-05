@@ -34,7 +34,13 @@ clone-work-repo() {
 
   local repository_path="$REPOSITORIES_DIR/$directory_name"
   if [[ ! -d "$repository_path" ]]; then
+    if [[ ! -s "$HOME/.ssh/id_rsa" ]] && [[ ! -s "$HOME/.ssh/work/id_rsa" ]]; then
+      echo "Warning: Skipping the git clone of \"repository_url\" since you do not seem to have an SSH key installed at \"$HOME/.ssh/id_rsa\" or \"$HOME/.ssh/work/id_rsa\"." >&2
+      return
+    fi
+
     git clone "$repository_url" "$repository_path"
+
     if is-james; then
       git -C "$repository_path" config user.name "James Nesta"
       git -C "$repository_path" config user.email "jnesta@logixhealth.com"
@@ -124,23 +130,22 @@ sudo apt-get install --yes \
   unzip
 
 # Set up SSH.
-SSH_DIR="$HOME/.ssh"
-mkdir -p "$SSH_DIR"
+mkdir -p "$HOME/.ssh"
 if is-james; then
-  if [[ ! -s "$SSH_DIR/id_ed25519" ]]; then
-    cp "/mnt/c/Users/jnesta/.ssh/id_ed25519" "$SSH_DIR/id_ed25519"
-    chmod 600 "$SSH_DIR/id_ed25519"
+  if [[ ! -s "$HOME/.ssh/id_ed25519" ]]; then
+    cp "/mnt/c/Users/jnesta/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519"
+    chmod 600 "$HOME/.ssh/id_ed25519"
   fi
-  if [[ ! -s "$SSH_DIR/id_ed25519.pub" ]]; then
-    cp "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" "$SSH_DIR/id_ed25519.pub"
+  if [[ ! -s "$HOME/.ssh/id_ed25519.pub" ]]; then
+    cp "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" "$HOME/.ssh/id_ed25519.pub"
   fi
-  mkdir -p "$SSH_DIR/work"
-  if [[ ! -s "$SSH_DIR/work/id_rsa" ]]; then
-    cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa" "$SSH_DIR/work/id_rsa"
-    chmod 600 "$SSH_DIR/work/id_rsa"
+  mkdir -p "$HOME/.ssh/work"
+  if [[ ! -s "$HOME/.ssh/work/id_rsa" ]]; then
+    cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa" "$HOME/.ssh/work/id_rsa"
+    chmod 600 "$HOME/.ssh/work/id_rsa"
   fi
-  if [[ ! -s "$SSH_DIR/work/id_rsa.pub" ]]; then
-    cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" "$SSH_DIR/work/id_rsa.pub"
+  if [[ ! -s "$HOME/.ssh/work/id_rsa.pub" ]]; then
+    cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" "$HOME/.ssh/work/id_rsa.pub"
   fi
 fi
 
@@ -158,7 +163,11 @@ REPOSITORIES_DIR="$HOME/repositories"
 mkdir -p "$REPOSITORIES_DIR"
 cd "$REPOSITORIES_DIR"
 if [[ ! -d "$REPOSITORIES_DIR/configs" ]]; then
-  git clone git@github.com:Zamiell/configs.git
+  if [[ -s "$HOME/.ssh/id_ed25519" ]]; then
+    git clone git@github.com:Zamiell/configs.git
+  else
+    git clone https://github.com/Zamiell/configs.git
+  fi
 fi
 if is-james; then
   if [[ ! -d "$REPOSITORIES_DIR/notes" ]]; then
@@ -172,7 +181,7 @@ fi
 # Load Git settings.
 "$REPOSITORIES_DIR/configs/bash/set-git-settings.sh"
 if is-james; then
-  cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$SSH_DIR/config"
+  cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$HOME/.ssh/config"
 fi
 
 # Load the Bash configs.

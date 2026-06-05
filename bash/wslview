@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -euo pipefail # Exit on errors and undefined variables.
+
+if [[ $# -eq 0 ]]; then
+  echo "Error: URL or path is required. Usage: ${0##*/} <url-or-path>..." >&2
+  exit 1
+fi
+
+for target in "$@"; do
+  if [[ -e "$target" ]]; then
+    target=$(wslpath --windows "$target")
+  fi
+
+  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass \
+    -Command 'Start-Process -FilePath $args[0]' "$target" \
+    > /dev/null 2>&1
+done
