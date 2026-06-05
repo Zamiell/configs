@@ -12,7 +12,8 @@ for target in "$@"; do
     target=$(wslpath --windows "$target")
   fi
 
-  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass \
-    -Command 'Start-Process -FilePath $args[0]' "$target" \
-    > /dev/null 2>&1
+  (
+    cd /mnt/c/Windows/System32
+    cmd.exe /C start "" "$target" > /dev/null 2>&1
+  )
 done

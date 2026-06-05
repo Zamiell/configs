@@ -115,16 +115,19 @@ install-binary-from-tar-url() {
 # Main setup
 # ----------
 
-# Update.
+# Update the system.
 sudo apt-get update
 sudo apt-get upgrade --yes
+
+# Install some operating system packages.
+# "qemu-utils" is required for "podman machine init" to work.
 sudo apt-get install --yes \
   age \
   bind9-dnsutils \
-  golang \
   jq \
   podman \
   python-is-python3 \
+  qemu-utils \
   ripgrep \
   shellcheck \
   unzip
@@ -152,7 +155,8 @@ fi
 # Set up company certificates.
 CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
 if [[ ! -s "$CERT_PATH" ]]; then
-  sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH" && sudo update-ca-certificates
+  sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH"
+  sudo update-ca-certificates
 fi
 
 # Clone personal repositories.
@@ -379,6 +383,17 @@ fi
 # https://github.com/digitalstudium/helmfmt
 if ! command -v helmfmt &> /dev/null; then
   curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | sudo tar -xzf - -C /usr/local/bin/ helmfmt
+fi
+
+# Set up podman.
+if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
+  podman machine init
+fi
+
+# Install the wslview shim. (The "real" wslview was deprecated, but since other tools like "npm
+# login" look for a binary called "wslview", we create a shim.)
+if [[ ! -s /usr/local/bin/wslview ]]; then
+  sudo cp "$HOME/repositories/configs/bash/wslview" /usr/local/bin/wslview
 fi
 
 echo -e "\nSuccessfully set up WSL."
