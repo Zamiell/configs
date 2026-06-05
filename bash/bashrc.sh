@@ -1103,9 +1103,9 @@ if command -v npm &> /dev/null; then
     npm config set save-exact=true
   fi
 
-  if [[ -n "$NPM_TOKEN" ]] && ! grep --quiet "registry.npmjs.org" "$NPM_CONFIG_PATH"; then
+  if [[ -n "${NPM_TOKEN:-}" ]] && ! grep --quiet "registry.npmjs.org" "$NPM_CONFIG_PATH"; then
     sed --in-place "/registry.npmjs.org/d" "$HOME/.npmrc"
-    echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" >> "$HOME/.npmrc"
+    echo "//registry.npmjs.org/:_authToken=\$NPM_TOKEN" >> "$HOME/.npmrc"
   fi
 fi
 
