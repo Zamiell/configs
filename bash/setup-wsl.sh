@@ -120,17 +120,21 @@ sudo apt-get update
 sudo apt-get upgrade --yes
 
 # Install some operating system packages.
-# "qemu-utils" is required for "podman machine init" to work.
+# - "qemu-system-x86" is required for "podman machine init" to work.
+# - "gvproxy" is needed for "podman machine start" to work.
+# - "virtiofsd" is needed for "podman machine start" to work.
 sudo apt-get install --yes \
   age \
   bind9-dnsutils \
+  gvproxy \
   jq \
   podman \
   python-is-python3 \
-  qemu-utils \
+  qemu-system-x86 \
   ripgrep \
   shellcheck \
-  unzip
+  unzip \
+  virtiofsd
 
 # Set up SSH.
 mkdir -p "$HOME/.ssh"
@@ -387,7 +391,18 @@ fi
 
 # Set up podman.
 if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
+  # On the latest version of Ubuntu (26.04), "podman machine init" does not work anymore without the
+  # "qemu-utils" dependency also installed.
   podman machine init
+
+  # On the latest version of Ubuntu (26.04), "podman machine start" does not work anymore without
+  # some other manual fixes.
+  sudo mkdir -p /usr/libexec/podman
+  sudo ln -sf /usr/bin/gvproxy /usr/libexec/podman/gvproxy
+  sudo ln -sf /usr/libexec/virtiofsd /usr/local/bin/virtiofsd
+  sudo usermod -aG kvm "$USER"
+  # The above "usermod" command requires a restart of the shell to take effect, so we cannot
+  # immediately invoke "podman machine start".
 fi
 
 # Install the wslview shim. (See the comments in the "wslview" script.)
