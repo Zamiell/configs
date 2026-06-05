@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Run this script with:
+# curl https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/setup-wsl.sh | bash
+
 set -euo pipefail # Exit on errors and undefined variables.
 
 if [[ ! -s "/etc/os-release" ]]; then
