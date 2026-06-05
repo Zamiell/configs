@@ -206,15 +206,6 @@ CONFIGS_REPO_PATH="$HOME/repositories/configs"
 source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ' >> "$BASHRC_PATH"
 fi
-if ! command -v gc &> /dev/null; then
-  source "$REPOSITORIES_DIR/configs/bash/bashrc.sh"
-  echo "Loaded bash configs."
-fi
-
-# Load environment variables.
-if is-james; then
-  get-env
-fi
 
 # Clone work repositories.
 if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
