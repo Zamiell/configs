@@ -211,6 +211,7 @@
     "worktree",
     "worktrees",
     "wpasupplicant",
+    "WSLENV",
     "wslpath",
     "wslview",
     "wuauserv",

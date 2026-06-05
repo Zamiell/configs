@@ -405,7 +405,9 @@ fi
 
 # Install the Azure CLI.
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
-if ! command -v az &> /dev/null; then
+# Unlike other tools, we do not use "command -v az" because if the Azure CLI is installed in the
+# host Windows, it will automatically work inside WSL.
+if [[ ! -s /usr/bin/az ]]; then
   curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
 
   # Install the LogixHealth certificate.

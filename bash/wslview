@@ -17,8 +17,7 @@ for target in "$@"; do
     target=$(wslpath --windows "$target")
   fi
 
-  (
-    cd /mnt/c/Windows/System32
-    cmd.exe /C start "" "$target" > /dev/null 2>&1
-  )
+  WSLVIEW_TARGET="$target" \
+    WSLENV="WSLVIEW_TARGET${WSLENV:+:$WSLENV}" \
+    powershell.exe -NoProfile -NonInteractive -Command "\$target = [Environment]::GetEnvironmentVariable('WSLVIEW_TARGET'); if ([string]::IsNullOrWhiteSpace(\$target)) { exit 1 }; Start-Process -FilePath \$target" > /dev/null 2>&1
 done
