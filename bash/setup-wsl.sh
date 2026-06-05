@@ -226,6 +226,7 @@ fi
 
 # Install Golang.
 if ! command -v go &> /dev/null; then
+  LATEST_GO_VERSION=$(curl --silent --fail --show-error --location https://go.dev/VERSION?m=text | head --lines=1)
   curl --silent --fail --location --output /tmp/go.tar.gz "https://go.dev/dl/$LATEST_GO_VERSION.linux-amd64.tar.gz"
   sudo tar -C /usr/local -xzf /tmp/go.tar.gz
   rm /tmp/go.tar.gz
