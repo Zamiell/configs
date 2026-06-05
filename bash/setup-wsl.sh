@@ -187,6 +187,11 @@ source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ' >> "$BASHRC_PATH"
 fi
 
+# Load environment variables.
+if is-james; then
+  get-env
+fi
+
 # Clone work repositories.
 if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
   ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
@@ -323,7 +328,7 @@ if ! command -v az &> /dev/null; then
   {
     echo
     echo "# $CERTIFICATE_NAME"
-    curl --silent --fail --show-error --location "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/$CERTIFICATE_NAME.crt"
+    curl --silent --fail --show-error --location "http://certs.logixhealth.com/$CERTIFICATE_NAME.crt"
   } | sudo tee -a "$REQUESTS_CA_BUNDLE" > /dev/null
 fi
 
