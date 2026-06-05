@@ -158,9 +158,17 @@ install-vscode-extensions() {
   local -a extensions
   mapfile -t extensions <<< "$extensions_output"
 
+  local -A installed_extensions
+  local installed_extension
+  while IFS= read -r installed_extension; do
+    installed_extensions["${installed_extension,,}"]=1
+  done < <(code --list-extensions)
+
   local extension
   for extension in "${extensions[@]}"; do
-    code --install-extension "$extension"
+    if [[ -z "${installed_extensions[${extension,,}]:-}" ]]; then
+      code --install-extension "$extension"
+    fi
   done
 }
 
