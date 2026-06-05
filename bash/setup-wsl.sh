@@ -49,6 +49,16 @@ clone-work-repo() {
       git -C "$repository_path" config user.name "James Nesta"
       git -C "$repository_path" config user.email "jnesta@logixhealth.com"
     fi
+
+    if [[ -s "$repository_path/package-lock.json" ]]; then
+      (cd "$repository_path" && npm ci)
+    fi
+    if [[ -s "$repository_path/bun.lock" ]]; then
+      (cd "$repository_path" && bun ci)
+    fi
+    if [[ -s "$repository_path/pyproject.toml" ]]; then
+      (cd "$repository_path" && uv sync --frozen)
+    fi
   fi
 }
 
@@ -200,6 +210,13 @@ sudo apt-get install --yes \
   unzip \
   virtiofsd
 
+# Set up the company certificate.
+CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
+if [[ ! -s "$CERT_PATH" ]]; then
+  sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH"
+  sudo update-ca-certificates
+fi
+
 # Set up SSH.
 mkdir -p "$HOME/.ssh"
 if is-james; then
@@ -219,72 +236,6 @@ if is-james; then
     cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" "$HOME/.ssh/work/id_rsa.pub"
   fi
 fi
-
-# Set up company certificates.
-CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
-if [[ ! -s "$CERT_PATH" ]]; then
-  sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH"
-  sudo update-ca-certificates
-fi
-
-# Clone personal repositories.
-if ! ssh-keygen -F github.com &> /dev/null; then
-  ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
-fi
-REPOSITORIES_DIR="$HOME/repositories"
-mkdir -p "$REPOSITORIES_DIR"
-cd "$REPOSITORIES_DIR"
-if [[ ! -d "$REPOSITORIES_DIR/configs" ]]; then
-  if [[ -s "$HOME/.ssh/id_ed25519" ]]; then
-    git clone git@github.com:Zamiell/configs.git
-  else
-    git clone https://github.com/Zamiell/configs.git
-  fi
-fi
-if is-james; then
-  if [[ ! -d "$REPOSITORIES_DIR/notes" ]]; then
-    git clone git@github.com:Zamiell/notes.git
-  fi
-  if [[ ! -d "$REPOSITORIES_DIR/secrets" ]]; then
-    git clone git@github.com:Zamiell/secrets.git
-  fi
-fi
-
-# Load Git settings.
-"$REPOSITORIES_DIR/configs/bash/set-git-settings.sh"
-if is-james; then
-  cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$HOME/.ssh/config"
-fi
-
-# Load the Bash configs.
-BASHRC_PATH="$HOME/.bashrc"
-if ! grep --quiet "Load the commands from the \"configs\"" "$BASHRC_PATH"; then
-  # shellcheck disable=SC2016
-  echo '
-# Load the commands from the "configs" GitHub repository: https://github.com/Zamiell/configs
-CONFIGS_REPO_PATH="$HOME/repositories/configs"
-# shellcheck source=/dev/null
-source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
-' >> "$BASHRC_PATH"
-fi
-
-# Install the wslview shim. (See the comments in the "wslview" script.)
-if [[ ! -s /usr/local/bin/wslview ]]; then
-  sudo cp "$REPOSITORIES_DIR/configs/bash/wslview" /usr/local/bin/wslview
-fi
-
-# Clone work repositories.
-if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
-  ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
-fi
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
-if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
-  ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
-fi
-clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 
 # endregion
 
@@ -319,6 +270,8 @@ fi
 
 # Install Bun.
 # https://bun.sh/
+# (This is needed before cloning repositories so that we can install the dependencies at the same
+# time.)
 if ! command -v bun &> /dev/null; then
   curl --silent --fail --show-error --location https://bun.com/install | bash
   export PATH="$HOME/.bun/bin:$PATH"
@@ -491,6 +444,73 @@ fi
 # Set up Visual Studio Code.
 install-vscode-extensions "$REPOSITORIES_DIR/configs/.vscode/extensions.json"
 install-vscode-extensions "$REPOSITORIES_DIR/infrastructure/infrastructure.code-workspace"
+
+# endregion
+
+# region: Repositories
+# ------------
+# Repositories
+# ------------
+
+# Clone personal repositories.
+if ! ssh-keygen -F github.com &> /dev/null; then
+  ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
+fi
+REPOSITORIES_DIR="$HOME/repositories"
+mkdir -p "$REPOSITORIES_DIR"
+cd "$REPOSITORIES_DIR"
+if [[ ! -d "$REPOSITORIES_DIR/configs" ]]; then
+  if [[ -s "$HOME/.ssh/id_ed25519" ]]; then
+    git clone git@github.com:Zamiell/configs.git
+  else
+    git clone https://github.com/Zamiell/configs.git
+  fi
+  (cd "$REPOSITORIES_DIR/configs" && bun ci)
+fi
+if is-james; then
+  if [[ ! -d "$REPOSITORIES_DIR/notes" ]]; then
+    git clone git@github.com:Zamiell/notes.git
+  fi
+  if [[ ! -d "$REPOSITORIES_DIR/secrets" ]]; then
+    git clone git@github.com:Zamiell/secrets.git
+  fi
+fi
+
+# Load Git settings.
+"$REPOSITORIES_DIR/configs/bash/set-git-settings.sh"
+if is-james; then
+  cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$HOME/.ssh/config"
+fi
+
+# Load the Bash configs.
+BASHRC_PATH="$HOME/.bashrc"
+if ! grep --quiet "Load the commands from the \"configs\"" "$BASHRC_PATH"; then
+  # shellcheck disable=SC2016
+  echo '
+# Load the commands from the "configs" GitHub repository: https://github.com/Zamiell/configs
+CONFIGS_REPO_PATH="$HOME/repositories/configs"
+# shellcheck source=/dev/null
+source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
+' >> "$BASHRC_PATH"
+fi
+
+# Install the wslview shim. (See the comments in the "wslview" script.)
+if [[ ! -s /usr/local/bin/wslview ]]; then
+  sudo cp "$REPOSITORIES_DIR/configs/bash/wslview" /usr/local/bin/wslview
+fi
+
+# Clone work repositories.
+if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
+  ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
+fi
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
+clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
+if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
+  ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
+fi
+clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 
 # endregion
 
