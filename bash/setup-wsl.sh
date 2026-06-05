@@ -207,7 +207,7 @@ source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ' >> "$BASHRC_PATH"
 fi
 if ! command -v gc &> /dev/null; then
-  source "$HOME/repositories/configs/bash/bashrc.sh"
+  source "$REPOSITORIES_DIR/configs/bash/bashrc.sh"
   echo "Loaded bash configs."
 fi
 
@@ -414,7 +414,7 @@ fi
 
 # Install the wslview shim. (See the comments in the "wslview" script.)
 if [[ ! -s /usr/local/bin/wslview ]]; then
-  sudo cp "$HOME/repositories/configs/bash/wslview" /usr/local/bin/wslview
+  sudo cp "$REPOSITORIES_DIR/configs/bash/wslview" /usr/local/bin/wslview
 fi
 
 echo -e "\nSuccessfully set up WSL."
