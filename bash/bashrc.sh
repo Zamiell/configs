@@ -1374,6 +1374,7 @@ get-env() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   decrypt "$HOME/.env"
+  # shellcheck source=/dev/null
   source "$HOME/.env"
   echo "Loaded new environment variables with: source $HOME/.env"
 )
