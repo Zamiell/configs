@@ -499,6 +499,11 @@ if [[ ! -s /usr/local/bin/wslview ]]; then
   sudo cp "$REPOSITORIES_DIR/configs/bash/wslview" /usr/local/bin/wslview
 fi
 
+# Decrypt environment variables.
+if is-james && [[ ! -s "$HOME/.env" ]]; then
+  age --decrypt --identity "$HOME/.ssh/id_ed25519" --output "$HOME/.env" "$REPOSITORIES_DIR/secrets/.env.age"
+fi
+
 # Clone work repositories.
 if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
   ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null

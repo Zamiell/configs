@@ -48,7 +48,7 @@ add-logix-cert-to-requests-ca-bundle() (
   fi
 )
 
-# If we use a subshell, the changes to PATH would be lost.
+# We do not use a subshell because the changes to PATH would be lost.
 append-path() {
   if [[ -z "${1:-}" ]]; then
     echo "Error: The directory path is required. Usage: ${FUNCNAME[0]} <path>" >&2
@@ -631,7 +631,7 @@ remove-leading-and-trailing-whitespace() (
   sed --expression '/[^[:space:]]/,$!d' --expression 's/^[[:space:]]*//' --expression 's/[[:space:]]*$//'
 )
 
-# This cannot be in a subshell because the alias would not persist.
+# We do not use a subshell because the alias would not persist.
 set-cd-alias() {
   if [[ -z "${1:-}" ]]; then
     echo "Error: The repository name is required. Usage: ${FUNCNAME[0]} <repository_name>" >&2
@@ -1370,14 +1370,13 @@ encrypt() (
 
 alias full-path="readlink -f"
 
-get-env() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
+# We do not use a subshell because the "source" would not work.
+get-env() {
   decrypt "$HOME/.env"
   # shellcheck source=/dev/null
   source "$HOME/.env"
   echo "Loaded new environment variables with: source $HOME/.env"
-)
+}
 
 # Turn off Gemini Code Assist prompts.
 alias gemini="gemini --yolo"
@@ -3002,7 +3001,7 @@ guo() (
   echo "$changed_files" | xargs code
 )
 
-# "gwa" is short for "git worktree add". (We don't use a subshell because we need to change the
+# "gwa" is short for "git worktree add". (We do not use a subshell because we need to change the
 # current working directory.)
 gwa() {
   local new_worktree_directory
