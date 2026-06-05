@@ -390,8 +390,7 @@ if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
   podman machine init
 fi
 
-# Install the wslview shim. (The "real" wslview was deprecated, but since other tools like "npm
-# login" look for a binary called "wslview", we create a shim.)
+# Install the wslview shim. (See the comments in the "wslview" script.)
 if [[ ! -s /usr/local/bin/wslview ]]; then
   sudo cp "$HOME/repositories/configs/bash/wslview" /usr/local/bin/wslview
 fi

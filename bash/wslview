@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# This is a shim for the "wslview" program, which was deprecated:
+# https://github.com/wslutilities/wslu/discussions/329
+# Since other tools like "npm login" look for a binary called "wslview", we create a shim to achieve
+# similar functionality.
+
 set -euo pipefail # Exit on errors and undefined variables.
 
 if [[ $# -eq 0 ]]; then
