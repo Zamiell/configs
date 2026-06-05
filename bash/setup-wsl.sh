@@ -203,6 +203,10 @@ CONFIGS_REPO_PATH="$HOME/repositories/configs"
 source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ' >> "$BASHRC_PATH"
 fi
+if ! command -v gc &> /dev/null; then
+  source "$HOME/repositories/configs/bash/bashrc.sh"
+  echo "Loaded bash configs."
+fi
 
 # Load environment variables.
 if is-james; then
