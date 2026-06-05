@@ -1370,7 +1370,13 @@ encrypt() (
 
 alias full-path="readlink -f"
 
-alias get-env='decrypt "$HOME/.env" && source "$HOME/.env" && echo "Loaded new environment variables with: source $HOME/.env"'
+get-env() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  decrypt "$HOME/.env"
+  source "$HOME/.env"
+  echo "Loaded new environment variables with: source $HOME/.env"
+)
 
 # Turn off Gemini Code Assist prompts.
 alias gemini="gemini --yolo"
