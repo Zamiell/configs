@@ -146,12 +146,18 @@ install-vscode-extensions() {
     return 1
   fi
 
-  local -a extensions
-  mapfile -t extensions < <(
+  local extensions_output
+  if ! extensions_output=$(
     sed -E 's@[[:space:]]*//.*$@@' "$file_path" \
       | sed -E ':a;N;$!ba;s/,[[:space:]]*\n([[:space:]]*[]}])/\n\1/g' \
       | jq --raw-output "$jq_filter"
-  )
+  ); then
+    echo "Error: Failed to parse VS Code extensions from: $file_path" >&2
+    return 1
+  fi
+
+  local -a extensions
+  mapfile -t extensions <<< "$extensions_output"
 
   local extension
   for extension in "${extensions[@]}"; do
