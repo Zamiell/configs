@@ -18,6 +18,7 @@ if [[ "${ID:-}" != "ubuntu" ]]; then
   exit
 fi
 
+# region: Subroutines
 # -----------
 # Subroutines
 # -----------
@@ -59,13 +60,13 @@ get-github-latest-release-url() {
   local repository="$1"
   if [[ -z "$repository" ]]; then
     echo "You must pass this function the GitHub author and repository name as the first argument." >&2
-    exit 1
+    return 1
   fi
 
   local filename_template="$2"
   if [[ -z "$filename_template" ]]; then
     echo "You must pass this function the filename template as the second argument." >&2
-    exit 1
+    return 1
   fi
 
   local latest_release_json
@@ -77,7 +78,7 @@ get-github-latest-release-url() {
   # Check if TAG_NAME is empty or literal "null" (which jq returns if the key is missing).
   if [[ -z "$tag_name" ]] || [[ "$tag_name" == "null" ]]; then
     echo "Failed to fetch the latest version of: $repository" >&2
-    exit 1
+    return 1
   fi
 
   local version
@@ -93,13 +94,13 @@ install-binary-from-tar-url() {
   local download_url="$1"
   if [[ -z "$download_url" ]]; then
     echo "You must pass this function the tar download URL as the first argument." >&2
-    exit 1
+    return 1
   fi
 
   local binary_name="$2"
   if [[ -z "$binary_name" ]]; then
     echo "You must pass this function the binary name as the second argument." >&2
-    exit 1
+    return 1
   fi
 
   local filename
@@ -114,6 +115,39 @@ install-binary-from-tar-url() {
   rm "$tmp_path"
 }
 
+install-vscode-extensions() {
+  if [[ -z "${1:-}" ]]; then
+    echo "You must pass this function the \"extensions.json\" path as the first argument." >&2
+    return 1
+  fi
+  local extensions_json_path="$1"
+
+  if [[ ! -s "$extensions_json_path" ]]; then
+    echo "Error: The \"extensions.json\" file does not exist at: $extensions_json_path" >&2
+    return 1
+  fi
+
+  if ! command -v code &> /dev/null; then
+    echo "Error: The \"code\" command is not available. Install the \"WSL\" extension in Visual Studio Code and then re-run this script." >&2
+    return 1
+  fi
+
+  local -a extensions
+  mapfile -t extensions < <(
+    sed -E 's@[[:space:]]*//.*$@@' "$extensions_json_path" \
+      | sed -E ':a;N;$!ba;s/,[[:space:]]*\n([[:space:]]*[]}])/\n\1/g' \
+      | jq --raw-output ".recommendations[]"
+  )
+
+  local extension
+  for extension in "${extensions[@]}"; do
+    code --install-extension "$extension"
+  done
+}
+
+# endregion
+
+# region: Main setup
 # ----------
 # Main setup
 # ----------
@@ -207,6 +241,11 @@ source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 ' >> "$BASHRC_PATH"
 fi
 
+# Install the wslview shim. (See the comments in the "wslview" script.)
+if [[ ! -s /usr/local/bin/wslview ]]; then
+  sudo cp "$REPOSITORIES_DIR/configs/bash/wslview" /usr/local/bin/wslview
+fi
+
 # Clone work repositories.
 if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
   ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
@@ -220,6 +259,9 @@ if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
 fi
 #clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 
+# endregion
+
+# region: Install programming languages
 # -----------------------------
 # Install programming languages
 # -----------------------------
@@ -282,6 +324,9 @@ if ! command -v pwsh &> /dev/null; then
   fi
 fi
 
+# endregion
+
+# region: Install quality of life software
 # --------------------------------
 # Install quality of life software
 # --------------------------------
@@ -299,6 +344,9 @@ if ! command -v fzf &> /dev/null; then
   install-binary-from-tar-url "$DOWNLOAD_URL" "fzf"
 fi
 
+# endregion
+
+# region: Install tools
 # -------------
 # Install tools
 # -------------
@@ -388,6 +436,13 @@ if ! command -v helmfmt &> /dev/null; then
   curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | sudo tar -xzf - -C /usr/local/bin/ helmfmt
 fi
 
+# endregion
+
+# region: Configure applications
+# ----------------------
+# Configure applications
+# ----------------------
+
 # Set up podman.
 if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
   # On the latest version of Ubuntu (26.04), "podman machine init" does not work anymore without the
@@ -404,9 +459,9 @@ if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
   # immediately invoke "podman machine start".
 fi
 
-# Install the wslview shim. (See the comments in the "wslview" script.)
-if [[ ! -s /usr/local/bin/wslview ]]; then
-  sudo cp "$REPOSITORIES_DIR/configs/bash/wslview" /usr/local/bin/wslview
-fi
+# Install Visual Studio Code extensions into the WSL remote extension host.
+install-vscode-extensions "$REPOSITORIES_DIR/configs/.vscode/extensions.json"
+
+# endregion
 
 echo -e "\nSuccessfully set up WSL."
