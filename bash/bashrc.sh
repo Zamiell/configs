@@ -277,6 +277,110 @@ get-git-remote-details() (
   return 1
 )
 
+get-azure-devops-domain() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host>" >&2
+    return 1
+  fi
+  local host="$1"
+
+  if [[ "$host" == "azure-devops-server" ]]; then
+    echo "azuredevops.logixhealth.com"
+  elif [[ "$host" == "azure-devops-services" ]]; then
+    echo "dev.azure.com"
+  else
+    echo "Error: The Azure DevOps host is invalid: $host" >&2
+    return 1
+  fi
+)
+
+get-azure-devops-personal-access-token() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host>" >&2
+    return 1
+  fi
+  local host="$1"
+
+  if [[ "$host" == "azure-devops-server" ]]; then
+    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVER:-}" ]]; then
+      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVER\" environment variable is not set." >&2
+      return 1
+    fi
+
+    echo "$AZDO_PERSONAL_ACCESS_TOKEN_SERVER"
+  elif [[ "$host" == "azure-devops-services" ]]; then
+    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVICES:-}" ]]; then
+      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVICES\" environment variable is not set." >&2
+      return 1
+    fi
+
+    echo "$AZDO_PERSONAL_ACCESS_TOKEN_SERVICES"
+  else
+    echo "Error: The Azure DevOps host is invalid: $host" >&2
+    return 1
+  fi
+)
+
+get-azure-devops-active-pull-request-id-for-current-branch() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+  assert-feature-branch
+  assert-jq-installed
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  read -r host organization project repository <<< "$(get-git-remote-details)"
+  if [[ "$host" != "azure-devops-server" ]] && [[ "$host" != "azure-devops-services" ]]; then
+    echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
+    return 1
+  fi
+
+  local domain
+  domain=$(get-azure-devops-domain "$host")
+
+  local personal_access_token
+  personal_access_token=$(get-azure-devops-personal-access-token "$host")
+
+  local api_version="7.0"
+  local azdo_project_url="https://$domain/$organization/$project"
+  local azdo_api_url_check="$azdo_project_url/_apis/git/repositories/$repository/pullrequests?api-version=$api_version&searchCriteria.sourceRefName=refs/heads/$branch_name&searchCriteria.status=active"
+
+  local api_response_check
+  api_response_check=$(
+    curl \
+      --silent \
+      --fail \
+      --show-error \
+      --location \
+      --user ":$personal_access_token" \
+      "$azdo_api_url_check" || {
+      local err="$?"
+      echo "curl failed on URL: $azdo_api_url_check" >&2
+      return "$err"
+    }
+  )
+
+  local pull_request_count
+  pull_request_count=$(echo "$api_response_check" | jq -r '.count')
+  if [[ "$pull_request_count" == "0" ]]; then
+    echo "Error: No active pull request exists for branch: $branch_name" >&2
+    return 1
+  fi
+
+  if [[ "$pull_request_count" != "1" ]]; then
+    echo "Error: Found $pull_request_count active pull requests for branch: $branch_name" >&2
+    return 1
+  fi
+
+  jq -r '.value[0].pullRequestId' <<< "$api_response_check"
+)
+
 # This will return a descriptive commit message based on the currently staged files.
 get-llm-commit-message() (
   set -euo pipefail # Exit on errors and undefined variables.
@@ -2536,40 +2640,14 @@ gpr() (
 
   # First, check for an existing pull request.
   local domain
-  if [[ "$host" == "azure-devops-server" ]]; then
-    domain="azuredevops.logixhealth.com"
-  elif [[ "$host" == "azure-devops-services" ]]; then
-    domain="dev.azure.com"
-  fi
+  domain=$(get-azure-devops-domain "$host")
   local api_version="7.0"
   local azdo_project_url="https://$domain/$organization/$project"
   local azdo_api_url="$azdo_project_url/_apis/git/repositories/$repository/pullrequests?api-version=$api_version"
   local azdo_api_url_check="$azdo_api_url&searchCriteria.sourceRefName=refs/heads/$branch_name&searchCriteria.status=active"
 
   local personal_access_token
-  if [[ "$host" == "azure-devops-server" ]]; then
-    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVER:-}" ]] && [[ -n "${AZDO_PERSONAL_ACCESS_TOKEN:-}" ]]; then
-      AZDO_PERSONAL_ACCESS_TOKEN_SERVER="$AZDO_PERSONAL_ACCESS_TOKEN"
-    fi
-
-    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVER:-}" ]]; then
-      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVER\" environment variable is not set. (This is required to automatically open pull requests to Azure DevOps Server.)" >&2
-      return 1
-    fi
-
-    personal_access_token="$AZDO_PERSONAL_ACCESS_TOKEN_SERVER"
-  elif [[ "$host" == "azure-devops-services" ]]; then
-    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVICES:-}" ]] && [[ -n "${AZDO_PERSONAL_ACCESS_TOKEN:-}" ]]; then
-      AZDO_PERSONAL_ACCESS_TOKEN_SERVICES="$AZDO_PERSONAL_ACCESS_TOKEN"
-    fi
-
-    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVICES:-}" ]]; then
-      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVICES\" environment variable is not set. (This is required to automatically open pull requests to Azure DevOps Services.)" >&2
-      return 1
-    fi
-
-    personal_access_token="$AZDO_PERSONAL_ACCESS_TOKEN_SERVICES"
-  fi
+  personal_access_token=$(get-azure-devops-personal-access-token "$host")
 
   local api_response_check
   api_response_check=$(
@@ -2708,13 +2786,25 @@ gprf() (
 gprh() (
   set -euo pipefail # Exit on errors and undefined variables.
 
+  assert-in-git-repository
+  assert-feature-branch
+
   if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
     echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
     exit 1
   fi
 
+  read -r host _organization _project repository <<< "$(get-git-remote-details)"
+  if [[ "$host" != "azure-devops-server" ]] && [[ "$host" != "azure-devops-services" ]]; then
+    echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
+    return 1
+  fi
+
+  local pull_request_id
+  pull_request_id=$(get-azure-devops-active-pull-request-id-for-current-branch)
+
   builtin cd "$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
-  bun run remove-all-reviewers-from-pull-request "$@"
+  bun run remove-all-reviewers-from-pull-request "$repository" "$pull_request_id"
 )
 
 # "grb" is short for "git rebase".
