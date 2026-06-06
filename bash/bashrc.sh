@@ -62,6 +62,22 @@ append-path() {
   fi
 }
 
+assert-azure-devops-host() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host>" >&2
+    return 1
+  fi
+  local host="$1"
+
+  if [[ "$host" != "azure-devops-server" ]] && [[ "$host" != "azure-devops-services" ]]; then
+    local caller="${FUNCNAME[1]:-${FUNCNAME[0]}}"
+    echo "Error: The $caller command cannot be used with host: $host" >&2
+    return 1
+  fi
+)
+
 assert-feature-branch() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -134,6 +150,209 @@ assert-main-branch() (
     echo "Error: This command is intended to be run on the \"$main_branch_name\" branch and you are currently on the \"$branch_name\" branch." >&2
     return 1
   fi
+)
+
+get-azure-devops-active-pull-request-id-for-current-branch() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+  assert-feature-branch
+  assert-jq-installed
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  local api_response_check
+  api_response_check=$(get-azure-devops-active-pull-request-response-for-current-branch)
+
+  local pull_request_count
+  pull_request_count=$(echo "$api_response_check" | jq -r '.count')
+  if [[ "$pull_request_count" == "0" ]]; then
+    echo "Error: No active pull request exists for branch: $branch_name" >&2
+    return 1
+  fi
+
+  if [[ "$pull_request_count" != "1" ]]; then
+    echo "Error: Found $pull_request_count active pull requests for branch: $branch_name" >&2
+    return 1
+  fi
+
+  jq -r '.value[0].pullRequestId' <<< "$api_response_check"
+)
+
+get-azure-devops-active-pull-request-response-for-current-branch() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+  assert-feature-branch
+  assert-jq-installed
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  read -r host organization project repository <<< "$(get-git-remote-details)"
+  assert-azure-devops-host "$host"
+
+  local personal_access_token
+  personal_access_token=$(get-azure-devops-personal-access-token "$host")
+
+  local azdo_api_url
+  azdo_api_url=$(get-azure-devops-pull-requests-api-url "$host" "$organization" "$project" "$repository")
+  local azdo_api_url_check="$azdo_api_url&searchCriteria.sourceRefName=refs/heads/$branch_name&searchCriteria.status=active"
+
+  curl \
+    --silent \
+    --fail \
+    --show-error \
+    --location \
+    --user ":$personal_access_token" \
+    "$azdo_api_url_check" || {
+    local err="$?"
+    echo "curl failed on URL: $azdo_api_url_check" >&2
+    return "$err"
+  }
+)
+
+get-azure-devops-domain() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host>" >&2
+    return 1
+  fi
+  local host="$1"
+
+  if [[ "$host" == "azure-devops-server" ]]; then
+    echo "azuredevops.logixhealth.com"
+  elif [[ "$host" == "azure-devops-services" ]]; then
+    echo "dev.azure.com"
+  else
+    echo "Error: The Azure DevOps host is invalid: $host" >&2
+    return 1
+  fi
+)
+
+get-azure-devops-personal-access-token() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host>" >&2
+    return 1
+  fi
+  local host="$1"
+
+  if [[ "$host" == "azure-devops-server" ]]; then
+    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVER:-}" ]]; then
+      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVER\" environment variable is not set." >&2
+      return 1
+    fi
+
+    echo "$AZDO_PERSONAL_ACCESS_TOKEN_SERVER"
+  elif [[ "$host" == "azure-devops-services" ]]; then
+    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVICES:-}" ]]; then
+      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVICES\" environment variable is not set." >&2
+      return 1
+    fi
+
+    echo "$AZDO_PERSONAL_ACCESS_TOKEN_SERVICES"
+  else
+    echo "Error: The Azure DevOps host is invalid: $host" >&2
+    return 1
+  fi
+)
+
+get-azure-devops-project-url() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host> <organization> <project>" >&2
+    return 1
+  fi
+  local host="$1"
+
+  if [[ -z "${2:-}" ]]; then
+    echo "Error: The organization is required. Usage: ${FUNCNAME[0]} <host> <organization> <project>" >&2
+    return 1
+  fi
+  local organization="$2"
+
+  if [[ -z "${3:-}" ]]; then
+    echo "Error: The project is required. Usage: ${FUNCNAME[0]} <host> <organization> <project>" >&2
+    return 1
+  fi
+  local project="$3"
+
+  local domain
+  domain=$(get-azure-devops-domain "$host")
+
+  echo "https://$domain/$organization/$project"
+)
+
+get-azure-devops-pull-requests-api-url() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host> <organization> <project> <repository>" >&2
+    return 1
+  fi
+  local host="$1"
+
+  if [[ -z "${2:-}" ]]; then
+    echo "Error: The organization is required. Usage: ${FUNCNAME[0]} <host> <organization> <project> <repository>" >&2
+    return 1
+  fi
+  local organization="$2"
+
+  if [[ -z "${3:-}" ]]; then
+    echo "Error: The project is required. Usage: ${FUNCNAME[0]} <host> <organization> <project> <repository>" >&2
+    return 1
+  fi
+  local project="$3"
+
+  if [[ -z "${4:-}" ]]; then
+    echo "Error: The repository is required. Usage: ${FUNCNAME[0]} <host> <organization> <project> <repository>" >&2
+    return 1
+  fi
+  local repository="$4"
+
+  local api_version="7.0"
+  local azdo_project_url
+  azdo_project_url=$(get-azure-devops-project-url "$host" "$organization" "$project")
+
+  echo "$azdo_project_url/_apis/git/repositories/$repository/pullrequests?api-version=$api_version"
+)
+
+get-azure-devops-repository-url() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host> <organization> <project> <repository>" >&2
+    return 1
+  fi
+  local host="$1"
+
+  if [[ -z "${2:-}" ]]; then
+    echo "Error: The organization is required. Usage: ${FUNCNAME[0]} <host> <organization> <project> <repository>" >&2
+    return 1
+  fi
+  local organization="$2"
+
+  if [[ -z "${3:-}" ]]; then
+    echo "Error: The project is required. Usage: ${FUNCNAME[0]} <host> <organization> <project> <repository>" >&2
+    return 1
+  fi
+  local project="$3"
+
+  if [[ -z "${4:-}" ]]; then
+    echo "Error: The repository is required. Usage: ${FUNCNAME[0]} <host> <organization> <project> <repository>" >&2
+    return 1
+  fi
+  local repository="$4"
+
+  local azdo_project_url
+  azdo_project_url=$(get-azure-devops-project-url "$host" "$organization" "$project")
+
+  echo "$azdo_project_url/_git/$repository"
 )
 
 # This will echo back the same input if the input is not a number.
@@ -277,110 +496,6 @@ get-git-remote-details() (
   return 1
 )
 
-get-azure-devops-domain() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ -z "${1:-}" ]]; then
-    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host>" >&2
-    return 1
-  fi
-  local host="$1"
-
-  if [[ "$host" == "azure-devops-server" ]]; then
-    echo "azuredevops.logixhealth.com"
-  elif [[ "$host" == "azure-devops-services" ]]; then
-    echo "dev.azure.com"
-  else
-    echo "Error: The Azure DevOps host is invalid: $host" >&2
-    return 1
-  fi
-)
-
-get-azure-devops-personal-access-token() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  if [[ -z "${1:-}" ]]; then
-    echo "Error: The host is required. Usage: ${FUNCNAME[0]} <host>" >&2
-    return 1
-  fi
-  local host="$1"
-
-  if [[ "$host" == "azure-devops-server" ]]; then
-    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVER:-}" ]]; then
-      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVER\" environment variable is not set." >&2
-      return 1
-    fi
-
-    echo "$AZDO_PERSONAL_ACCESS_TOKEN_SERVER"
-  elif [[ "$host" == "azure-devops-services" ]]; then
-    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVICES:-}" ]]; then
-      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVICES\" environment variable is not set." >&2
-      return 1
-    fi
-
-    echo "$AZDO_PERSONAL_ACCESS_TOKEN_SERVICES"
-  else
-    echo "Error: The Azure DevOps host is invalid: $host" >&2
-    return 1
-  fi
-)
-
-get-azure-devops-active-pull-request-id-for-current-branch() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  assert-in-git-repository
-  assert-feature-branch
-  assert-jq-installed
-
-  local branch_name
-  branch_name=$(git branch --show-current)
-
-  read -r host organization project repository <<< "$(get-git-remote-details)"
-  if [[ "$host" != "azure-devops-server" ]] && [[ "$host" != "azure-devops-services" ]]; then
-    echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
-    return 1
-  fi
-
-  local domain
-  domain=$(get-azure-devops-domain "$host")
-
-  local personal_access_token
-  personal_access_token=$(get-azure-devops-personal-access-token "$host")
-
-  local api_version="7.0"
-  local azdo_project_url="https://$domain/$organization/$project"
-  local azdo_api_url_check="$azdo_project_url/_apis/git/repositories/$repository/pullrequests?api-version=$api_version&searchCriteria.sourceRefName=refs/heads/$branch_name&searchCriteria.status=active"
-
-  local api_response_check
-  api_response_check=$(
-    curl \
-      --silent \
-      --fail \
-      --show-error \
-      --location \
-      --user ":$personal_access_token" \
-      "$azdo_api_url_check" || {
-      local err="$?"
-      echo "curl failed on URL: $azdo_api_url_check" >&2
-      return "$err"
-    }
-  )
-
-  local pull_request_count
-  pull_request_count=$(echo "$api_response_check" | jq -r '.count')
-  if [[ "$pull_request_count" == "0" ]]; then
-    echo "Error: No active pull request exists for branch: $branch_name" >&2
-    return 1
-  fi
-
-  if [[ "$pull_request_count" != "1" ]]; then
-    echo "Error: Found $pull_request_count active pull requests for branch: $branch_name" >&2
-    return 1
-  fi
-
-  jq -r '.value[0].pullRequestId' <<< "$api_response_check"
-)
-
 # This will return a descriptive commit message based on the currently staged files.
 get-llm-commit-message() (
   set -euo pipefail # Exit on errors and undefined variables.
@@ -401,34 +516,6 @@ get-llm-commit-message() (
   fi
 
   get-llm-output-git-diff "$git_diff" "commit message"
-)
-
-# This will return a pull request description based on differences between the current branch and
-# the main branch. (Similar to a commit message, the title will be on the first line and the
-# description will be on the second line, if any.)
-get-llm-pull-request-text() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  assert-in-git-repository
-  assert-feature-branch
-
-  local main_branch_name
-  main_branch_name=$(get-main-branch-name)
-
-  if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-    echo "Error: The \"GEMINI_API_KEY\" environment variable is not set." >&2
-    return 1
-  fi
-
-  local git_diff
-  git_diff=$(git diff "$main_branch_name"...HEAD)
-
-  if [[ -z "$git_diff" ]]; then
-    echo "Error: There are no changes between this branch and the \"$main_branch_name\" branch." >&2
-    return 1
-  fi
-
-  get-llm-output-git-diff "$git_diff" "pull request description"
 )
 
 get-llm-output() (
@@ -524,6 +611,34 @@ get-llm-output-git-diff() (
   llm_output=$(get-llm-output "$system_prompt" "$git_diff")
 
   echo -e "$llm_output\n\n(This $noun was automatically generated by an LLM.)"
+)
+
+# This will return a pull request description based on differences between the current branch and
+# the main branch. (Similar to a commit message, the title will be on the first line and the
+# description will be on the second line, if any.)
+get-llm-pull-request-text() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+  assert-feature-branch
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  if [[ -z "${GEMINI_API_KEY:-}" ]]; then
+    echo "Error: The \"GEMINI_API_KEY\" environment variable is not set." >&2
+    return 1
+  fi
+
+  local git_diff
+  git_diff=$(git diff "$main_branch_name"...HEAD)
+
+  if [[ -z "$git_diff" ]]; then
+    echo "Error: There are no changes between this branch and the \"$main_branch_name\" branch." >&2
+    return 1
+  fi
+
+  get-llm-output-git-diff "$git_diff" "pull request description"
 )
 
 get-main-branch-name() (
@@ -1263,8 +1378,11 @@ azdo-history() (
     return 1
   fi
 
+  local azdo_repository_url
+  azdo_repository_url=$(get-azure-devops-repository-url "$host" "$organization" "$project" "$repository")
+
   # e.g. https://azuredevops.logixhealth.com/LogixHealth/Infrastructure/_git/infrastructure?path=/infrastructure.code-workspace&version=GBmaster&_a=history
-  o "https://azuredevops.logixhealth.com/$organization/$project/_git/$repository?path=/$relative_path&version=GBmaster&_a=history"
+  o "$azdo_repository_url?path=/$relative_path&version=GBmaster&_a=history"
 )
 
 alias azwhoami="az account show --query user.name -o tsv"
@@ -2470,12 +2588,11 @@ gcs() (
   if [[ "$host" == "github" ]]; then
     read -r host author repository <<< "$(get-git-remote-details)"
     commit_url="https://github.com/$author/$repository/commit/$commit_sha1"
-  elif [[ "$host" == "azure-devops-services" ]]; then
+  elif [[ "$host" == "azure-devops-services" ]] || [[ "$host" == "azure-devops-server" ]]; then
     read -r host organization project repository <<< "$(get-git-remote-details)"
-    commit_url="https://dev.azure.com/$organization/$project/_git/$repository/commit/$commit_sha1"
-  elif [[ "$host" == "azure-devops-server" ]]; then
-    read -r host organization project repository <<< "$(get-git-remote-details)"
-    commit_url="https://azuredevops.logixhealth.com/$organization/$project/_git/$repository/commit/$commit_sha1"
+    local azdo_repository_url
+    azdo_repository_url=$(get-azure-devops-repository-url "$host" "$organization" "$project" "$repository")
+    commit_url="$azdo_repository_url/commit/$commit_sha1"
   else
     echo "Unknown git remote host: $host" >&2
     return 1
@@ -2627,10 +2744,7 @@ gpr() (
   assert-jq-installed
 
   read -r host organization project repository <<< "$(get-git-remote-details)"
-  if [[ "$host" != "azure-devops-server" ]] && [[ "$host" != "azure-devops-services" ]]; then
-    echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
-    return 1
-  fi
+  assert-azure-devops-host "$host"
 
   # Validate that the remote branch exists.
   if ! git ls-remote --heads origin "$branch_name" | grep --quiet .; then
@@ -2639,35 +2753,21 @@ gpr() (
   fi
 
   # First, check for an existing pull request.
-  local domain
-  domain=$(get-azure-devops-domain "$host")
-  local api_version="7.0"
-  local azdo_project_url="https://$domain/$organization/$project"
-  local azdo_api_url="$azdo_project_url/_apis/git/repositories/$repository/pullrequests?api-version=$api_version"
-  local azdo_api_url_check="$azdo_api_url&searchCriteria.sourceRefName=refs/heads/$branch_name&searchCriteria.status=active"
+  local azdo_api_url
+  azdo_api_url=$(get-azure-devops-pull-requests-api-url "$host" "$organization" "$project" "$repository")
 
   local personal_access_token
   personal_access_token=$(get-azure-devops-personal-access-token "$host")
 
   local api_response_check
-  api_response_check=$(
-    curl \
-      --silent \
-      --fail \
-      --show-error \
-      --location \
-      --user ":$personal_access_token" \
-      "$azdo_api_url_check" || {
-      local err="$?"
-      echo "curl failed on URL: $azdo_api_url_check" >&2
-      return "$err"
-    }
-  )
+  api_response_check=$(get-azure-devops-active-pull-request-response-for-current-branch)
 
   local pull_request_count
   pull_request_count=$(echo "$api_response_check" | jq -r '.count')
 
-  local azdo_pull_request_url_prefix="$azdo_project_url/_git/$repository/pullrequest"
+  local azdo_repository_url
+  azdo_repository_url=$(get-azure-devops-repository-url "$host" "$organization" "$project" "$repository")
+  local azdo_pull_request_url_prefix="$azdo_repository_url/pullrequest"
 
   if [[ "$pull_request_count" != "0" ]]; then
     local existing_pull_request_id
@@ -2765,7 +2865,9 @@ gpr-dry() (
   local branch_name
   branch_name=$(git branch --show-current)
 
-  local pr_url="https://azuredevops.logixhealth.com/$organization/$project/_git/$repository/pullrequestcreate?sourceRef=$branch_name"
+  local azdo_repository_url
+  azdo_repository_url=$(get-azure-devops-repository-url "$host" "$organization" "$project" "$repository")
+  local pr_url="$azdo_repository_url/pullrequestcreate?sourceRef=$branch_name"
   o "$pr_url"
 )
 
@@ -2794,11 +2896,7 @@ gprh() (
     exit 1
   fi
 
-  read -r host _organization _project repository <<< "$(get-git-remote-details)"
-  if [[ "$host" != "azure-devops-server" ]] && [[ "$host" != "azure-devops-services" ]]; then
-    echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
-    return 1
-  fi
+  read -r _host _organization _project repository <<< "$(get-git-remote-details)"
 
   local pull_request_id
   pull_request_id=$(get-azure-devops-active-pull-request-id-for-current-branch)
