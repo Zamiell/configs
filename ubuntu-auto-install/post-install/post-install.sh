@@ -47,7 +47,6 @@ fi
 # -----------------
 
 # Load information about the system for later.
-# shellcheck source=/dev/null
 source /etc/os-release
 
 # Set the timezone.

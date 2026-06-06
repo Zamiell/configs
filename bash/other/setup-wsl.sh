@@ -10,7 +10,6 @@ if [[ ! -s "/etc/os-release" ]]; then
   exit
 fi
 
-# shellcheck source=/dev/null
 source /etc/os-release
 
 if [[ "${ID:-}" != "ubuntu" ]]; then

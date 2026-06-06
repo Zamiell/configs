@@ -32,7 +32,6 @@ if [[ $- == *i* ]]; then
   fi
 
   if [[ -s "/etc/os-release" ]]; then
-    # shellcheck source=/dev/null
     source /etc/os-release
   fi
 
@@ -62,7 +61,6 @@ if [[ $- == *i* ]]; then
   # See the comment in the "bun-completions.sh" file.
   if command -v bun &> /dev/null; then
     mkdir -p "$HOME/.bun"
-    # shellcheck source=/dev/null
     source "$DIR/other/bun-completions.sh"
   fi
 

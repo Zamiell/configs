@@ -2,6 +2,7 @@
 # https://github.com/koalaman/shellcheck
 
 shell=bash
+external-sources=true # Needed for shellcheck to follow "source" commands.
 
 # Optional rules can be enumerated with: shellcheck --list
 # https://github.com/koalaman/shellcheck/issues/3368

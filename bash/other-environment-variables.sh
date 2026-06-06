@@ -4,7 +4,6 @@
 
 # Load operating system information.
 if [[ -s "/etc/os-release" ]]; then
-  # shellcheck source=/dev/null
   source /etc/os-release
 fi
 
