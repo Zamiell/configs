@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run this script with:
-# curl https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/setup-wsl.sh | bash
+# curl https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/other/setup-wsl.sh | bash
 
 set -euo pipefail # Exit on errors and undefined variables.
 
@@ -482,7 +482,7 @@ if is-james; then
 fi
 
 # Load Git settings.
-"$REPOSITORIES_DIR/configs/bash/set-git-settings.sh"
+"$REPOSITORIES_DIR/configs/bash/other/set-git-settings.sh"
 if is-james; then
   cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$HOME/.ssh/config"
 fi
@@ -501,7 +501,7 @@ fi
 
 # Install the wslview shim. (See the comments in the "wslview" script.)
 if [[ ! -s /usr/local/bin/wslview ]]; then
-  sudo cp "$REPOSITORIES_DIR/configs/bash/wslview" /usr/local/bin/wslview
+  sudo cp "$REPOSITORIES_DIR/configs/bash/other/wslview" /usr/local/bin/wslview
 fi
 
 # Decrypt environment variables.

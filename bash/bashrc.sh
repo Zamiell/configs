@@ -1234,7 +1234,7 @@ if [[ $- == *i* ]]; then
   if command -v bun &> /dev/null; then
     mkdir -p "$HOME/.bun"
     # shellcheck source=/dev/null
-    source "$DIR/bun-completions.sh"
+    source "$DIR/other/bun-completions.sh"
   fi
 
   # npm auto-complete for e.g. "npm run"
