@@ -1,4 +1,3 @@
-# region: Helper functions
 # ----------------
 # Helper functions
 # ----------------
@@ -972,5 +971,3 @@ to-lowercase() (
   # https://stackoverflow.com/questions/41166026/what-does-2-commas-after-variable-name-mean-in-bash
   echo "${@,,}"
 )
-
-# endregion
