@@ -896,13 +896,17 @@ gpr-dry() (
 gprf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
+  assert-in-git-repository
+
   if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
     echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
     exit 1
   fi
 
+  read -r _host _organization _project repository <<< "$(get-git-remote-details)"
+
   builtin cd "$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
-  bun run set-auto-reviewers-required
+  bun run set-auto-reviewers-required "$repository"
 )
 
 # "gprh" is short for "git pull request hack".
