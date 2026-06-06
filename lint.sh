@@ -13,7 +13,7 @@ REPO=$(basename "$DIR")
 cd "$DIR"
 
 bunx prettier --log-level=warn --check .
-find . \( -name "node_modules" -o -name ".venv" \) -prune -o -type f -name "*.sh" -exec shellcheck {} +
+find . \( -name "node_modules" -o -name ".venv" \) -prune -o -type f -name "*.sh" -exec shellcheck --source-path=SCRIPTDIR {} +
 bunx cspell --no-progress --no-summary
 bunx cspell-check-unused-words
 
