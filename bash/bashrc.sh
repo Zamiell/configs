@@ -2704,6 +2704,19 @@ gprf() (
   bun run set-auto-reviewers-required
 )
 
+# "gprh" is short for "git pull request hack".
+gprh() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  builtin cd "$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
+  bun run remove-all-reviewers-from-pull-request "$@"
+)
+
 # "grb" is short for "git rebase".
 alias grb="git rebase"
 
