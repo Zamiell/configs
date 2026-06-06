@@ -2588,7 +2588,7 @@ gcs() (
   if [[ "$host" == "github" ]]; then
     read -r host author repository <<< "$(get-git-remote-details)"
     commit_url="https://github.com/$author/$repository/commit/$commit_sha1"
-  elif [[ "$host" == "azure-devops-services" ]] || [[ "$host" == "azure-devops-server" ]]; then
+  elif [[ "$host" == "azure-devops-server" ]] || [[ "$host" == "azure-devops-services" ]]; then
     read -r host organization project repository <<< "$(get-git-remote-details)"
     local azdo_repository_url
     azdo_repository_url=$(get-azure-devops-repository-url "$host" "$organization" "$project" "$repository")
