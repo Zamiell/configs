@@ -418,6 +418,11 @@ if ! command -v helmfmt &> /dev/null; then
   curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | sudo tar -xzf - -C /usr/local/bin/ helmfmt
 fi
 
+# Install lychee.
+if ! command -v lychee &> /dev/null; then
+  sudo snap install lychee
+fi
+
 # endregion
 
 # region: Configure applications
