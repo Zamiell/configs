@@ -65,6 +65,9 @@ append-path "$HOME/.local/share/fnm"
 # gitleaks
 append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/gitleaks/gitleaks_8.28.0_windows_x64"
 
+# golang
+append-path "/usr/local/go/bin"
+
 # GnuWin32
 append-path "/c/Program Files (x86)/GnuWin32/bin"
 
