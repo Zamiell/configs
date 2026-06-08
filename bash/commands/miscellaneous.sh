@@ -52,6 +52,56 @@ azdo-history() (
   o "$azdo_repository_url?path=/$relative_path&version=GBmaster&_a=history"
 )
 
+# "azl" is short for "az login". We use a custom browser profile to bypass the account picker.
+azl() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  trap 'rm -rf "$tmp_dir"' EXIT
+
+  local browser_path="$tmp_dir/az-login-browser"
+  cat > "$browser_path" << 'BROWSER'
+#!/usr/bin/env bash
+set -euo pipefail
+
+"/opt/az/bin/python3" - "$1" <<'PY'
+import os
+import subprocess
+import sys
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+url = sys.argv[1]
+user = os.environ["USER"]
+login_hint = f"{user}az@logixhealth.com"
+parts = urlsplit(url)
+query = [
+    (key, value)
+    for key, value in parse_qsl(parts.query, keep_blank_values=True)
+    if key != "prompt"
+]
+if not any(key == "login_hint" for key, _ in query):
+    query.append(("login_hint", login_hint))
+url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+subprocess.Popen(
+    [
+        "/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+        f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Microsoft\\Edge\\User Data AzLogin",
+        "--profile-directory=Default",
+        "--no-first-run",
+        url,
+    ],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
+PY
+BROWSER
+
+  chmod +x "$browser_path"
+  BROWSER="$browser_path" /usr/bin/az login --subscription LH-DevOps-Dev-001
+)
+
 alias azwhoami="az account show --query user.name -o tsv"
 
 # "bwl" is short for "bw login --apikey". (This is the BitWarden CLI.)
