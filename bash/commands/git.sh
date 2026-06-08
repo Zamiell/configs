@@ -267,12 +267,15 @@ gbo() (
   assert-in-git-repository
   assert-feature-branch
 
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel)
+
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
   # Three dots compares to the merge base (instead of the current HEAD).
   local changed_files
-  changed_files=$(git diff --name-only "$main_branch_name"...HEAD)
+  changed_files=$(git -C "$repo_root" diff --name-only "$main_branch_name"...HEAD)
 
   if [[ -z "$changed_files" ]]; then
     echo "Error: There are no changed files in this branch when compared to the \"$main_branch_name\" branch." >&2
@@ -288,7 +291,13 @@ gbo() (
   fi
 
   echo "$changed_files"
-  echo "$changed_files" | xargs code
+  local changed_file_paths=()
+  local changed_file
+  while IFS= read -r changed_file; do
+    changed_file_paths+=("$repo_root/$changed_file")
+  done <<< "$changed_files"
+
+  code "${changed_file_paths[@]}"
 )
 
 # "gbr" is short for "git branch rename".
