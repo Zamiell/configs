@@ -391,6 +391,34 @@ get-first-branch-commit-description() (
   printf "%s" "$(git show --no-patch --format="%B" "$first_commit_hash")"
 )
 
+get-full-name() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! command -v az &> /dev/null; then
+    echo "Error: The Azure CLI is required to derive your full name." >&2
+    return 1
+  fi
+
+  local username
+  username=$(get-username)
+
+  local full_name
+  full_name=$(az ad signed-in-user show --query displayName --output tsv)
+  full_name="${full_name#AZ_}"
+
+  if [[ -z "$full_name" ]]; then
+    echo "Error: Failed to derive your full name because the Azure CLI failed to get your display name." >&2
+    return 1
+  fi
+
+  if [[ "$full_name" == "$username" ]]; then
+    echo "Error: Failed to derive your full name because the Azure CLI display name is the same as your username." >&2
+    return 1
+  fi
+
+  echo "$full_name"
+)
+
 get-git-remote-details() (
   set -euo pipefail
 

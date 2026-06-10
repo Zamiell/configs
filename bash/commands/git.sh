@@ -445,15 +445,15 @@ gc() (
     fi
   else
     if [[ "$user_email" == *github.com || "$user_email" == *gmail.com ]]; then
+      echo "Work repository detected; setting the git config for this repository to your full name and work email."
+
+      local full_name
+      full_name=$(get-full-name)
+      git config user.name "$full_name"
+
       local username
       username=$(get-username)
-      if [[ "$username" == "james" || "$username" == "jnesta" ]]; then
-        git config user.name "James Nesta"
-        git config user.email "jnesta@logixhealth.com"
-      else
-        echo "Error: You are trying to commit to an non-GitHub repository with an email of \"$user_email\", which might be a mistake." >&2
-        return 1
-      fi
+      git config user.email "$username@logixhealth.com"
     fi
   fi
 
