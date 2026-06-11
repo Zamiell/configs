@@ -15,9 +15,18 @@ fi
 for target in "$@"; do
   if [[ -e "$target" ]]; then
     target=$(wslpath --windows "$target")
+  else
+    if [[ "$target" != *"://"* ]] && [[ "$target" != *":"* ]] && [[ "$target" != /* ]] && [[ "$target" != ./* ]] && [[ "$target" != ../* ]]; then
+      hostname="${target%%/*}"
+      hostname="${hostname%%\?*}"
+      hostname="${hostname%%#*}"
+      if [[ "$hostname" == *.* ]]; then
+        target="https://$target"
+      fi
+    fi
   fi
 
   WSLVIEW_TARGET="$target" \
     WSLENV="WSLVIEW_TARGET${WSLENV:+:$WSLENV}" \
-    powershell.exe -NoProfile -NonInteractive -Command "\$target = [Environment]::GetEnvironmentVariable('WSLVIEW_TARGET'); if ([string]::IsNullOrWhiteSpace(\$target)) { exit 1 }; Start-Process -FilePath \$target" > /dev/null 2>&1
+    powershell.exe -NoProfile -NonInteractive -Command "\$target = \$env:WSLVIEW_TARGET; if ([string]::IsNullOrWhiteSpace(\$target)) { exit 1 }; Start-Process -FilePath \$target" > /dev/null 2>&1
 done
