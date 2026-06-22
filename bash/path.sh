@@ -62,9 +62,6 @@ append-path "$HOME/.local/bin"
 append-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
 append-path "$HOME/.local/share/fnm"
 
-# gitleaks
-append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/gitleaks/gitleaks_8.28.0_windows_x64"
-
 # golang
 append-path "/usr/local/go/bin"
 
@@ -80,9 +77,6 @@ fi
 # (We do not use find to dynamically get the version for performance reasons.)
 append-path "/c/Program Files/PostgreSQL/18/bin"
 
-# "Programs" directory in OneDrive
-append-path "/c/Users/jnesta/OneDrive - LogixHealth Inc/Documents/Programs"
-
 # Python
 # (We do not use find to dynamically get the version for performance reasons.)
 # On Windows, the Microsoft Store installation goes to the "Local" directory.
@@ -91,12 +85,6 @@ append-path "$HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts"
 append-path "$HOME/AppData/Roaming/Python/Python314/Scripts"
 # On macOS, Python is installed in the "Library" directory.
 append-path "$HOME/Library/Python/3.14/bin"
-
-# terraform-docs
-append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terraform-docs"
-
-# terragrunt
-append-path "$HOME/OneDrive - LogixHealth Inc/Documents/Programs/terragrunt"
 
 # zig
 append-path "/d/Apps/Misc/zig"

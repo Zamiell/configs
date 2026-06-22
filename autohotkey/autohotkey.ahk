@@ -182,7 +182,7 @@ SortNumArray(arr) {
   if (WinExist("ahk_exe kitty_portable.exe")) {
     WinActivate("ahk_exe kitty_portable.exe")
   } else {
-    Run("C:\Users\jnesta\OneDrive - LogixHealth Inc\Documents\KiTTY\kitty_portable.exe")
+    Run(A_MyDocuments . "\KiTTY\kitty_portable.exe")
   }
 }
 
@@ -239,7 +239,7 @@ SortNumArray(arr) {
   }
 }
 
-^+k::Run("C:\Users\jnesta\OneDrive - LogixHealth Inc\Documents\KiTTY\kitty_portable.exe")
+^+k::Run(A_MyDocuments . "\KiTTY\kitty_portable.exe")
 ^+s::Run(A_AppData . "\..\Local\Programs\WinSCP\WinSCP.exe")
 
 ; -----
@@ -247,14 +247,14 @@ SortNumArray(arr) {
 ; -----
 
 #F1:: {
-  Run("C:\Users\jnesta\OneDrive - LogixHealth Inc\Documents\Programs\nircmd-x64\nircmd.exe setdefaultsounddevice Speakers")
+  Run(A_MyDocuments . "\Programs\nircmd-x64\nircmd.exe setdefaultsounddevice Speakers")
   Sleep(50)
   SoundPlay("C:\Windows\media\Windows Unlock.wav")
 }
 
 #F2:: {
   ; This requires renaming the device in the "Sound" panel
-  Run("C:\Users\jnesta\OneDrive - LogixHealth Inc\Documents\Programs\nircmd-x64\nircmd.exe setdefaultsounddevice Headphones")
+  Run(A_MyDocuments . "\Programs\nircmd-x64\nircmd.exe setdefaultsounddevice Headphones")
   Sleep(50)
   SoundPlay("C:\Windows\media\Windows Unlock.wav")
 }
