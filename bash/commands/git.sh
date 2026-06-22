@@ -1208,32 +1208,35 @@ alias gu="git push"
 # "guf" is short for "git push --force-with-lease".
 alias guf="git push --force-with-lease"
 
-# "guo" is short for "git unclean open", which will open all of the unstaged modified files in this
-# repository inside Visual Studio Code. This command will throw an error if there are 10 or more
-# unstaged modified files.
+# "guo" is short for "git unclean open", which will open all of the unstaged modified and untracked
+# files in this repository inside Visual Studio Code. This command will throw an error if there are 10
+# or more changed files.
 guo() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
 
-  local changed_files
-  changed_files=$(git diff --name-only --diff-filter=M)
+  local -a changed_files
+  mapfile -d "" -t changed_files < <(
+    git diff --name-only --diff-filter=ACMRT -z
+    git ls-files --others --exclude-standard -z
+  )
 
-  if [[ -z "$changed_files" ]]; then
-    echo "Error: There are no unstaged modified files in this repository." >&2
+  if [[ "${#changed_files[@]}" -eq 0 ]]; then
+    echo "Error: There are no unstaged modified or untracked files in this repository." >&2
     return 1
   fi
 
   local num_changed_files
-  num_changed_files=$(echo "$changed_files" | wc -l | tr -d " ")
+  num_changed_files="${#changed_files[@]}"
 
   if [[ "$num_changed_files" -ge 10 ]]; then
-    echo "Error: There are $num_changed_files unstaged modified files in this repository. This command only supports repositories with fewer than 10 unstaged modified files." >&2
+    echo "Error: There are $num_changed_files unstaged modified or untracked files in this repository. This command only supports repositories with fewer than 10 changed files." >&2
     return 1
   fi
 
-  echo "$changed_files"
-  echo "$changed_files" | xargs code
+  printf "%s\n" "${changed_files[@]}"
+  code "${changed_files[@]}"
 )
 
 # "gwa" is short for "git worktree add". (We do not use a subshell because we need to change the
