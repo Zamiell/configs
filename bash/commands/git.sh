@@ -1181,10 +1181,12 @@ gsp() (
   git switch --create "$new_branch_name" "$merge_base"
   git apply --index "$patch_file"
   git commit --message "chore: split changes from file $file_path"
+  git push
 
   git switch "$current_branch_name"
   git apply --reverse --index "$patch_file"
   git commit --message "chore: remove changes from file $file_path"
+  git push
 )
 
 # "gst" is short for "git stash".
