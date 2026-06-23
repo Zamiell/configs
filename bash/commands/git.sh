@@ -731,8 +731,26 @@ gpm() (
 # "gpr" is short for "git pull request", to start a new pull request based on the current branch.
 # The arguments that are provided will be the pull request title. If no arguments are provided, then
 # the script will attempt to find a suitable pull request title.
+# You can use the "--check" flag to only check whether a pull request already exists.
 gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
+
+  local check_only="false"
+  local positional_args=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --check)
+        check_only="true"
+        shift
+        ;;
+      *)
+        positional_args+=("$1")
+        shift
+        ;;
+    esac
+  done
+  set -- "${positional_args[@]}" # Restore positional parameters.
 
   assert-in-git-repository
   assert-feature-branch
@@ -765,6 +783,17 @@ gpr() (
       if [[ -n "$parent_repo" ]]; then
         gh repo set-default "$parent_repo"
       fi
+    fi
+
+    if [[ "$check_only" == "true" ]]; then
+      local existing_pull_request_url
+      if existing_pull_request_url=$(gh pr view --json url --jq .url 2> /dev/null); then
+        o "$existing_pull_request_url"
+        echo "Pull request already exists: $existing_pull_request_url"
+      else
+        echo "No active pull request exists for branch: $branch_name"
+      fi
+      return
     fi
 
     gh pr create --fill-first --web
@@ -807,6 +836,11 @@ gpr() (
     o "$existing_pull_request_url"
 
     echo "Pull request already exists: $existing_pull_request_url"
+    return
+  fi
+
+  if [[ "$check_only" == "true" ]]; then
+    echo "No active pull request exists for branch: $branch_name"
     return
   fi
 
