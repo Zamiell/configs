@@ -68,9 +68,9 @@ pph() (
 
   builtin cd "$infrastructure_path"
 
-  local yaml_path="0_Global_Library/pipeline-templates/stages/pulumi-preview-approve-up.yml"
-  if [[ ! -s "$yaml_path" ]]; then
-    echo "Error: The \"$yaml_path\" file was not found." >&2
+  local yaml_file_path="0_Global_Library/pipeline-templates/stages/pulumi-preview-approve-up.yml"
+  if [[ ! -s "$yaml_file_path" ]]; then
+    echo "Error: The \"$yaml_file_path\" file was not found." >&2
     exit 1
   fi
 
@@ -80,12 +80,15 @@ pph() (
   local branch_name
   branch_name=$(git branch --show-current)
 
-  sed --in-place "s#refs/heads/$main_branch_name#refs/heads/$branch_name#g" "$yaml_path"
+  sed --in-place "s#refs/heads/$main_branch_name#refs/heads/$branch_name#g" "$yaml_file_path"
 
   local yaml_file_name
-  yaml_file_name=$(basename "$yaml_path")
+  yaml_file_name=$(basename "$yaml_file_path")
 
-  gc "chore: hack $yaml_file_name"
+  git add "$yaml_file_path"
+  git commit -m "chore: hack $yaml_file_name"
+  git push
+
   echo "The \"$yaml_file_name\" was successfully hacked to use \"$branch_name\" instead of \"$main_branch_name\"."
 )
 
