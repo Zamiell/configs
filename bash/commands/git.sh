@@ -1120,6 +1120,73 @@ gsq() (
   git push --force-with-lease
 )
 
+# "gsp" is short for "git split", which moves all branch changes for a file path to a new branch and
+# then removes those file changes from the current branch.
+gsp() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+  assert-feature-branch
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The file path is required. Usage: ${FUNCNAME[0]} <file-path> <branch-name>" >&2
+    return 1
+  fi
+  local file_path="$1"
+
+  if [[ -z "${2:-}" ]]; then
+    echo "Error: The branch name is required. Usage: ${FUNCNAME[0]} <file-path> <branch-name>" >&2
+    return 1
+  fi
+  local new_branch_name="$2"
+
+  if ! is-github-repository; then
+    local username
+    username=$(get-username)
+    new_branch_name="feature/$username/$new_branch_name"
+  fi
+
+  if ! git check-ref-format "refs/heads/$new_branch_name"; then
+    echo "Error: The branch name of \"$new_branch_name\" contains illegal characters." >&2
+    return 1
+  fi
+
+  if git show-ref --verify --quiet "refs/heads/$new_branch_name"; then
+    echo "Error: The branch name of \"$new_branch_name\" already exists locally." >&2
+    return 1
+  fi
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Error: The repository is not clean. Commit or stash your changes before splitting a file to a new branch." >&2
+    return 1
+  fi
+
+  local current_branch_name
+  current_branch_name=$(git branch --show-current)
+
+  local merge_base
+  merge_base=$(get-merge-base)
+
+  if git diff --quiet "$merge_base" "$current_branch_name" -- "$file_path"; then
+    echo "Error: There are no branch changes for \"$file_path\" to split." >&2
+    return 1
+  fi
+
+  local patch_file
+  patch_file=$(mktemp)
+  trap 'rm -f "$patch_file"' EXIT
+
+  git diff --binary "$merge_base" "$current_branch_name" -- "$file_path" > "$patch_file"
+
+  git switch --create "$new_branch_name" "$merge_base"
+  git apply --index "$patch_file"
+  git commit --message "chore: split changes from file $file_path"
+
+  git switch "$current_branch_name"
+  git apply --reverse --index "$patch_file"
+  git commit --message "chore: remove changes from file $file_path"
+)
+
 # "gst" is short for "git stash".
 alias gst="git stash"
 
