@@ -22,10 +22,13 @@ add-logix-cert-to-requests-ca-bundle() (
       file_path=$(cygpath --windows "$file_path")
     fi
 
-    echo >&2
-    echo "Run this command to fix it:" >&2
-    echo >&2
-    echo "{ echo; echo \"# $certificate_name\"; curl --silent --fail --show-error --location \"https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/certs/$certificate_name.crt\"; } | sudo tee -a \"$REQUESTS_CA_BUNDLE\" > /dev/null" >&2
+    if [[ -n "$REPOSITORIES_DIR" ]]; then
+      echo >&2
+      echo "Run this command to fix it:" >&2
+      echo >&2
+      echo "{ echo; echo \"# $certificate_name\"; cat \"\$REPOSITORIES_DIR/configs/certs/$$certificate_name\"; } | sudo tee -a \"$REQUESTS_CA_BUNDLE\" > /dev/null" >&2
+    fi
+
     return 1
   fi
 )
