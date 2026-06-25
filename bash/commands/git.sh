@@ -1067,18 +1067,29 @@ grt() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-git-repository
-  assert-feature-branch
 
   if [[ -z "${1-}" ]]; then
     echo "Error: One or more file paths are required." >&2
     return 1
   fi
 
+  local branch_name
+  branch_name=$(git branch --show-current)
+
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
+  # On the main branch, restore the file(s) from the last commit. On a feature branch, restore the
+  # file(s) from the main branch.
+  local source_ref
+  if [[ "$branch_name" == "$main_branch_name" ]]; then
+    source_ref="HEAD"
+  else
+    source_ref="$main_branch_name"
+  fi
+
   # We use "git checkout" instead of "git restore" since it works in more situations.
-  git checkout "$main_branch_name" -- "$@"
+  git checkout "$source_ref" -- "$@"
 )
 
 # "grv" is short for "git revert".
