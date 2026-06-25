@@ -68,6 +68,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v Sc
 # Settings --> Personalization
 # ----------------------------
 
+# Settings --> Personalization --> Background --> Personalize your background --> Picture
+# https://www.elevenforum.com/t/enable-or-disable-windows-spotlight-on-desktop-background-in-windows-11.18246/
+reg add "HKCU\Software\Policies\Microsoft\Windows\CloudContent" /v DisableSpotlightCollectionOnDesktop /t REG_DWORD /d 1 /f
+
 # Settings --> Personalization --> Colors --> Choose your mode --> Dark
 # https://answers.microsoft.com/en-us/windows/forum/all/not-able-to-change-default-app-mode-settings/16ea2ab9-5c2c-41d1-8ecc-2e96f82ef62a
 # Choose your default Windows mode (1/2)
