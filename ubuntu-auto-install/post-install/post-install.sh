@@ -158,7 +158,7 @@ cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.local/share/keyrings/Login.k
 
 # Set up the LogixHealth certificate.
 ROOT_CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
-sudo cp "$CONFIGS_PATH/certs/BEDROOTCA001.crt" "$ROOT_CERT_PATH"
+sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$ROOT_CERT_PATH"
 sudo update-ca-certificates
 
 # -------
