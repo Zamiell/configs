@@ -1196,11 +1196,6 @@ gsp() (
     return 1
   fi
 
-  if git show-ref --verify --quiet "refs/heads/$new_branch_name"; then
-    echo "Error: The branch name of \"$new_branch_name\" already exists locally." >&2
-    return 1
-  fi
-
   if [[ -n "$(git status --porcelain)" ]]; then
     echo "Error: The repository is not clean. Commit or stash your changes before splitting a file to a new branch." >&2
     return 1
@@ -1208,6 +1203,10 @@ gsp() (
 
   local current_branch_name
   current_branch_name=$(git branch --show-current)
+  if [[ "$new_branch_name" == "$current_branch_name" ]]; then
+    echo "Error: The branch name of \"$new_branch_name\" is the current branch." >&2
+    return 1
+  fi
 
   local merge_base
   merge_base=$(get-merge-base)
@@ -1223,7 +1222,13 @@ gsp() (
 
   git diff --binary "$merge_base" "$current_branch_name" -- "$file_path" > "$patch_file"
 
-  git switch --create "$new_branch_name" "$merge_base"
+  if git show-ref --verify --quiet "refs/heads/$new_branch_name"; then
+    git switch "$new_branch_name"
+  elif git show-ref --verify --quiet "refs/remotes/origin/$new_branch_name"; then
+    git switch --create "$new_branch_name" --track "origin/$new_branch_name"
+  else
+    git switch --create "$new_branch_name" "$merge_base"
+  fi
   git apply --index "$patch_file"
   git commit --message "chore: split changes from file $file_path"
   git push
