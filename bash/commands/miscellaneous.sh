@@ -158,6 +158,9 @@ if [[ -n "${REPOSITORIES_DIR:-}" ]]; then
   set-cd-alias LogixApplications
 fi
 
+# "clip" is a Windows utility that puts input into the clipboard.
+alias clip="clip.exe"
+
 # "co" is short for "copilot". (See below.)
 alias co="copilot --yolo --no-ask-user"
 
