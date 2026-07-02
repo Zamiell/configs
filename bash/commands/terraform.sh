@@ -87,21 +87,27 @@ tpf() (
 
   builtin cd "$infrastructure_path"
 
-  local yaml_path="0_Global_Library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
-  if [[ ! -s "$yaml_path" ]]; then
-    echo "Error: The \"$yaml_path\" file was not found." >&2
+  local yaml_file_path="0_Global_Library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
+  if [[ ! -s "$yaml_file_path" ]]; then
+    echo "Error: The \"$yaml_file_path\" file was not found." >&2
     exit 1
   fi
 
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
-  git checkout "$main_branch_name" -- "$yaml_path"
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  sed --in-place "s#refs/heads/$branch_name#refs/heads/$main_branch_name#g" "$yaml_file_path"
 
   local yaml_file_name
-  yaml_file_name=$(basename "$yaml_path")
+  yaml_file_name=$(basename "$yaml_file_path")
 
-  gc "chore: revert $yaml_file_name"
+  git add "$yaml_file_path"
+  git commit -m "chore: reset $yaml_file_name"
+  git push
+
   echo "The \"$yaml_file_name\" file was successfully reset back to normal."
 )
 
