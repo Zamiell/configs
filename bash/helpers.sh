@@ -515,8 +515,8 @@ get-llm-commit-message() (
 
   assert-in-git-repository
 
-  if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-    echo "Error: The \"GEMINI_API_KEY\" environment variable is not set." >&2
+  if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+    echo "Error: The \"GITHUB_TOKEN\" environment variable is not set." >&2
     return 1
   fi
 
@@ -546,27 +546,30 @@ get-llm-output() (
   fi
   local prompt="$2"
 
+  if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+    echo "Error: The \"GITHUB_TOKEN\" environment variable is not set." >&2
+    return 1
+  fi
+
   # Because there can be a huge amount of data in the git diff, we need to create the API response
   # all in one command. Otherwise, we get errors like "Argument list too long".
   # 1. printf pipes the prompt into jq.
   # 2. jq pipes the JSON payload into curl.
   # 3. curl reads from stdin using "--data @-".
-  # Additionally, we have to use the "--ssl-no-revoke" flag with Google URLs when using curl inside
-  # Git Bash for Windows, since the LogixHealth Palo Alto blocks the revocation check for some
-  # reason.
-  local api_url="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}"
+  local api_url="https://api.githubcopilot.com/chat/completions"
+  local model="${GITHUB_COPILOT_MODEL:-gpt-5.4-mini}"
   local api_response
   api_response=$(
     printf "%s" "$prompt" | jq \
       --raw-input \
       --slurp \
       --arg system_prompt_str "$system_prompt" \
+      --arg model "$model" \
       '{
-      "systemInstruction": {
-        "parts": [{ "text": $system_prompt_str }]
-      },
-      "contents": [
-        { "parts": [{ "text": . }] }
+      "model": $model,
+      "messages": [
+        { "role": "system", "content": $system_prompt_str },
+        { "role": "user", "content": . }
       ]
      }' | curl \
       --silent \
@@ -574,9 +577,10 @@ get-llm-output() (
       --show-error \
       --location \
       --request POST \
-      --header "content-type: application/json" \
+      --header "Authorization: Bearer $GITHUB_TOKEN" \
+      --header "Copilot-Integration-Id: copilot-developer-cli" \
+      --header "Content-Type: application/json" \
       --data @- \
-      --ssl-no-revoke \
       "$api_url" || {
       local err="$?"
       echo "curl failed on URL: $api_url" >&2
@@ -584,14 +588,14 @@ get-llm-output() (
     }
   )
 
-  if ! echo "$api_response" | jq --exit-status '.candidates' > /dev/null; then
+  if ! echo "$api_response" | jq --exit-status '.choices' > /dev/null; then
     echo "Error: The LLM API returned an error:" >&2
     echo "$api_response" >&2
     return 1
   fi
 
   local llm_output
-  llm_output=$(echo "$api_response" | jq --raw-output '.candidates[0].content.parts[0].text | select(. != null)')
+  llm_output=$(echo "$api_response" | jq --raw-output '.choices[0].message.content | select(. != null)')
 
   if [[ -z "$llm_output" ]]; then
     echo "Error: LLM generation failed." >&2
@@ -638,8 +642,8 @@ get-llm-pull-request-text() (
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
-  if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-    echo "Error: The \"GEMINI_API_KEY\" environment variable is not set." >&2
+  if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+    echo "Error: The \"GITHUB_TOKEN\" environment variable is not set." >&2
     return 1
   fi
 
