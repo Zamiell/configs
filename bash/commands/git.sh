@@ -581,7 +581,13 @@ gcp() (
   git push
 )
 
-# "gprc" will both commit and open a pull request.
+# "gcpa" is short for "git cherry-pick --abort".
+alias gcpa="git cherry-pick --abort"
+
+# "gcpc" is short for "git cherry-pick --continue".
+alias gcpc="git cherry-pick --continue"
+
+# "gcpr" will both commit and open a pull request.
 gcpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
