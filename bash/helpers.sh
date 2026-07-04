@@ -557,7 +557,7 @@ get-llm-output() (
   # 2. jq pipes the JSON payload into curl.
   # 3. curl reads from stdin using "--data @-".
   local api_url="https://api.githubcopilot.com/chat/completions"
-  local model="${GITHUB_COPILOT_MODEL:-gpt-5.4-mini}"
+  local model="${GITHUB_COPILOT_MODEL:-claude-opus-4.8}"
   local api_response
   api_response=$(
     printf "%s" "$prompt" | jq \
