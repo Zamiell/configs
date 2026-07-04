@@ -15,7 +15,7 @@ aks() (
     exit 1
   fi
 
-  "$SCRIPT_LOCATION"
+  "$SCRIPT_LOCATION" "$@"
 )
 
 # Opens the Azure DevOps URL for the "History" tab of the corresponding file.
