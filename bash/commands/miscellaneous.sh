@@ -107,6 +107,33 @@ alias azwhoami="az account show --query user.name -o tsv"
 # "bwl" is short for "bw login --apikey". (This is the BitWarden CLI.)
 alias bwl="bw login --apikey"
 
+canary() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel)
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Error: The repository is not clean. Commit or stash your changes before applying canary text." >&2
+    return 1
+  fi
+
+  local readme_path="$repo_root/README.md"
+  if [[ ! -f "$readme_path" ]]; then
+    echo "Error: The README.md file does not exist at the root of the current git repository." >&2
+    return 1
+  fi
+
+  echo -e "\nCanary.\n" >> "$readme_path"
+  echo "Applied Canary text to: $readme_path"
+
+  git add "$readme_path"
+  git commit --message "chore: canary"
+  git push
+)
+
 # Only create the "cd" alias if the shell is interactive.
 if [[ $- == *i* ]]; then
   # We have to use braces instead of parenthesis here.
@@ -132,11 +159,7 @@ cdg() {
   assert-in-git-repository
 
   local repo_root
-  repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
-  if [[ -z "$repo_root" ]]; then
-    echo "Error: Failed to get the root of the current git repository." >&2
-    return 1
-  fi
+  repo_root=$(git rev-parse --show-toplevel)
 
   cd "$repo_root"
 }
@@ -180,11 +203,7 @@ csf() (
   assert-in-git-repository
 
   local repo_root
-  repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
-  if [[ -z "$repo_root" ]]; then
-    echo "Error: Failed to get the root of the current git repository." >&2
-    return 1
-  fi
+  repo_root=$(git rev-parse --show-toplevel)
 
   builtin cd "$repo_root"
   exec-package cspell-check-unused-words --fix

@@ -98,11 +98,7 @@ u() (
   assert-in-git-repository
 
   local repo_root
-  repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
-  if [[ -z "$repo_root" ]]; then
-    echo "Error: Failed to get the root of the current git repository." >&2
-    return 1
-  fi
+  repo_root=$(git rev-parse --show-toplevel)
 
   builtin cd "$repo_root"
 
