@@ -40,16 +40,17 @@ azdo-history() (
   relative_path=$(realpath --relative-to="$repo_root" "$file_path")
 
   read -r host organization project repository <<< "$(get-git-remote-details "$repo_root")"
-  if [[ "$host" != "azure-devops-server" ]]; then
-    echo "Error: This command can only be used in a repository hosted on Azure DevOps server." >&2
-    return 1
-  fi
+  assert-azure-devops-host "$host"
 
   local azdo_repository_url
   azdo_repository_url=$(get-azure-devops-repository-url "$host" "$organization" "$project" "$repository")
 
+  local main_branch_name
+  builtin cd "$repo_root"
+  main_branch_name=$(get-main-branch-name)
+
   # e.g. https://azuredevops.logixhealth.com/LogixHealth/Infrastructure/_git/infrastructure?path=/infrastructure.code-workspace&version=GBmaster&_a=history
-  o "$azdo_repository_url?path=/$relative_path&version=GBmaster&_a=history"
+  o "$azdo_repository_url?path=/$relative_path&version=GB$main_branch_name&_a=history"
 )
 
 # "azl" is short for "az login". We use a custom browser profile to bypass the account picker.
