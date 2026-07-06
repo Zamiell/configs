@@ -48,22 +48,22 @@ add-upstream-remote-if-github-fork() (
     return
   fi
 
-  if ! command -v gh &> /dev/null; then
-    echo "Warning: Cannot auto-add an upstream remote because GitHub CLI (gh) is not installed." >&2
-    return
-  fi
-
   local origin_repo
   origin_repo=$(echo "$origin_url" | sed --regexp-extended 's|.*github\.com[:/]||; s|\.git$||')
-  if [[ ! "$origin_repo" =~ ^[^/]+/[^/]+$ ]]; then
+  if [[ ! "$origin_repo" =~ ^[^/]+/[^/]+$ ]]; then # e.g., foo/bar
     echo "Error: Unable to parse the GitHub repository from the origin remote: $origin_url" >&2
+    return 1
+  fi
+
+  if ! command -v gh &> /dev/null; then
+    echo "Error: Cannot automatically add an upstream remote because GitHub CLI (gh) is not installed." >&2
     return 1
   fi
 
   local parent_repo
   if ! parent_repo=$(gh repo view "$origin_repo" --json isFork,parent --jq 'if .isFork then (.parent.owner.login + "/" + .parent.name) else "" end'); then
-    echo "Warning: Failed to query GitHub for the fork parent of: $origin_repo" >&2
-    return
+    echo "Error: Failed to query GitHub for the fork parent of: $origin_repo" >&2
+    return 1
   fi
 
   if [[ -z "$parent_repo" ]]; then
