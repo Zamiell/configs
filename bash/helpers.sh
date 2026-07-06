@@ -33,6 +33,59 @@ add-logix-cert-to-requests-ca-bundle() (
   fi
 )
 
+add-upstream-remote-if-github-fork() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local directory_path="${1-}"
+  if [[ -z "$directory_path" ]]; then
+    directory_path="$PWD"
+  fi
+
+  assert-in-git-repository "$directory_path"
+
+  if git -C "$directory_path" remote get-url upstream &> /dev/null; then
+    return
+  fi
+
+  local origin_url
+  origin_url=$(git -C "$directory_path" remote get-url origin)
+  if [[ "$origin_url" != *github.com* ]]; then
+    return
+  fi
+
+  if ! command -v gh &> /dev/null; then
+    echo "Warning: Cannot auto-add an upstream remote because GitHub CLI (gh) is not installed." >&2
+    return
+  fi
+
+  local origin_repo
+  origin_repo=$(echo "$origin_url" | sed --regexp-extended 's|.*github\.com[:/]||; s|\.git$||')
+  if [[ ! "$origin_repo" =~ ^[^/]+/[^/]+$ ]]; then
+    echo "Error: Unable to parse the GitHub repository from the origin remote: $origin_url" >&2
+    return 1
+  fi
+
+  local parent_repo
+  if ! parent_repo=$(gh repo view "$origin_repo" --json isFork,parent --jq 'if .isFork then (.parent.owner.login + "/" + .parent.name) else "" end'); then
+    echo "Warning: Failed to query GitHub for the fork parent of: $origin_repo" >&2
+    return
+  fi
+
+  if [[ -z "$parent_repo" ]]; then
+    return
+  fi
+
+  local upstream_url
+  if [[ "$origin_url" == git@* ]]; then
+    upstream_url="git@github.com:$parent_repo.git"
+  else
+    upstream_url="https://github.com/$parent_repo.git"
+  fi
+
+  git -C "$directory_path" remote add upstream "$upstream_url"
+  echo "Added upstream remote: $upstream_url"
+)
+
 # We do not use a subshell because the changes to PATH would be lost.
 append-path() {
   if [[ -z "${1:-}" ]]; then

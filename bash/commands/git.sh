@@ -63,6 +63,8 @@ gb() (
     git switch "$main_branch_name"
   fi
 
+  add-upstream-remote-if-github-fork
+
   if git remote get-url upstream &> /dev/null; then
     gh-sync
   else
@@ -1299,6 +1301,8 @@ gswm() (
   if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
     git switch "$main_branch_name"
   fi
+
+  add-upstream-remote-if-github-fork
 
   if git remote get-url upstream &> /dev/null; then
     gh-sync
