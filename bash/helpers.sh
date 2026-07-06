@@ -36,19 +36,14 @@ add-logix-cert-to-requests-ca-bundle() (
 add-upstream-remote-if-github-fork() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local directory_path="${1-}"
-  if [[ -z "$directory_path" ]]; then
-    directory_path="$PWD"
-  fi
+  assert-in-git-repository
 
-  assert-in-git-repository "$directory_path"
-
-  if git -C "$directory_path" remote get-url upstream &> /dev/null; then
+  if git remote get-url upstream &> /dev/null; then
     return
   fi
 
   local origin_url
-  origin_url=$(git -C "$directory_path" remote get-url origin)
+  origin_url=$(git remote get-url origin)
   if [[ "$origin_url" != *github.com* ]]; then
     return
   fi
@@ -82,7 +77,7 @@ add-upstream-remote-if-github-fork() (
     upstream_url="https://github.com/$parent_repo.git"
   fi
 
-  git -C "$directory_path" remote add upstream "$upstream_url"
+  git remote add upstream "$upstream_url"
   echo "Added upstream remote: $upstream_url"
 )
 
@@ -153,15 +148,10 @@ assert-in-git-repository() (
 assert-in-github-repository() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local directory_path="${1-}"
-  if [[ -z "$directory_path" ]]; then
-    directory_path="$PWD"
-  fi
-
-  assert-in-git-repository "$directory_path"
+  assert-in-git-repository
 
   if ! is-github-repository; then
-    echo "Error: The \"$directory_path\" directory path is not inside a GitHub repository." >&2
+    echo "Error: The current working directory is not inside a GitHub repository." >&2
     return 1
   fi
 )
@@ -964,22 +954,17 @@ set-cd-alias() {
 set-gh-remote() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local directory_path="${1-}"
-  if [[ -z "$directory_path" ]]; then
-    directory_path="$PWD"
-  fi
-
-  assert-in-git-repository "$directory_path"
+  assert-in-git-repository
 
   local branch_name
-  branch_name=$(git -C "$directory_path" branch --show-current)
+  branch_name=$(git branch --show-current)
 
   # Check to see if this is a branch freshly created from "gh pr checkout".
   local remote_config
   # This will be "origin" on normal branches and "alice" on branches already touched by this
   # function and e.g. "git@github.com:alice/foo.git" or "https://github.com/alice/foo" on branches
   # freshly created from "gh pr checkout".
-  remote_config=$(git -C "$directory_path" config "branch.$branch_name.remote")
+  remote_config=$(git config "branch.$branch_name.remote")
 
   if [[ -z "$remote_config" ]]; then
     echo "Error: Failed to parse the Git branch remote config of: $remote_config" >&2
@@ -996,7 +981,7 @@ set-gh-remote() (
     github_username="${BASH_REMATCH[1]}"
 
     local existing_url
-    existing_url=$(git -C "$directory_path" remote get-url "$github_username" 2> /dev/null || true)
+    existing_url=$(git remote get-url "$github_username" 2> /dev/null || true)
 
     if [[ -n "$existing_url" ]]; then
       # The remote has already been set up on this repository. Verify that it matches.
@@ -1006,18 +991,17 @@ set-gh-remote() (
       fi
     else
       # The remote for this username does not already exist.
-      git -C "$directory_path" remote add "$github_username" "$remote_config"
+      git remote add "$github_username" "$remote_config"
 
       # Now that the repository has more than one remote, the GitHub CLI will become confused and
       # complain that "no default remote repository has been set" when running commands. Manually
       # set the default to the non-forked remote.
       local origin_url
-      origin_url=$(git -C "$directory_path" remote get-url origin)
-      # The GitHub CLI does not support the "-C" flag, so we use a subshell.
-      (builtin cd "$directory_path" && gh repo set-default "$origin_url")
+      origin_url=$(git remote get-url origin)
+      gh repo set-default "$origin_url"
     fi
 
-    git -C "$directory_path" fetch "$github_username"
+    git fetch "$github_username"
   else
     # The remote is already set (e.g. "alice").
     github_username="$remote_config"
@@ -1028,7 +1012,7 @@ set-gh-remote() (
   # this will be a no-op.
   local merge_ref
   # This will be something like: refs/heads/main
-  merge_ref=$(git -C "$directory_path" config branch."$branch_name".merge)
+  merge_ref=$(git config branch."$branch_name".merge)
 
   if [[ -z "$merge_ref" ]]; then
     echo "Error: Failed to parse the Git branch merge config." >&2
@@ -1041,11 +1025,11 @@ set-gh-remote() (
   local target_ref
   # This will be something like: refs/remotes/alice/main
   target_ref="refs/remotes/$github_username/$branch_short_name"
-  git -C "$directory_path" branch --set-upstream-to="$target_ref"
+  git branch --set-upstream-to="$target_ref"
 
   # Set "push.default" to "upstream". This ensures that "git push" works even when the local branch
   # name (e.g. "pr-123") differs from the remote branch name.
-  git -C "$directory_path" config push.default upstream
+  git config push.default upstream
 )
 
 to-lowercase() (
