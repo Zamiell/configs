@@ -189,7 +189,7 @@ alias clip="clip.exe"
 alias co="copilot --yolo --no-ask-user"
 
 # Turn off GitHub Copilot CLI prompts.
-alias copilot="copilot --yolo --no-ask-user"
+alias copilot="GITHUB_TOKEN=\${GITHUB_TOKEN_WORK:-\$GITHUB_TOKEN} copilot --yolo --no-ask-user"
 
 # "cl" is short for "claude". (See below.)
 alias cl="claude --dangerously-skip-permissions"
