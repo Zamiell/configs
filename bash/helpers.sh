@@ -558,8 +558,8 @@ get-llm-commit-message() (
 
   assert-in-git-repository
 
-  if [[ -z "${GITHUB_TOKEN:-}" ]]; then
-    echo "Error: The \"GITHUB_TOKEN\" environment variable is not set." >&2
+  if [[ -z "${GITHUB_TOKEN_WORK:-${GITHUB_TOKEN:-}}" ]]; then
+    echo "Error: Neither the \"GITHUB_TOKEN_WORK\" nor \"GITHUB_TOKEN\" environment variable is set." >&2
     return 1
   fi
 
@@ -589,8 +589,9 @@ get-llm-output() (
   fi
   local prompt="$2"
 
-  if [[ -z "${GITHUB_TOKEN:-}" ]]; then
-    echo "Error: The \"GITHUB_TOKEN\" environment variable is not set." >&2
+  local github_token="${GITHUB_TOKEN_WORK:-${GITHUB_TOKEN:-}}"
+  if [[ -z "$github_token" ]]; then
+    echo "Error: Neither the \"GITHUB_TOKEN_WORK\" nor \"GITHUB_TOKEN\" environment variable is set." >&2
     return 1
   fi
 
@@ -620,7 +621,7 @@ get-llm-output() (
       --show-error \
       --location \
       --request POST \
-      --header "Authorization: Bearer $GITHUB_TOKEN" \
+      --header "Authorization: Bearer $github_token" \
       --header "Copilot-Integration-Id: copilot-developer-cli" \
       --header "Content-Type: application/json" \
       --data @- \
@@ -685,8 +686,8 @@ get-llm-pull-request-text() (
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
-  if [[ -z "${GITHUB_TOKEN:-}" ]]; then
-    echo "Error: The \"GITHUB_TOKEN\" environment variable is not set." >&2
+  if [[ -z "${GITHUB_TOKEN_WORK:-${GITHUB_TOKEN:-}}" ]]; then
+    echo "Error: Neither the \"GITHUB_TOKEN_WORK\" nor \"GITHUB_TOKEN\" environment variable is set." >&2
     return 1
   fi
 

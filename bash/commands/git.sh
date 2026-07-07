@@ -533,7 +533,7 @@ gc() (
   else
     if [[ -z "$commit_message" ]]; then
       # A commit message was not provided at the command-line.
-      if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+      if [[ -z "${GITHUB_TOKEN_WORK:-${GITHUB_TOKEN:-}}" ]]; then
         commit_message="chore: update something"
       else
         echo "Getting the commit message from an LLM..."
@@ -855,7 +855,7 @@ gpr() (
   # Second, use the Azure DevOps API to open a new pull request.
   local pull_request_text
   if [[ $# -eq 0 ]]; then
-    if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+    if [[ -z "${GITHUB_TOKEN_WORK:-${GITHUB_TOKEN:-}}" ]]; then
       # If the user does not have an API key, use a generic pull request title and description.
       echo "Using the first commit description as the pull request title & description."
       pull_request_text=$(get-first-branch-commit-description)
