@@ -889,7 +889,9 @@ print-files-and-branches() (
   # Thus, we have to made some modifications
   local current_dir="$PWD"
   local repo_root
-  repo_root=$(git rev-parse --show-toplevel)
+  if ! repo_root=$(git rev-parse --show-toplevel 2> /dev/null); then
+    return
+  fi
 
   if command -v cygpath &> /dev/null; then
     # "/c/Repositories/foo" --> "C:\Repositories\configs"
