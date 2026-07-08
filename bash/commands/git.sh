@@ -1386,6 +1386,18 @@ gwa() {
   new_worktree_directory=$(get-new-worktree-directory)
   builtin cd "$new_worktree_directory"
   git push
+
+  if [[ -f "$new_worktree_directory/package-lock.json" ]]; then
+    npm ci
+  fi
+
+  if [[ -f "$new_worktree_directory/bun.lock" ]]; then
+    bun ci
+  fi
+
+  if [[ -f "$new_worktree_directory/uv.lock" ]]; then
+    uv sync --frozen
+  fi
 }
 
 # "gwd" is short for "git worktree delete". (Even though the real command is "git worktree remove",
