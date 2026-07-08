@@ -364,7 +364,13 @@ kb() (
     exit 1
   fi
 
-  builtin cd "$REPOSITORIES_DIR/infrastructure/3_Applications/kubernetes"
+  local kubernetes_path="$REPOSITORIES_DIR/infrastructure/3_Applications/kubernetes"
+  if [[ ! -d "$kubernetes_path" ]]; then
+    echo "Error: The directory does not exist at: $kubernetes_path" >&2
+    exit 1
+  fi
+
+  builtin cd "$kubernetes_path"
   bun run build
 )
 
@@ -461,6 +467,25 @@ o() (
   echo "$url"
 )
 
+# "pi" is short for "pipeline info".
+pi() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local scripts_path="$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
+  if [[ ! -d "$scripts_path" ]]; then
+    echo "Error: The directory does not exist at: $scripts_path" >&2
+    exit 1
+  fi
+
+  builtin cd "$scripts_path"
+  bun run get-pipeline-info-from-url "$@"
+)
+
 # No global pip command is included on Windows:
 # https://peps.python.org/pep-0773/#global-pip-command
 if command -v python &> /dev/null && ! command -v pip &> /dev/null; then
@@ -522,7 +547,13 @@ tpr() (
     exit 1
   fi
 
-  builtin cd "$REPOSITORIES_DIR/infrastructure/3_Applications/containers/logix-ci-cd-tasks"
+  local logix_path="$REPOSITORIES_DIR/infrastructure/3_Applications/containers/logix-ci-cd-tasks"
+  if [[ ! -d "$logix_path" ]]; then
+    echo "Error: The directory does not exist at: $logix_path" >&2
+    exit 1
+  fi
+
+  builtin cd "$logix_path"
   bun run test-pr "$@"
 )
 

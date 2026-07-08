@@ -954,9 +954,14 @@ gprf() (
     exit 1
   fi
 
-  read -r _host _organization _project repository <<< "$(get-git-remote-details)"
+  local scripts_path="$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
+  if [[ ! -d "$scripts_path" ]]; then
+    echo "Error: The directory does not exist at: $scripts_path" >&2
+    exit 1
+  fi
 
-  builtin cd "$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
+  read -r _host _organization _project repository <<< "$(get-git-remote-details)"
+  builtin cd "$scripts_path"
   bun run set-auto-reviewers-required "$repository"
 )
 
@@ -972,12 +977,18 @@ gprh() (
     exit 1
   fi
 
+  local scripts_path="$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
+  if [[ ! -d "$scripts_path" ]]; then
+    echo "Error: The directory does not exist at: $scripts_path" >&2
+    exit 1
+  fi
+
   read -r _host _organization _project repository <<< "$(get-git-remote-details)"
 
   local pull_request_id
   pull_request_id=$(get-azure-devops-active-pull-request-id-for-current-branch)
 
-  builtin cd "$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
+  builtin cd "$scripts_path"
   bun run remove-all-reviewers-from-pull-request "$repository" "$pull_request_id"
 )
 
