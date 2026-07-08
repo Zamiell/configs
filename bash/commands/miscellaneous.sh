@@ -483,7 +483,7 @@ pi() (
   fi
 
   builtin cd "$scripts_path"
-  bun run get-pipeline-info-from-url "$@"
+  bun run get-pipeline-info-from-url "$@" | clip
 )
 
 # No global pip command is included on Windows:
