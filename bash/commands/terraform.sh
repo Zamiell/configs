@@ -175,6 +175,9 @@ alias tl="tflint"
 # "tp" is short for "terraform plan".
 alias tp="terraform plan"
 
+# "tt" is short for "terraform test".
+alias tt="terraform test"
+
 # "tu" is short for "terraform force-unlock -force".
 alias tu="terraform force-unlock -force"
 
