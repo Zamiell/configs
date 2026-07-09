@@ -557,6 +557,10 @@ tpr() (
   bun run test-pr "$@"
 )
 
+# We disable the mouse because it prevents highlighting text and pressing enter to copy it to the
+# clipboard.
+alias vim="vim -c 'set mouse='"
+
 # Kills and restarts Palo Alto GlobalProtect.
 vpn() (
   set -euo pipefail # Exit on errors and undefined variables.
