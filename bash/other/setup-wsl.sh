@@ -389,6 +389,23 @@ if ! command -v terraform &> /dev/null; then
   sudo apt-get install terraform --yes
 fi
 
+# Install TFLint.
+# https://github.com/terraform-linters/tflint
+if ! command -v tflint &> /dev/null; then
+  TFLINT_ZIP_PATH="/tmp/tflint_linux_amd64.zip"
+  TFLINT_CHECKSUMS_PATH="/tmp/tflint_checksums.txt"
+  curl --silent --fail --show-error --location --output "$TFLINT_ZIP_PATH" \
+    https://github.com/terraform-linters/tflint/releases/latest/download/tflint_linux_amd64.zip
+  curl --silent --fail --show-error --location --output "$TFLINT_CHECKSUMS_PATH" \
+    https://github.com/terraform-linters/tflint/releases/latest/download/checksums.txt
+  gh attestation verify "$TFLINT_CHECKSUMS_PATH" --repo terraform-linters/tflint
+  (cd /tmp && sha256sum --ignore-missing --check "$TFLINT_CHECKSUMS_PATH")
+  unzip -o "$TFLINT_ZIP_PATH" -d /tmp
+  TFLINT_BINARY_PATH="/tmp/tflint"
+  sudo install --verbose "$TFLINT_BINARY_PATH" /usr/local/bin/
+  rm "$TFLINT_ZIP_PATH" "$TFLINT_CHECKSUMS_PATH" "$TFLINT_BINARY_PATH"
+fi
+
 # Install `terraform-docs`.
 # https://github.com/terraform-docs/terraform-docs
 if ! command -v terraform-docs &> /dev/null; then
