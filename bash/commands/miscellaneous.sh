@@ -18,8 +18,9 @@ aks() (
   "$SCRIPT_LOCATION" "$@"
 )
 
-# Opens the Azure DevOps URL for the "History" tab of the corresponding file.
-azdo-history() (
+# "ah" is short for "Azure DevOps history". Opens the Azure DevOps URL for the "History" tab of the
+# corresponding file.
+ah() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   if [[ -z "${1:-}" ]]; then
