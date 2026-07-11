@@ -914,6 +914,28 @@ gpr() (
   # looks okay.
   local pull_request_id
   pull_request_id=$(jq -r '.pullRequestId' "$response_body")
+
+  if [[ "$repository" == "LogixApplications" ]]; then
+    local work_item_id="248890"
+    local work_item_api_url="${azdo_api_url%%\?*}/$pull_request_id/workitems/$work_item_id?api-version=7.0"
+
+    curl \
+      --silent \
+      --fail \
+      --show-error \
+      --location \
+      --request POST \
+      --output /dev/null \
+      --user ":$personal_access_token" \
+      --header "Content-Length: 0" \
+      "$work_item_api_url" || {
+      local err="$?"
+      echo "Failed to attach work item #$work_item_id to pull request $pull_request_id." >&2
+      echo "curl failed on URL: $work_item_api_url" >&2
+      return "$err"
+    }
+  fi
+
   local pull_request_url="$azdo_pull_request_url_prefix/$pull_request_id"
   echo "Created pull request: $pull_request_url"
   o "$pull_request_url"
