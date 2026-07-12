@@ -29,8 +29,14 @@ if [[ -s "/c/Program Files/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/c
   export REQUESTS_CA_BUNDLE="/c/Program Files/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
 elif [[ -s "/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem" ]]; then
   export REQUESTS_CA_BUNDLE="/c/Program Files (x86)/Microsoft SDKs/Azure/CLI2/lib/site-packages/certifi/cacert.pem"
-elif [[ -s "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
-  export REQUESTS_CA_BUNDLE="/opt/az/lib/python3.13/site-packages/certifi/cacert.pem"
+elif [[ -x "/opt/az/bin/python3" ]]; then
+  AZURE_CLI_CA_BUNDLE=$("/opt/az/bin/python3" -c "import certifi; print(certifi.where())")
+  if [[ ! -s "$AZURE_CLI_CA_BUNDLE" ]]; then
+    echo "Error: Failed to find the Azure CLI CA bundle at: $AZURE_CLI_CA_BUNDLE" >&2
+    return 1
+  fi
+  export REQUESTS_CA_BUNDLE="$AZURE_CLI_CA_BUNDLE"
+  unset AZURE_CLI_CA_BUNDLE
 fi
 add-logix-cert-to-requests-ca-bundle
 

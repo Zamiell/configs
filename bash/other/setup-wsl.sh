@@ -363,12 +363,13 @@ if [[ ! -s /usr/bin/az ]]; then
   curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
 
   # Install the LogixHealth certificate.
-  if [[ ! -s "/opt/az/lib/python3.13/site-packages/certifi/cacert.pem" ]]; then
-    echo "Error: Failed to find the \"cacert.pem\" file in the Azure CLI directory." >&2
-    exit
+  REQUESTS_CA_BUNDLE=$("/opt/az/bin/python3" -c "import certifi; print(certifi.where())")
+  if [[ ! -s "$REQUESTS_CA_BUNDLE" ]]; then
+    echo "Error: Failed to find the Azure CLI CA bundle at: $REQUESTS_CA_BUNDLE" >&2
+    exit 1
   fi
 
-  export REQUESTS_CA_BUNDLE="/opt/az/lib/python3.13/site-packages/certifi/cacert.pem"
+  export REQUESTS_CA_BUNDLE
   CERTIFICATE_NAME="BEDROOTCA001"
   {
     echo

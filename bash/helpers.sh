@@ -22,11 +22,11 @@ add-logix-cert-to-requests-ca-bundle() (
       file_path=$(cygpath --windows "$file_path")
     fi
 
-    if [[ -n "$REPOSITORIES_DIR" ]]; then
+    if [[ -n "${COMPANY_CERT_PATH:-}" ]]; then
       echo >&2
       echo "Run this command to fix it:" >&2
       echo >&2
-      echo "{ echo; echo \"# $certificate_name\"; cat \"\$REPOSITORIES_DIR/configs/certs/$$certificate_name\"; } | sudo tee -a \"$REQUESTS_CA_BUNDLE\" > /dev/null" >&2
+      echo "{ echo; echo \"# $certificate_name\"; cat \"\$COMPANY_CERT_PATH\"; } | sudo tee -a \"\$REQUESTS_CA_BUNDLE\" > /dev/null" >&2
     fi
 
     return 1
