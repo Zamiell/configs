@@ -11,6 +11,7 @@
 SetKeyDelay(-1) ; No delay
 SetWinDelay(-1) ; No delay
 
+; @region Core Hotkeys
 ; ------------
 ; CORE HOTKEYS
 ; ------------
@@ -25,13 +26,27 @@ RCtrl & RWin::{
   Send("+{F10}")
 }
 
+; @endregion
+
+; @region Send Text Hotkeys
+; -----------------
+; SEND TEXT HOTKEYS
+; -----------------
+
+^+!b::{
+  Send("Do not bother me with routine reconnaissance or linting tasks; only stop if you are absolutely blocked.{Enter}")
+}
+
 ^+!n::{
   Send("Hello! Please read the following link: https://nohello.net/en/{Enter}")
 }
 
-; -------------
-; CYCLE HOTKEYS
-; -------------
+; @endregion
+
+; @region Window Cycle Hotkeys
+; --------------------
+; WINDOW CYCLE HOTKEYS
+; --------------------
 
 ; Cycle program windows forward.
 ; (This requires Snap Assist to be disabled.)
@@ -119,6 +134,9 @@ SortNumArray(arr) {
   return StrSplit(str, "`n")
 }
 
+; @endregion
+
+; @region Open Program Hotkeys
 ; --------------------
 ; OPEN PROGRAM HOTKEYS
 ; --------------------
@@ -242,6 +260,9 @@ SortNumArray(arr) {
 ^+k::Run(A_MyDocuments . "\KiTTY\kitty_portable.exe")
 ^+s::Run(A_AppData . "\..\Local\Programs\WinSCP\WinSCP.exe")
 
+; @endregion
+
+; @region Sound
 ; -----
 ; SOUND
 ; -----
@@ -259,6 +280,9 @@ SortNumArray(arr) {
   SoundPlay("C:\Windows\media\Windows Unlock.wav")
 }
 
+; @endregion
+
+; @region Testing
 ; -------
 ; TESTING
 ; -------
@@ -267,3 +291,5 @@ SortNumArray(arr) {
   MsgBox("LOL")
   ; TODO
 }
+
+; @endregion
