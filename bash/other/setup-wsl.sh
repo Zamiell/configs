@@ -420,6 +420,19 @@ if ! command -v pulumi &> /dev/null; then
   export PATH="$HOME/.pulumi/bin:$PATH"
 fi
 
+# Install kubectl and kubelogin.
+# https://learn.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-install-cli
+# The latest kubectl version is listed at: https://kubernetes.io/releases/
+# The latest kubelogin version is listed at: https://github.com/Azure/kubelogin/releases
+# The "SSL_CERT_FILE" and "REQUESTS_CA_BUNDLE" are both needed to prevent the error:
+# ERROR: Connection error while attempting to download client (<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Missing Authority Key Identifier (_ssl.c:1032)>)
+# The "--client-version" and "--kubelogin-version" flags are needed to prevent warnings from appearing.
+export KUBECTL_VERSION="1.35.2" \
+  && export KUBELOGIN_VERSION="0.2.16" \
+  && export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
+  && export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+  && sudo az aks install-cli --client-version "$KUBECTL_VERSION" --kubelogin-version "$KUBELOGIN_VERSION"
+
 # Install Helm.
 # https://helm.sh/docs/intro/install/
 if ! command -v helm &> /dev/null; then
@@ -433,11 +446,6 @@ fi
 # https://github.com/digitalstudium/helmfmt
 if ! command -v helmfmt &> /dev/null; then
   curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | sudo tar -xzf - -C /usr/local/bin/ helmfmt
-fi
-
-# Install lychee.
-if ! command -v lychee &> /dev/null; then
-  sudo snap install lychee
 fi
 
 # endregion
