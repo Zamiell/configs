@@ -543,6 +543,13 @@ start() (
 tpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
+  assert-in-git-repository
+
+  read -r _host _organization _project repository_name <<< "$(get-git-remote-details)"
+
+  local pull_request_id
+  pull_request_id=$(get-azure-devops-active-pull-request-id-for-current-branch)
+
   if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
     echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
     exit 1
@@ -555,7 +562,7 @@ tpr() (
   fi
 
   builtin cd "$logix_path"
-  bun run test-pr "$@"
+  bun run test-pr "$@" "$repository_name" "$pull_request_id"
 )
 
 # We disable the mouse because it prevents highlighting text and pressing enter to copy it to the
