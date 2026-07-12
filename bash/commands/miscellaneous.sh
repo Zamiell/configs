@@ -550,6 +550,10 @@ tpr() (
   local pull_request_id
   pull_request_id=$(get-azure-devops-active-pull-request-id-for-current-branch)
 
+  if [[ "${1:-}" == "$repository_name" && "${2:-}" == "$pull_request_id" ]]; then
+    shift 2
+  fi
+
   if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
     echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
     exit 1
