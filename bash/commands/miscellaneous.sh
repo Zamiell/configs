@@ -562,7 +562,7 @@ tpr() (
   fi
 
   builtin cd "$logix_path"
-  bun run test-pr "$@" "$repository_name" "$pull_request_id"
+  bun run test-pr "$repository_name" "$pull_request_id" "$@"
 )
 
 # We disable the mouse because it prevents highlighting text and pressing enter to copy it to the
