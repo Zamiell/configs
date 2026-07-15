@@ -54,6 +54,11 @@ git config --global core.autocrlf false
 # Explicitly setting it to false can prevent problems with interop between Linux & Windows.
 git config --global core.ignorecase false
 
+# https://git-scm.com/docs/git-config#Documentation/git-config.txt-corepager
+# Default value: less
+# `pager` is better than `less`.
+git config --global core.pager delta
+
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-coresymlinks
 # Default value: true in some cases and false in some cases
 # Explicitly setting this to true is necessary for symlinks to be created properly when cloning a
@@ -66,6 +71,11 @@ if is-git-bash; then
     echo "Warning: Developer Mode is not enabled, so Linux-style symbolic links will not work properly. You should turn on Developer Mode. See: https://learn.microsoft.com/en-us/windows/advanced-settings/developer-mode" >&2
   fi
 fi
+
+# https://github.com/dandavison/delta/#line-numbers
+# Default value: false
+# It is helpful to see line numbers in git diffs.
+git config --global delta.line-numbers true
 
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-diffcolorMoved
 # Default value: false
