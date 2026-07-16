@@ -34,11 +34,22 @@ RCtrl & RWin::{
 ; -----------------
 
 ^+!b::{
-  Send("Do not bother me with routine reconnaissance or linting tasks; only stop if you are absolutely blocked.{Enter}")
+  Send("Do not bother me with routine reconnaissance or linting tasks; only stop if you are absolutely blocked.")
+  Sleep(500)
+  Send("{Enter}")
 }
 
 ^+!n::{
   Send("Hello! Please read the following link: https://nohello.net/en/{Enter}")
+}
+
+^+!p::{
+  Send("{Ctrl down}l{Ctrl up}")
+  Send("{Ctrl down}c{Ctrl up}")
+  WinActivate("ahk_exe WindowsTerminal.exe")
+  WinWaitActive("ahk_exe WindowsTerminal.exe")
+  Send('pi "{Ctrl down}v{Ctrl up}"')
+  Send("{Enter}")
 }
 
 ; @endregion

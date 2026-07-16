@@ -916,7 +916,7 @@ remove-leading-and-trailing-whitespace() (
 # We do not use a subshell because the alias would not persist.
 set-cd-alias() {
   if [[ -z "${1:-}" ]]; then
-    echo "Error: The repository name is required. Usage: ${FUNCNAME[0]} <repository_name>" >&2
+    echo "Error: The repository name is required. Usage: ${FUNCNAME[0]} <repository_name> [letter]" >&2
     return 1
   fi
   local repository_name="$1"
@@ -925,8 +925,10 @@ set-cd-alias() {
     return
   fi
 
-  local first_letter
-  first_letter=$(to-lowercase "${repository_name:0:1}")
+  local first_letter="${2:-}"
+  if [[ -z "$first_letter" ]]; then
+    first_letter=$(to-lowercase "${repository_name:0:1}")
+  fi
 
   local alias_name="cd$first_letter"
   if alias "$alias_name" &> /dev/null; then

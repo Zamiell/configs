@@ -917,17 +917,39 @@ gpr() (
 
   if [[ "$repository" == "LogixApplications" ]]; then
     local work_item_id="248890"
-    local work_item_api_url="${azdo_api_url%%\?*}/$pull_request_id/workitems/$work_item_id?api-version=7.0"
+    local project_id
+    project_id=$(jq -er '.repository.project.id' "$response_body")
+    local repository_id
+    repository_id=$(jq -er '.repository.id' "$response_body")
+    local pull_request_artifact_url="vstfs:///Git/PullRequestId/${project_id}%2F${repository_id}%2F${pull_request_id}"
+
+    local work_item_payload
+    work_item_payload=$(jq --null-input \
+      --arg artifact_url "$pull_request_artifact_url" \
+      '[{
+        op: "add",
+        path: "/relations/-",
+        value: {
+          rel: "ArtifactLink",
+          url: $artifact_url,
+          attributes: {name: "Pull Request"}
+        }
+      }]')
+
+    local azdo_project_url
+    azdo_project_url=$(get-azure-devops-project-url "$host" "$organization" "$project")
+    local work_item_api_url="$azdo_project_url/_apis/wit/workitems/$work_item_id?api-version=7.0"
 
     curl \
       --silent \
       --fail \
       --show-error \
       --location \
-      --request POST \
+      --request PATCH \
       --output /dev/null \
       --user ":$personal_access_token" \
-      --header "Content-Length: 0" \
+      --header "Content-Type: application/json-patch+json" \
+      --data "$work_item_payload" \
       "$work_item_api_url" || {
       local err="$?"
       echo "Failed to attach work item #$work_item_id to pull request $pull_request_id." >&2
