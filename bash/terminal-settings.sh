@@ -122,4 +122,8 @@ if [[ $- == *i* ]]; then
       bind '"\ec": "zi\n"'
     fi
   fi
+
+  # Copy the current directory to the clipboard with "Shift + Alt + C", which mimics the Visual
+  # Studio Code hotkey.
+  bind -x '"\eC": "pwd | clip"'
 fi
