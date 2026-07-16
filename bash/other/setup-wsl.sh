@@ -199,6 +199,7 @@ sudo apt-get upgrade --yes
 sudo apt-get install --yes \
   age \
   bind9-dnsutils \
+  git-delta \
   gvproxy \
   jq \
   podman \
