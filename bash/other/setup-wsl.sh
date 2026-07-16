@@ -268,6 +268,10 @@ if ! command -v node &> /dev/null && command -v fnm &> /dev/null; then
   fnm install --lts
 fi
 
+# Install pnpm.
+# https://pnpm.io/installation#on-posix-systems
+curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | sh
+
 # Install Bun.
 # https://bun.sh/
 # (This is needed before cloning repositories so that we can install the dependencies at the same
