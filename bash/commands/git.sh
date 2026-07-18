@@ -1071,6 +1071,9 @@ grbm() (
   git push --force-with-lease
 )
 
+# "grm" is short for "git remote -v".
+alias grm="git remote -v"
+
 # "grms" is short for "git remote ssh", which changes the current Git remote from HTTPS to SSH.
 grms() (
   set -euo pipefail # Exit on errors and undefined variables.
