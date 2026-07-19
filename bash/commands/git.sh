@@ -1292,8 +1292,27 @@ gsp() (
       return 1
     fi
 
-    git diff --binary "$commit_sha1^" "$commit_sha1" > "$patch_file"
-    split_description="commit $commit_sha1"
+    local file_paths=()
+    local file_paths_file
+    file_paths_file=$(mktemp)
+    trap 'rm -f "$patch_file" "$file_paths_file"' EXIT
+    git diff-tree --no-commit-id --name-only --no-renames --root -r -z "$commit_sha1" > "$file_paths_file"
+    while IFS= read -r -d "" file_path; do
+      file_paths+=("$file_path")
+    done < "$file_paths_file"
+
+    if [[ ${#file_paths[@]} -eq 0 ]]; then
+      echo "Error: Commit \"$source\" does not change any files." >&2
+      return 1
+    fi
+
+    if git diff --quiet "$merge_base" "$current_branch_name" -- "${file_paths[@]}"; then
+      echo "Error: There are no branch changes for files from commit \"$source\" to split." >&2
+      return 1
+    fi
+
+    git diff --binary "$merge_base" "$current_branch_name" -- "${file_paths[@]}" > "$patch_file"
+    split_description="files from commit $commit_sha1"
   else
     if git diff --quiet "$merge_base" "$current_branch_name" -- "$source"; then
       echo "Error: There are no branch changes for \"$source\" to split." >&2
