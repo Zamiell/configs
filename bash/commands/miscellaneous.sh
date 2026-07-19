@@ -128,7 +128,7 @@ canary() (
     return 1
   fi
 
-  echo -e "\nCanary.\n" >> "$readme_path"
+  echo -e "\nCanary." >> "$readme_path"
   echo "Applied Canary text to: $readme_path"
 
   git add "$readme_path"
