@@ -32,7 +32,7 @@ ppf() (
 
   builtin cd "$infrastructure_path"
 
-  local yaml_file_path="0_Global_Library/pipeline-templates/stages/pulumi-preview-approve-up.yml"
+  local yaml_file_path="0-global-library/pipeline-templates/stages/pulumi-preview-approve-up.yml"
   if [[ ! -s "$yaml_file_path" ]]; then
     echo "Error: The \"$yaml_file_path\" file was not found." >&2
     exit 1
@@ -74,7 +74,7 @@ pph() (
 
   builtin cd "$infrastructure_path"
 
-  local yaml_file_path="0_Global_Library/pipeline-templates/stages/pulumi-preview-approve-up.yml"
+  local yaml_file_path="0-global-library/pipeline-templates/stages/pulumi-preview-approve-up.yml"
   if [[ ! -s "$yaml_file_path" ]]; then
     echo "Error: The \"$yaml_file_path\" file was not found." >&2
     exit 1

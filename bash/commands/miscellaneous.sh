@@ -477,7 +477,7 @@ pi() (
     exit 1
   fi
 
-  local scripts_path="$REPOSITORIES_DIR/infrastructure/0_Global_Library/typescript-scripts"
+  local scripts_path="$REPOSITORIES_DIR/infrastructure/0-global-library/typescript-scripts"
   if [[ ! -d "$scripts_path" ]]; then
     echo "Error: The directory does not exist at: $scripts_path" >&2
     exit 1

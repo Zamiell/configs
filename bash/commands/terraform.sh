@@ -49,7 +49,7 @@ tdf() (
 
   # Extract unique Terraform module names from changed files.
   local module_names
-  module_names=$(echo "$changed_files" | grep '^0_Global_Library/terraform-modules/' | sed 's|^0_Global_Library/terraform-modules/\([^/]*\)/.*|\1|' | sort -u)
+  module_names=$(echo "$changed_files" | grep '^0-global-library/terraform-modules/' | sed 's|^0-global-library/terraform-modules/\([^/]*\)/.*|\1|' | sort -u)
 
   if [[ -z "$module_names" ]]; then
     echo "Error: No Terraform module files were changed in this feature branch." >&2
@@ -87,7 +87,7 @@ tpf() (
 
   builtin cd "$infrastructure_path"
 
-  local yaml_file_path="0_Global_Library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
+  local yaml_file_path="0-global-library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
   if [[ ! -s "$yaml_file_path" ]]; then
     echo "Error: The \"$yaml_file_path\" file was not found." >&2
     exit 1
@@ -129,7 +129,7 @@ tph() (
 
   builtin cd "$infrastructure_path"
 
-  local yaml_file_path="0_Global_Library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
+  local yaml_file_path="0-global-library/pipeline-templates/stages/terraform-plan-approve-apply.yml"
   if [[ ! -s "$yaml_file_path" ]]; then
     echo "Error: The \"$yaml_file_path\" file was not found." >&2
     exit 1
