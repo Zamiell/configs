@@ -1231,8 +1231,8 @@ gsq() (
   git push --force-with-lease
 )
 
-# "gsp" is short for "git split", which moves all branch changes for a file path to a new branch and
-# then removes those file changes from the current branch.
+# "gsp" is short for "git split", which moves changes for a file path or commit to a new branch and
+# then removes those changes from the current branch.
 gsp() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -1240,13 +1240,13 @@ gsp() (
   assert-feature-branch
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: The file path is required. Usage: ${FUNCNAME[0]} <file-path> <branch-name>" >&2
+    echo "Error: A file path or commit SHA1 is required. Usage: ${FUNCNAME[0]} <file-path-or-commit-sha1> <branch-name>" >&2
     return 1
   fi
-  local file_path="$1"
+  local source="$1"
 
   if [[ -z "${2:-}" ]]; then
-    echo "Error: The branch name is required. Usage: ${FUNCNAME[0]} <file-path> <branch-name>" >&2
+    echo "Error: The branch name is required. Usage: ${FUNCNAME[0]} <file-path-or-commit-sha1> <branch-name>" >&2
     return 1
   fi
   local new_branch_name="$2"
@@ -1277,16 +1277,32 @@ gsp() (
   local merge_base
   merge_base=$(get-merge-base)
 
-  if git diff --quiet "$merge_base" "$current_branch_name" -- "$file_path"; then
-    echo "Error: There are no branch changes for \"$file_path\" to split." >&2
-    return 1
-  fi
-
   local patch_file
   patch_file=$(mktemp)
   trap 'rm -f "$patch_file"' EXIT
 
-  git diff --binary "$merge_base" "$current_branch_name" -- "$file_path" > "$patch_file"
+  local split_description
+  if [[ "$source" =~ ^[0-9a-fA-F]{4,40}$ ]] && git rev-parse --verify --quiet "$source^{commit}" &> /dev/null; then
+    local commit_sha1
+    commit_sha1=$(git rev-parse "$source^{commit}")
+    if [[ "$commit_sha1" == "$merge_base" ]] \
+      || ! git merge-base --is-ancestor "$merge_base" "$commit_sha1" \
+      || ! git merge-base --is-ancestor "$commit_sha1" "$current_branch_name"; then
+      echo "Error: Commit \"$source\" is not part of the current branch changes." >&2
+      return 1
+    fi
+
+    git diff --binary "$commit_sha1^" "$commit_sha1" > "$patch_file"
+    split_description="commit $commit_sha1"
+  else
+    if git diff --quiet "$merge_base" "$current_branch_name" -- "$source"; then
+      echo "Error: There are no branch changes for \"$source\" to split." >&2
+      return 1
+    fi
+
+    git diff --binary "$merge_base" "$current_branch_name" -- "$source" > "$patch_file"
+    split_description="file $source"
+  fi
 
   if git show-ref --verify --quiet "refs/heads/$new_branch_name"; then
     git switch "$new_branch_name"
@@ -1296,12 +1312,12 @@ gsp() (
     git switch --create "$new_branch_name" "$merge_base"
   fi
   git apply --index "$patch_file"
-  git commit --message "chore: split changes from file $file_path"
+  git commit --message "chore: split changes from $split_description"
   git push
 
   git switch "$current_branch_name"
   git apply --reverse --index "$patch_file"
-  git commit --message "chore: remove changes from file $file_path"
+  git commit --message "chore: remove changes from $split_description"
   git push
 )
 
