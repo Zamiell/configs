@@ -435,8 +435,6 @@ fi
 if ! command -v kubectl &> /dev/null; then
   export KUBECTL_VERSION="1.35.2" \
     && export KUBELOGIN_VERSION="0.2.16" \
-    && export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
-    && export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     && sudo az aks install-cli --client-version "$KUBECTL_VERSION" --kubelogin-version "$KUBELOGIN_VERSION"
 fi
 
