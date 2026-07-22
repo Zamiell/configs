@@ -438,6 +438,11 @@ if ! command -v kubectl &> /dev/null; then
     && sudo az aks install-cli --client-version "$KUBECTL_VERSION" --kubelogin-version "$KUBELOGIN_VERSION"
 fi
 
+# Install kustomize.
+if ! command -v kustomize &> /dev/null; then
+  curl --silent --fail --show-error --location "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | sudo bash -s -- /usr/local/bin
+fi
+
 # Install Helm.
 # https://helm.sh/docs/intro/install/
 if ! command -v helm &> /dev/null; then
