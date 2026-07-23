@@ -601,7 +601,10 @@ gcpr() (
     gb
   fi
 
-  gc --no-browser "$@"
+  if [[ -n "$(git status --porcelain)" ]]; then
+    gc --no-browser "$@"
+  fi
+
   gpr "$@"
 )
 
