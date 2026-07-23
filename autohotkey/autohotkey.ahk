@@ -40,7 +40,7 @@ RCtrl & RWin::{
 }
 
 ^+!n::{
-  Send("Hello! Please read the following link: https://nohello.net/en/{Enter}")
+  Send("Hello{!} Please read the following link: https://nohello.net/en/{Enter}")
 }
 
 ^+!p::{
