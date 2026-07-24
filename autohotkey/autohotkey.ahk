@@ -33,6 +33,12 @@ RCtrl & RWin::{
 ; SEND TEXT HOTKEYS
 ; -----------------
 
+^+!1::{
+  Send("Rebase this branch on master for me and fix any merge conflicts that come up. Do not bother me with routine reconnaissance or linting tasks; only stop if you are absolutely blocked.")
+  Sleep(500)
+  Send("{Enter}")
+}
+
 ^+!b::{
   Send("Do not bother me with routine reconnaissance or linting tasks; only stop if you are absolutely blocked.")
   Sleep(500)
