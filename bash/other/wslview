@@ -14,7 +14,7 @@ fi
 
 for target in "$@"; do
   if [[ -e "$target" ]]; then
-    target=$(wslpath --windows "$target")
+    target=$(wslpath -w "$target")
   else
     if [[ "$target" != *"://"* ]] && [[ "$target" != *":"* ]] && [[ "$target" != /* ]] && [[ "$target" != ./* ]] && [[ "$target" != ../* ]]; then
       hostname="${target%%/*}"
