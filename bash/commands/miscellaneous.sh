@@ -92,6 +92,7 @@ subprocess.Popen(
         f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Microsoft\\Edge\\User Data AzLogin",
         "--profile-directory=Default",
         "--no-first-run",
+        "--new-window",
         url,
     ],
     stdout=subprocess.DEVNULL,
@@ -101,7 +102,43 @@ PY
 BROWSER
 
   chmod +x "$browser_path"
+
+  local existing_edge_window_handles
+  # shellcheck disable=SC2016
+  existing_edge_window_handles=$(powershell.exe -NoProfile -NonInteractive -Command '
+    $handles = Get-Process -Name msedge -ErrorAction SilentlyContinue |
+      Where-Object { $_.MainWindowHandle -ne 0 } |
+      ForEach-Object { $_.MainWindowHandle }
+    $handles -join ","
+  ' | tr -d '\r')
+
   BROWSER="$browser_path" /usr/bin/az login --subscription LH-DevOps-Dev-001
+
+  # Now that the login was successful, automatically close the new Edge window.
+  export AZL_EXISTING_EDGE_WINDOW_HANDLES="$existing_edge_window_handles"
+  export WSLENV="AZL_EXISTING_EDGE_WINDOW_HANDLES${WSLENV:+:$WSLENV}"
+  # shellcheck disable=SC2016
+  powershell.exe -NoProfile -NonInteractive -Command '
+    $existingHandles = @(
+      $env:AZL_EXISTING_EDGE_WINDOW_HANDLES -split "," |
+        Where-Object { $_ -ne "" } |
+        ForEach-Object { [IntPtr]::new([long]$_) }
+    )
+    $edgeProcess = Get-Process -Name msedge -ErrorAction SilentlyContinue |
+      Where-Object {
+        $_.MainWindowHandle -ne 0 -and
+        -not ($existingHandles -contains $_.MainWindowHandle)
+      } |
+      Select-Object -First 1
+    if ($null -eq $edgeProcess) {
+      throw "The new Edge window was not found."
+    }
+
+    $closed = $edgeProcess.CloseMainWindow()
+    if (-not $closed) {
+      throw "The new Edge window could not be closed."
+    }
+  '
 )
 
 alias azwhoami="az account show --query user.name -o tsv"
