@@ -633,3 +633,6 @@ vpn() (
     Start-Process -FilePath $panGpaPath
   '
 )
+
+# "vpnr" stands for "vpn routes".
+alias vpnr="sudo /usr/local/sbin/add-routes"
