@@ -162,8 +162,25 @@ alias tf="terraform fmt"
 # "ti" is short for "terraform init".
 alias ti="terraform init"
 
-# "tie" is short for "terraform init empty", which is useful for running "terraform validate"
-# without intending to deploy anything.
+# "tib" is short for "terraform init backend", which is useful for running "terraform init" on the
+# existing "config.azurerm.tfbackend" file.
+tib() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local tf_backend_path
+  if [[ -f "config.azurerm.tfbackend" ]]; then
+    tf_backend_path="config.azurerm.tfbackend"
+  elif [[ -f "../config.azurerm.tfbackend" ]]; then
+    tf_backend_path="../config.azurerm.tfbackend"
+  elif [[ -f "../ci/config.azurerm.tfbackend" ]]; then
+    tf_backend_path="../ci/config.azurerm.tfbackend"
+  fi
+
+  terraform init -backend-config="$tf_backend_path"
+)
+
+# "tie" is short for "terraform init empty", which is useful for running "terraform init" without
+# intending to deploy anything.
 alias tie="terraform init -backend=false"
 
 # "tiv" is short for "terraform init && terraform validate".
