@@ -78,7 +78,7 @@ add-upstream-remote-if-github-fork() (
 )
 
 # We do not use a subshell because the changes to PATH would be lost.
-append-path() {
+prepend-path() {
   if [[ -z "${1:-}" ]]; then
     echo "Error: The directory path is required. Usage: ${FUNCNAME[0]} <path>" >&2
     return 1
