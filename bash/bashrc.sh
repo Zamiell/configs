@@ -8,8 +8,8 @@
 # https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
 DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-source "$DIR/mac-os-fixes.sh"
 source "$DIR/helper-functions.sh"
+source "$DIR/mac-os-fixes.sh"
 source "$DIR/path.sh"
 source "$DIR/other-environment-variables.sh"
 source "$DIR/terminal-settings.sh"
