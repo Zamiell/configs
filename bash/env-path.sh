@@ -1,12 +1,12 @@
 # bun
 # https://bun.com/
-if command -v bun &> /dev/null; then
+if ! command -v bun &> /dev/null; then
   prepend-path "$HOME/.bun/bin"
 fi
 
 # Claude Code
 # https://www.claude.com/product/claude-code
-if command -v claude &> /dev/null; then
+if ! command -v claude &> /dev/null; then
   prepend-path "$HOME/.local/bin"
 fi
 
@@ -20,13 +20,13 @@ fi
 
 # fnm
 # https://github.com/Schniz/fnm
-if command -v fnm &> /dev/null; then
+if ! command -v fnm &> /dev/null; then
   prepend-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
   prepend-path "$HOME/.local/share/fnm"
 fi
 
 # golang
-if command -v go &> /dev/null; then
+if ! command -v go &> /dev/null; then
   prepend-path "/usr/local/go/bin"
 fi
 
@@ -36,7 +36,7 @@ if ! command -v msedge &> /dev/null; then
 fi
 
 # tree
-if command -v tree &> /dev/null; then
+if ! command -v tree &> /dev/null; then
   prepend-path "/c/Program Files (x86)/GnuWin32/bin"
 fi
 
@@ -46,13 +46,13 @@ if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
 fi
 
 # opencode
-if command -v opencode &> /dev/null; then
+if ! command -v opencode &> /dev/null; then
   prepend-path "$HOME/.opencode/bin"
 fi
 
 # PostgreSQL
 # (We do not use find to dynamically get the version for performance reasons.)
-if command -v psql &> /dev/null; then
+if ! command -v psql &> /dev/null; then
   prepend-path "/c/Program Files/PostgreSQL/18/bin"
 fi
 
@@ -66,6 +66,6 @@ prepend-path "$HOME/AppData/Roaming/Python/Python314/Scripts"
 prepend-path "$HOME/Library/Python/3.14/bin"
 
 # zoxide
-if command -v zoxide &> /dev/null; then
+if ! command -v zoxide &> /dev/null; then
   prepend-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/ajeetdsouza.zoxide_Microsoft.Winget.Source_8wekyb3d8bbwe"
 fi
