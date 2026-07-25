@@ -1,7 +1,3 @@
-# ---------------
-# GitHub Commands
-# ---------------
-
 # This will delete local branches that have been merged via pull requests on GitHub.
 gh-clean() (
   set -euo pipefail # Exit on errors and undefined variables.

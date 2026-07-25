@@ -1,7 +1,3 @@
-# ---------------------------
-# Other Environment Variables
-# ---------------------------
-
 # Load operating system information.
 if [[ -s "/etc/os-release" ]]; then
   source /etc/os-release

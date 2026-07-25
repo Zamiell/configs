@@ -1,7 +1,3 @@
-# ------------
-# Git Commands
-# ------------
-
 # "ga" is short for "git add".
 alias ga="git add"
 

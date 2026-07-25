@@ -1,7 +1,3 @@
-# -----------------
-# Terminal Settings
-# -----------------
-
 # Make writing to Bash command history immediate:
 # https://askubuntu.com/questions/67283/is-it-possible-to-make-writing-to-bash-history-immediate
 # This fixes the bug where closing one terminal window will remove the command history that was

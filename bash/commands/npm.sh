@@ -1,7 +1,3 @@
-# ------------
-# npm Commands
-# ------------
-
 exec-package() (
   set -euo pipefail # Exit on errors and undefined variables.
 

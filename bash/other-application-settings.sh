@@ -1,7 +1,3 @@
-# --------------------------
-# Other Application Settings
-# --------------------------
-
 # ssh
 mkdir -p "$HOME/.ssh" # The directory has to exist for the "ssh-keygen" command to work.
 if ! ssh-keygen -F github.com &> /dev/null; then

@@ -1,7 +1,3 @@
-# ------------------
-# Terraform Commands
-# ------------------
-
 # "ta" is short for "terraform apply".
 alias ta="terraform apply"
 

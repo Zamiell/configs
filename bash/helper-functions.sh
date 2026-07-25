@@ -1,7 +1,3 @@
-# ----------------
-# Helper functions
-# ----------------
-
 add-logix-cert-to-requests-ca-bundle() (
   set -euo pipefail # Exit on errors and undefined variables.
 

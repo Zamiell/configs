@@ -1,7 +1,3 @@
-# ----------------
-# kubectl Commands
-# ----------------
-
 alias k="kubectl"
 alias kdd="kubectl describe deployment"
 alias kdp="kubectl describe pod"

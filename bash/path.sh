@@ -1,32 +1,6 @@
-# ----
-# Path
-# ----
-
-# Homebrew
-# https://brew.sh/
-# (Homebrew must come first so that other programs can enter the PATH.)
-if is-mac-os; then
-  if [[ ! -s "/opt/homebrew/bin/brew" ]]; then
-    echo "Error: On macOS, these Bash configs require that you have Homebrew package manager installed. Run: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"" >&2
-    return 1
-  fi
-
-  brew_cache="$HOME/.cache/brew-shellenv.bash"
-  if [[ ! -s "$brew_cache" || "/opt/homebrew/bin/brew" -nt "$brew_cache" ]]; then
-    mkdir -p "$HOME/.cache"
-    /opt/homebrew/bin/brew shellenv > "$brew_cache"
-  fi
-  # shellcheck source=/dev/null
-  source "$brew_cache"
-  unset brew_cache
-
-  if ! command -v gsed &> /dev/null; then
-    echo "Error: On macOS, these Bash configs require the GNU version of sed to be installed (because the BSD version is very old). Run: brew install gnu-sed" >&2
-    return 1
-  fi
-
-  alias sed="gsed"
-fi
+# --------
+# Browsers
+# --------
 
 # Add browsers to the path, which is necessary for the GitHub CLI.
 if ! command -v chrome &> /dev/null && [[ -s "/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
@@ -49,33 +23,54 @@ if is-wsl; then
   export GH_BROWSER="wslview"
 fi
 
+# -----
+# Other
+# -----
+
 # bun
 # https://bun.com/
-append-path "$HOME/.bun/bin"
+if command -v bun &> /dev/null; then
+  append-path "$HOME/.bun/bin"
+fi
 
 # Claude Code
 # https://www.claude.com/product/claude-code
-append-path "$HOME/.local/bin"
+if command -v claude &> /dev/null; then
+  append-path "$HOME/.local/bin"
+fi
 
 # fnm
 # https://github.com/Schniz/fnm
-append-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
-append-path "$HOME/.local/share/fnm"
+if command -v fnm &> /dev/null; then
+  append-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe"
+  append-path "$HOME/.local/share/fnm"
+fi
 
 # golang
-append-path "/usr/local/go/bin"
+if command -v go &> /dev/null; then
+  append-path "/usr/local/go/bin"
+fi
 
-# GnuWin32
-append-path "/c/Program Files (x86)/GnuWin32/bin"
+# tree
+if command -v tree &> /dev/null; then
+  append-path "/c/Program Files (x86)/GnuWin32/bin"
+fi
 
 # Node.js (through fnm)
 if command -v fnm &> /dev/null && ! command -v node &> /dev/null; then
   eval "$(fnm env --shell bash)"
 fi
 
+# opencode
+if command -v opencode &> /dev/null; then
+  append-path "$HOME/.opencode/bin"
+fi
+
 # PostgreSQL
 # (We do not use find to dynamically get the version for performance reasons.)
-append-path "/c/Program Files/PostgreSQL/18/bin"
+if command -v psql &> /dev/null; then
+  append-path "/c/Program Files/PostgreSQL/18/bin"
+fi
 
 # Python
 # (We do not use find to dynamically get the version for performance reasons.)
@@ -86,8 +81,7 @@ append-path "$HOME/AppData/Roaming/Python/Python314/Scripts"
 # On macOS, Python is installed in the "Library" directory.
 append-path "$HOME/Library/Python/3.14/bin"
 
-# zig
-append-path "/d/Apps/Misc/zig"
-
 # zoxide
-append-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/ajeetdsouza.zoxide_Microsoft.Winget.Source_8wekyb3d8bbwe"
+if command -v zoxide &> /dev/null; then
+  append-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/ajeetdsouza.zoxide_Microsoft.Winget.Source_8wekyb3d8bbwe"
+fi

@@ -1,7 +1,3 @@
-# ---------------
-# Pulumi Commands
-# ---------------
-
 # "pc" is short for "pulumi cancel". (This is the analog to "terraform force-unlock".)
 alias pc="pulumi cancel"
 

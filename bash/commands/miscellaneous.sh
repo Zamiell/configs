@@ -1,7 +1,3 @@
-# ----------------------
-# Miscellaneous Commands
-# ----------------------
-
 aks() (
   if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
     echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
@@ -504,6 +500,9 @@ o() (
   echo "Git commit URL is at:"
   echo "$url"
 )
+
+# "oc" is short for "opencode".
+alias oc="opencode"
 
 # "pi" is short for "pipeline info".
 pi() (

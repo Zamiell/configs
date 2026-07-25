@@ -207,6 +207,7 @@ sudo apt-get install --yes \
   qemu-system-x86 \
   ripgrep \
   shellcheck \
+  tree \
   unzip \
   virtiofsd
 
