@@ -66,3 +66,9 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
     builtin cd "$REPOSITORIES_DIR"
   fi
 fi
+
+# Add WSL browser support.
+if is-wsl && [[ -s "/usr/local/bin/wslview" ]]; then
+  export BROWSER="wslview"
+  export GH_BROWSER="wslview"
+fi

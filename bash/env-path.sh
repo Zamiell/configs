@@ -1,28 +1,3 @@
-# --------
-# Browsers
-# --------
-
-# Add browsers to the path, which is necessary for the GitHub CLI.
-if ! command -v chrome &> /dev/null; then
-  prepend-path "/c/Program Files/Google/Chrome/Application"
-fi
-if ! command -v chrome &> /dev/null; then
-  export PATH="$HOME/AppData/Local/Google/Chrome/Application"
-fi
-if ! command -v chrome &> /dev/null && command -v google-chrome &> /dev/null; then
-  alias chrome="google-chrome"
-fi
-if ! command -v msedge &> /dev/null && [[ -s "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" ]]; then
-  export PATH="/c/Program Files (x86)/Microsoft/Edge/Application:$PATH"
-fi
-if ! command -v msedge &> /dev/null && command -v microsoft-edge &> /dev/null; then
-  alias msedge="microsoft-edge"
-fi
-
-# -----
-# Other
-# -----
-
 # bun
 # https://bun.com/
 if command -v bun &> /dev/null; then
@@ -35,6 +10,14 @@ if command -v claude &> /dev/null; then
   prepend-path "$HOME/.local/bin"
 fi
 
+# Chrome
+if ! command -v chrome &> /dev/null; then
+  prepend-path "/c/Program Files/Google/Chrome/Application"
+fi
+if ! command -v chrome &> /dev/null; then
+  prepend-path "$HOME/AppData/Local/Google/Chrome/Application"
+fi
+
 # fnm
 # https://github.com/Schniz/fnm
 if command -v fnm &> /dev/null; then
@@ -45,6 +28,11 @@ fi
 # golang
 if command -v go &> /dev/null; then
   prepend-path "/usr/local/go/bin"
+fi
+
+# Microsoft Edge
+if ! command -v msedge &> /dev/null; then
+  prepend-path "/c/Program Files (x86)/Microsoft/Edge/Application"
 fi
 
 # tree

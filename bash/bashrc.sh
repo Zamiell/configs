@@ -10,10 +10,12 @@ DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 source "$DIR/helper-functions.sh"
 source "$DIR/mac-os-fixes.sh"
-source "$DIR/path.sh"
-source "$DIR/other-environment-variables.sh"
+source "$DIR/env-path.sh"
+source "$DIR/env-other.sh"
 source "$DIR/terminal-settings.sh"
 source "$DIR/other-application-settings.sh"
+
+source "$DIR/commands/browsers.sh"
 source "$DIR/commands/git.sh"
 source "$DIR/commands/github.sh"
 source "$DIR/commands/kubectl.sh"
