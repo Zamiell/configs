@@ -4,7 +4,6 @@
 # curl https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/other/setup-wsl.sh | bash
 
 set -euo pipefail # Exit on errors and undefined variables.
-set -x
 
 if [[ ! -s "/etc/os-release" ]]; then
   echo "Error: This script is intended to be run inside Ubuntu WSL (Windows Subsystem for Linux)." >&2
