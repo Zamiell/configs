@@ -65,6 +65,30 @@ is-james() {
   [[ "$USER" == "jnesta" ]]
 }
 
+run-with-preserved-bashrc() {
+  local bashrc_path="$HOME/.bashrc"
+  local bashrc_backup
+  bashrc_backup=$(mktemp)
+
+  local bashrc_existed=false
+  if [[ -e "$bashrc_path" ]]; then
+    bashrc_existed=true
+    cp "$bashrc_path" "$bashrc_backup"
+  fi
+
+  local exit_status=0
+  "$@" || exit_status=$?
+
+  if "$bashrc_existed"; then
+    cp "$bashrc_backup" "$bashrc_path"
+  else
+    rm --force "$bashrc_path"
+  fi
+  rm "$bashrc_backup"
+
+  return "$exit_status"
+}
+
 get-github-latest-release-url() {
   local repository="$1"
   if [[ -z "$repository" ]]; then
@@ -271,14 +295,22 @@ fi
 
 # Install pnpm.
 # https://pnpm.io/installation#on-posix-systems
-curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | sh
+if ! command -v pnpm &> /dev/null; then
+  install-pnpm() {
+    curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | sh
+  }
+  run-with-preserved-bashrc install-pnpm
+fi
 
 # Install Bun.
 # https://bun.sh/
 # (This is needed before cloning repositories so that we can install the dependencies at the same
 # time.)
 if ! command -v bun &> /dev/null; then
-  curl --silent --fail --show-error --location https://bun.com/install | bash
+  install-bun() {
+    curl --silent --fail --show-error --location https://bun.com/install | bash
+  }
+  run-with-preserved-bashrc install-bun
   export PATH="$HOME/.bun/bin:$PATH"
 fi
 
