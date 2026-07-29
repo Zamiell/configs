@@ -4,6 +4,7 @@
 # curl https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/other/setup-wsl.sh | bash
 
 set -euo pipefail # Exit on errors and undefined variables.
+set -x
 
 if [[ ! -s "/etc/os-release" ]]; then
   echo "Error: This script is intended to be run inside Ubuntu WSL (Windows Subsystem for Linux)." >&2
@@ -437,7 +438,6 @@ if ! command -v tflint &> /dev/null; then
     https://github.com/terraform-linters/tflint/releases/latest/download/tflint_linux_amd64.zip
   curl --silent --fail --show-error --location --output "$TFLINT_CHECKSUMS_PATH" \
     https://github.com/terraform-linters/tflint/releases/latest/download/checksums.txt
-  gh attestation verify "$TFLINT_CHECKSUMS_PATH" --repo terraform-linters/tflint
   (cd /tmp && sha256sum --ignore-missing --check "$TFLINT_CHECKSUMS_PATH")
   unzip -o "$TFLINT_ZIP_PATH" -d /tmp
   TFLINT_BINARY_PATH="/tmp/tflint"
