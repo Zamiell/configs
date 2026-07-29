@@ -163,6 +163,18 @@ alias ti="terraform init"
 tib() (
   set -euo pipefail # Exit on errors and undefined variables.
 
+  local personal_access_token
+  personal_access_token=$(get-azure-devops-personal-access-token "azure-devops-server")
+
+  local encoded_credentials
+  encoded_credentials=$(printf ":%s" "$personal_access_token" | base64 | tr -d "\n")
+
+  local git_config_index="${GIT_CONFIG_COUNT:-0}"
+  export "GIT_CONFIG_KEY_${git_config_index}=http.https://azuredevops.logixhealth.com/.extraHeader"
+  export "GIT_CONFIG_VALUE_${git_config_index}=Authorization: Basic $encoded_credentials"
+  export GIT_CONFIG_COUNT=$((git_config_index + 1))
+  export GIT_TERMINAL_PROMPT=0
+
   local tf_backend_path
   if [[ -f "config.azurerm.tfbackend" ]]; then
     tf_backend_path="config.azurerm.tfbackend"
