@@ -205,11 +205,10 @@ SortNumArray(arr) {
 }
 
 ^3::{
-  if (WinExist("ahk_exe RemoteDesktopManager.exe")) {
-    WinActivate("ahk_exe RemoteDesktopManager.exe")
+  if (WinExist("ahk_exe github.exe")) {
+    WinActivate("ahk_exe github.exe")
   } else {
-    ; Hitting the hotkey by accident causes lag, so disable this.
-    ; Run("C:\Program Files\Devolutions\Remote Desktop Manager\RemoteDesktopManager.exe")
+    Run(A_AppData . "\..\Local\Programs\GitHub Copilot\github.exe")
   }
 }
 
