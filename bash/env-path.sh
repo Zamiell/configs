@@ -56,6 +56,11 @@ if ! command -v psql &> /dev/null; then
   prepend-path "/c/Program Files/PostgreSQL/18/bin"
 fi
 
+# pnpm
+if ! command -v pnpm &> /dev/null; then
+  prepend-path "$HOME/.local/share/pnpm/bin"
+fi
+
 # Python
 # (We do not use find to dynamically get the version for performance reasons.)
 # On Windows, the Microsoft Store installation goes to the "Local" directory.
