@@ -201,7 +201,7 @@ akspim() (
   }
 
   akspim-usage() {
-    cat <<EOF
+    cat << EOF
 Usage: ${FUNCNAME[1]} [-e dev|prod|sbox] [-a] [-d] [-t duration] [-j justification] [-y] [-h]
 
   -e, --env <name>          Target one environment: dev, prod, or sbox
@@ -353,8 +353,9 @@ EOF
 
     az account set --subscription "$env_subscription" > /dev/null
 
-    scope=$(az aks show --resource-group "$env_resource_group" --name "$env_cluster_name" --query id --output tsv)
-    principal_id=$(az ad signed-in-user show --query id --output tsv)
+    # The Windows "az.exe" emits CRLF when invoked from WSL, which corrupts URLs built from these values.
+    scope=$(az aks show --resource-group "$env_resource_group" --name "$env_cluster_name" --query id --output tsv | tr -d '\r')
+    principal_id=$(az ad signed-in-user show --query id --output tsv | tr -d '\r')
 
     eligibility_json=$(az rest \
       --method get \
@@ -413,8 +414,9 @@ EOF
 
     az account set --subscription "$env_subscription" > /dev/null
 
-    scope=$(az aks show --resource-group "$env_resource_group" --name "$env_cluster_name" --query id --output tsv)
-    principal_id=$(az ad signed-in-user show --query id --output tsv)
+    # The Windows "az.exe" emits CRLF when invoked from WSL, which corrupts URLs built from these values.
+    scope=$(az aks show --resource-group "$env_resource_group" --name "$env_cluster_name" --query id --output tsv | tr -d '\r')
+    principal_id=$(az ad signed-in-user show --query id --output tsv | tr -d '\r')
 
     eligibility_json=$(az rest \
       --method get \
@@ -440,6 +442,12 @@ EOF
       return 0
     fi
 
+    # PIM refuses to deactivate a role that was activated less than 5 minutes ago.
+    if echo "$deactivation_response" | grep --quiet "ActiveDurationTooShort"; then
+      akspim-warning "Role for $env_name was activated too recently to deactivate (PIM requires 5 minutes); try again shortly"
+      return 0
+    fi
+
     if echo "$deactivation_response" | grep --quiet '"error"'; then
       akspim-error "$deactivation_response"
       return 1
@@ -451,7 +459,7 @@ EOF
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -e|--env)
+      -e | --env)
         if [[ -z "${2:-}" ]]; then
           akspim-error "Missing value for --env"
           return 1
@@ -459,15 +467,15 @@ EOF
         target_env="$2"
         shift 2
         ;;
-      -a|--all)
+      -a | --all)
         activate_all="true"
         shift
         ;;
-      -d|--deactivate)
+      -d | --deactivate)
         deactivate="true"
         shift
         ;;
-      -t|--duration)
+      -t | --duration)
         if [[ -z "${2:-}" ]]; then
           akspim-error "Missing value for --duration"
           return 1
@@ -475,7 +483,7 @@ EOF
         duration="$2"
         shift 2
         ;;
-      -j|--justification)
+      -j | --justification)
         if [[ -z "${2:-}" ]]; then
           akspim-error "Missing value for --justification"
           return 1
@@ -483,11 +491,11 @@ EOF
         justification="$2"
         shift 2
         ;;
-      -y|--yes)
+      -y | --yes)
         auto_confirm="true"
         shift
         ;;
-      -h|--help)
+      -h | --help)
         akspim-usage
         return 0
         ;;
