@@ -1429,9 +1429,6 @@ alias gu="git push"
 # "guf" is short for "git push --force-with-lease".
 alias guf="git push --force-with-lease"
 
-# "gufs" is a helper to force push to Azure DevOps Services.
-alias gufs="git push services --force-with-lease"
-
 # "gus" is short for "git push services".
 alias gus="git push services"
 
