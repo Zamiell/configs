@@ -70,6 +70,9 @@ prepend-path "$HOME/AppData/Roaming/Python/Python314/Scripts"
 # On macOS, Python is installed in the "Library" directory.
 prepend-path "$HOME/Library/Python/3.14/bin"
 
+# Pulumi
+prepend-path "$HOME/.pulumi/bin"
+
 # zoxide
 if ! command -v zoxide &> /dev/null; then
   prepend-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/ajeetdsouza.zoxide_Microsoft.Winget.Source_8wekyb3d8bbwe"

@@ -5,7 +5,7 @@ alias pc="pulumi cancel"
 alias pd="pulumi destroy"
 
 # "pl" is short for "pulumi login".
-alias pl="pulumi login azblob://pulumi-state?storage_account=lhdevopstfstate"
+alias pl="vpnr && pulumi login azblob://pulumi-state?storage_account=lhdevopstfstate"
 
 # "pp" is short for "pulumi preview".
 alias pp="pulumi preview"
