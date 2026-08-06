@@ -1432,6 +1432,9 @@ alias guf="git push --force-with-lease"
 # "gufs" is a helper to force push to Azure DevOps Services.
 alias gufs="git push services --force-with-lease"
 
+# "gus" is short for "git push services".
+alias gus="git push services"
+
 # "guo" is short for "git unclean open", which will open all of the unstaged modified and untracked
 # files in this repository inside Visual Studio Code. This command will throw an error if there are 10
 # or more changed files.
