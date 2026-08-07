@@ -737,8 +737,8 @@ gpm() (
 
 # "gpr" is short for "git pull request", to start a new pull request based on the current branch.
 # The arguments that are provided will be the pull request title. If no arguments are provided, then
-# the script will attempt to find a suitable pull request title.
-# You can use the "--check" flag to only check whether a pull request already exists.
+# the script will attempt to find a suitable pull request title. You can use the "--check" flag to
+# only check whether a pull request already exists.
 gpr() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -747,7 +747,7 @@ gpr() (
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --check)
+      -c | --check)
         check_only="true"
         shift
         ;;
