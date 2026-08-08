@@ -114,7 +114,10 @@ gbcl() (
     git fetch --prune --quiet
   fi
 
-  git branch -vv | awk "/: gone]/{print \$1}" | xargs --no-run-if-empty git branch --delete --force
+  # Branches that are checked out in another worktree are skipped, since Git refuses to delete them.
+  git for-each-ref --format "%(refname:short)%09%(upstream:track)%09%(worktreepath)" refs/heads \
+    | awk -F "\t" '$2 == "[gone]" && $3 == "" { print $1 }' \
+    | xargs --no-run-if-empty git branch --delete --force
 
   # Additionally, we want to delete branches from merged pull requests.
   if git remote get-url upstream &> /dev/null; then
