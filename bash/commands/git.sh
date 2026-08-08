@@ -1486,11 +1486,10 @@ gwa() {
 
 # "gwd" is short for "git worktree delete". (Even though the real command is "git worktree remove",
 # we use "gwd" to maintain parity with "gbd".) Note that this will only delete the worktree, not the
-# branch.
-gwd() (
-  set -euo pipefail # Exit on errors and undefined variables.
-
-  assert-in-git-repository
+# branch. (We do not use a subshell because we need to change the current working directory when
+# deleting the current worktree.)
+gwd() {
+  assert-in-git-repository || return 1
 
   if [[ -z "${1:-}" ]]; then
     echo "Error: Worktree path or number is required. Usage: ${FUNCNAME[0]} <worktree-path-or-number>" >&2
@@ -1499,28 +1498,36 @@ gwd() (
   local worktree_path_or_number="$1"
 
   local worktree_path
-  worktree_path=$(get-worktree-path-from-number "$worktree_path_or_number")
+  worktree_path=$(get-worktree-path-from-number "$worktree_path_or_number") || return 1
 
   local listed_worktree_path
-  listed_worktree_path=$(git worktree list | awk '{print $1}' | grep --line-regexp --fixed-strings "$worktree_path" || true)
+  listed_worktree_path=$(git worktree list | awk '{print $1}' | grep --line-regexp --fixed-strings "$worktree_path") || true
   if [[ -z "$listed_worktree_path" ]]; then
     echo "Error: Worktree \"$worktree_path\" does not exist." >&2
     return 1
   fi
 
+  # The main worktree is always the first entry in the worktree list.
+  local main_worktree_path
+  main_worktree_path=$(git worktree list | head --lines=1 | awk '{print $1}') || return 1
+
   local current_worktree_path
-  current_worktree_path=$(git rev-parse --show-toplevel)
+  current_worktree_path=$(git rev-parse --show-toplevel) || return 1
   if [[ "$worktree_path" == "$current_worktree_path" ]]; then
-    echo "Error: You are removing worktree \"$worktree_path\", but that is your current worktree. Switch to another worktree first." >&2
-    return 1
+    if [[ "$worktree_path" == "$main_worktree_path" ]]; then
+      echo "Error: You cannot remove worktree \"$worktree_path\", since it is the main worktree." >&2
+      return 1
+    fi
+
+    builtin cd "$main_worktree_path" || return 1
   fi
 
-  git worktree remove "$worktree_path"
+  git worktree remove "$worktree_path" || return 1
   echo "Deleted worktree: $worktree_path"
 
   echo
   gwl
-)
+}
 
 # "gwl" is short for "git worktree list".
 gwl() (
