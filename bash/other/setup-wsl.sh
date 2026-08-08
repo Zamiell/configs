@@ -217,12 +217,13 @@ sudo apt-get update
 sudo apt-get upgrade --yes
 
 # Install some operating system packages.
-# - "qemu-system-x86" is required for "podman machine init" to work.
 # - "gvproxy" is needed for "podman machine start" to work.
+# - "qemu-system-x86" is required for "podman machine init" to work.
 # - "virtiofsd" is needed for "podman machine start" to work.
 sudo apt-get install --yes \
   age \
   bind9-dnsutils \
+  build-essential \
   git-delta \
   gvproxy \
   jq \
