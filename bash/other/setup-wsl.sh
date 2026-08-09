@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# If using WSL on a dedicated drive, first install it with:
+# wsl --import-in-place Ubuntu "D:\WSL\Ubuntu\ext4.vhdx"
+
 # Run this script with:
 # curl https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/other/setup-wsl.sh | bash
 
