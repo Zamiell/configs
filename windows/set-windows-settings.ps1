@@ -253,20 +253,32 @@ regedit /s $scriptPath
 # --------------------
 
 # Notepad++
-$notepadAppDataPath = "$env:APPDATA\Notepad++"
-New-Item -ItemType Directory -Force -Path $notepadAppDataPath | Out-Null
-# The config file is not created until Notepad++ is launched for the first time. If it does not
-# exist, we copy over the vanilla config.
-$notepadConfigPath = "$notepadAppDataPath\config.xml"
+# The config file is not created until Notepad++ is launched for the first time.
+$notepadConfigPath = "$env:APPDATA\Notepad++\config.xml"
 if (-not (Test-Path $notepadConfigPath)) {
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/notepad%2B%2B/config-vanilla.xml" -OutFile $notepadConfigPath
+    $notepadProcess = Start-Process -FilePath "notepad++.exe" -PassThru
+    $notepadStartDeadline = (Get-Date).AddSeconds(30)
+    while ($notepadProcess.MainWindowHandle -eq 0) {
+        if ($notepadProcess.HasExited) {
+            throw "Notepad++ exited before its main window opened."
+        }
+        if ((Get-Date) -ge $notepadStartDeadline) {
+            throw "Notepad++ did not open within 30 seconds."
+        }
+        Start-Sleep -Milliseconds 100
+        $notepadProcess.Refresh()
+    }
+    $notepadProcess.CloseMainWindow() | Out-Null
+    $notepadProcess.WaitForExit()
+
+    if (-not (Test-Path $notepadConfigPath)) {
+        throw "Notepad++ did not create the expected config file at: $notepadConfigPath"
+    }
 }
-# View --> Show Symbol --> Show Space and Tab
-(Get-Content $notepadConfigPath) -creplace 'whiteSpaceShow="hide"', 'whiteSpaceShow="show"' | Set-Content $notepadConfigPath
-# View --> Word Wrap
-(Get-Content $notepadConfigPath) -creplace ' Wrap="no"', ' Wrap="yes"' | Set-Content $notepadConfigPath
-# Settings --> Preferences --> Margins/Border/Edge --> Uncheck "Display Change History"
-(Get-Content $notepadConfigPath) -creplace 'isChangeHistoryEnabled="1"', 'isChangeHistoryEnabled="0"' | Set-Content $notepadConfigPath
+$scriptName = "set-notepad++-settings.ps1"
+$scriptPath = "$scriptsPath\$scriptName"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/notepad%2B%2B/set-notepad%2B%2B-settings.ps1" -OutFile $scriptPath
+& $scriptPath -NotepadConfigPath $notepadConfigPath
 
 # Windows Terminal
 $terminalAppDataPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
