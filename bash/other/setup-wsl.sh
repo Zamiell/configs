@@ -8,11 +8,11 @@
 
 set -euo pipefail # Exit on errors and undefined variables.
 
-PERSONAL=false
+PERSONAL="false"
 for argument in "$@"; do
   case "$argument" in
     --personal)
-      PERSONAL=true
+      PERSONAL="true"
       ;;
     *)
       echo "Error: Unknown argument: $argument" >&2
@@ -253,10 +253,12 @@ sudo apt-get install --yes \
   virtiofsd
 
 # Set up the company certificate.
-CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
-if [[ ! -s "$CERT_PATH" ]]; then
-  sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH"
-  sudo update-ca-certificates
+if [[ $PERSONAL == "false" ]]; then
+  CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
+  if [[ ! -s "$CERT_PATH" ]]; then
+    sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH"
+    sudo update-ca-certificates
+  fi
 fi
 
 # Set up SSH.
@@ -269,13 +271,15 @@ if is-james; then
   if [[ ! -s "$HOME/.ssh/id_ed25519.pub" ]]; then
     cp "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" "$HOME/.ssh/id_ed25519.pub"
   fi
-  mkdir -p "$HOME/.ssh/work"
-  if [[ ! -s "$HOME/.ssh/work/id_rsa" ]]; then
-    cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa" "$HOME/.ssh/work/id_rsa"
-    chmod 600 "$HOME/.ssh/work/id_rsa"
-  fi
-  if [[ ! -s "$HOME/.ssh/work/id_rsa.pub" ]]; then
-    cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" "$HOME/.ssh/work/id_rsa.pub"
+  if [[ $PERSONAL == "false" ]]; then
+    mkdir -p "$HOME/.ssh/work"
+    if [[ ! -s "$HOME/.ssh/work/id_rsa" ]]; then
+      cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa" "$HOME/.ssh/work/id_rsa"
+      chmod 600 "$HOME/.ssh/work/id_rsa"
+    fi
+    if [[ ! -s "$HOME/.ssh/work/id_rsa.pub" ]]; then
+      cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" "$HOME/.ssh/work/id_rsa.pub"
+    fi
   fi
 fi
 
@@ -402,7 +406,11 @@ fi
 if ! command -v copilot &> /dev/null; then
   # We need to supply "PREFIX" and "PATH" to prevent the installer from prompting us about adding
   # itself to the PATH.
-  curl --silent --fail --show-error --location https://gh.io/copilot-install --cacert "$CERT_PATH" \
+  COPILOT_CERT_ARGS=()
+  if [[ $PERSONAL == "false" ]]; then
+    COPILOT_CERT_ARGS+=(--cacert "$CERT_PATH")
+  fi
+  curl --silent --fail --show-error --location "${COPILOT_CERT_ARGS[@]}" https://gh.io/copilot-install \
     | PREFIX="$HOME/.local" PATH="$HOME/.local/bin:$PATH" bash
 
   mkdir -p "$HOME/.copilot/hooks"
@@ -541,7 +549,9 @@ fi
 
 # Set up Visual Studio Code.
 install-vscode-extensions "$REPOSITORIES_DIR/configs/.vscode/extensions.json"
-install-vscode-extensions "$REPOSITORIES_DIR/infrastructure/infrastructure.code-workspace"
+if [[ $PERSONAL == "false" ]]; then
+  install-vscode-extensions "$REPOSITORIES_DIR/infrastructure/infrastructure.code-workspace"
+fi
 
 # endregion
 
@@ -603,17 +613,19 @@ if is-james && [[ ! -s "$HOME/.env" ]]; then
 fi
 
 # Clone work repositories.
-if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
-  ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
+if [[ $PERSONAL == "false" ]]; then
+  if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
+    ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
+  fi
+  clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
+  clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
+  clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
+  clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
+  if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
+    ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
+  fi
+  clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 fi
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
-clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
-if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
-  ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
-fi
-clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 
 # endregion
 
