@@ -8,6 +8,19 @@
 
 set -euo pipefail # Exit on errors and undefined variables.
 
+PERSONAL=false
+for argument in "$@"; do
+  case "$argument" in
+    --personal)
+      PERSONAL=true
+      ;;
+    *)
+      echo "Error: Unknown argument: $argument" >&2
+      exit 1
+      ;;
+  esac
+done
+
 if [[ ! -s "/etc/os-release" ]]; then
   echo "Error: This script is intended to be run inside Ubuntu WSL (Windows Subsystem for Linux)." >&2
   exit
@@ -395,6 +408,15 @@ if ! command -v copilot &> /dev/null; then
   mkdir -p "$HOME/.copilot/hooks"
   cp "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"
   cp "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"
+fi
+
+# Install the Codex CLI.
+# https://learn.chatgpt.com/docs/codex/cli#getting-started
+if ! command -v codex &> /dev/null; then
+  install-codex-cli() {
+    curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | sh
+  }
+  run-with-preserved-bashrc install-codex-cli
 fi
 
 # Install the Azure CLI.
