@@ -8,18 +8,7 @@
 
 set -euo pipefail # Exit on errors and undefined variables.
 
-PERSONAL="false"
-for argument in "$@"; do
-  case "$argument" in
-    --personal)
-      PERSONAL="true"
-      ;;
-    *)
-      echo "Error: Unknown argument: $argument" >&2
-      exit 1
-      ;;
-  esac
-done
+PERSONAL=$([[ "$USER" == "james" ]] && echo "true" || echo "false")
 
 if [[ ! -s "/etc/os-release" ]]; then
   echo "Error: This script is intended to be run inside Ubuntu WSL (Windows Subsystem for Linux)." >&2
@@ -78,7 +67,7 @@ clone-work-repo() {
 }
 
 is-james() {
-  [[ "$USER" == "jnesta" ]]
+  [[ "$USER" == "james" ]] || [[ "$USER" == "jnesta" ]]
 }
 
 run-with-preserved-bashrc() {
@@ -434,20 +423,22 @@ fi
 if [[ ! -s /usr/bin/az ]]; then
   curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-  # Install the LogixHealth certificate.
-  REQUESTS_CA_BUNDLE=$("/opt/az/bin/python3" -c "import certifi; print(certifi.where())")
-  if [[ ! -s "$REQUESTS_CA_BUNDLE" ]]; then
-    echo "Error: Failed to find the Azure CLI CA bundle at: $REQUESTS_CA_BUNDLE" >&2
-    exit 1
-  fi
+  if [[ $PERSONAL == "false" ]]; then
+    # Install the LogixHealth certificate.
+    REQUESTS_CA_BUNDLE=$("/opt/az/bin/python3" -c "import certifi; print(certifi.where())")
+    if [[ ! -s "$REQUESTS_CA_BUNDLE" ]]; then
+      echo "Error: Failed to find the Azure CLI CA bundle at: $REQUESTS_CA_BUNDLE" >&2
+      exit 1
+    fi
 
-  export REQUESTS_CA_BUNDLE
-  CERTIFICATE_NAME="BEDROOTCA001"
-  {
-    echo
-    echo "# $CERTIFICATE_NAME"
-    curl --silent --fail --show-error --location "http://certs.logixhealth.com/$CERTIFICATE_NAME.crt"
-  } | sudo tee -a "$REQUESTS_CA_BUNDLE" > /dev/null
+    export REQUESTS_CA_BUNDLE
+    CERTIFICATE_NAME="BEDROOTCA001"
+    {
+      echo
+      echo "# $CERTIFICATE_NAME"
+      curl --silent --fail --show-error --location "http://certs.logixhealth.com/$CERTIFICATE_NAME.crt"
+    } | sudo tee -a "$REQUESTS_CA_BUNDLE" > /dev/null
+  fi
 fi
 
 # Install Terraform.
