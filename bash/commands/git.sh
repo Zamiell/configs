@@ -569,8 +569,25 @@ gcam() (
   gc --amend --edit-commit-message "$@"
 )
 
-# "gcl" is short for "git clone".
-alias gcl="git clone"
+# "gcl" is short for "git clone". (We do not use a subshell because we need to change the current
+# working directory.)
+gcl() {
+  local repository_url="${!#}"
+  repository_url="${repository_url%/}"
+
+  local clone_directory="${repository_url##*/}"
+  clone_directory="${clone_directory%.git}"
+
+  git clone "$@" || return 1
+
+  if [[ ! -d "$clone_directory" ]] && [[ -d "$clone_directory.git" ]]; then
+    clone_directory="$clone_directory.git"
+  fi
+
+  builtin cd "$clone_directory" || return 1
+
+  install-repository-dependencies
+}
 
 # "gcp" is short for "git cherry-pick".
 gcp() (
@@ -1474,13 +1491,7 @@ gwa() {
   builtin cd "$new_worktree_directory"
   git push
 
-  if [[ -f "$new_worktree_directory/package-lock.json" ]]; then
-    npm ci
-  fi
-
-  if [[ -f "$new_worktree_directory/bun.lock" ]]; then
-    bun ci
-  fi
+  install-repository-dependencies
 
   if [[ -f "$new_worktree_directory/uv.lock" ]]; then
     uv sync --frozen

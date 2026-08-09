@@ -837,6 +837,16 @@ get-worktree-path-from-number() (
   echo "$worktree_path"
 )
 
+install-repository-dependencies() {
+  if [[ -f "package-lock.json" ]]; then
+    npm ci
+  fi
+
+  if [[ -f "bun.lock" ]]; then
+    bun ci
+  fi
+}
+
 is-git-bash() (
   set -euo pipefail # Exit on errors and undefined variables.
 
