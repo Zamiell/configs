@@ -220,7 +220,10 @@ fi
 alias clip="clip.exe"
 
 # "co" is short for "copilot". (See below.)
-alias co="copilot --yolo --no-ask-user"
+alias co="copilot"
+
+# Turn off Codex CLI prompts.
+alias codex="codex --yolo"
 
 # Turn off GitHub Copilot CLI prompts.
 alias copilot="GITHUB_TOKEN=\${GITHUB_TOKEN_WORK:-\$GITHUB_TOKEN} copilot --yolo --no-ask-user"
