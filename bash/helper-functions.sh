@@ -1,7 +1,11 @@
 add-logix-cert-to-requests-ca-bundle() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if [[ "$USER" == "james" ]]; then
+  local username
+  username=$(get-username)
+
+  # Skip custom certificate handling on personal computers.
+  if [[ "$username" == "james" ]]; then
     return
   fi
 
