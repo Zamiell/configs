@@ -1,78 +1,29 @@
+# Runs as CORP\jnesta (Interactive) via the "VPN Connect" scheduled task.
+# Drives the interactive parts of the VPN connect flow (launching Edge for
+# the SAML/SSO login and capturing the resulting prelogin cookie), and
+# delegates the privileged parts (anything invoking openconnect.exe, which
+# needs administrator rights to create the network adapter) to the
+# "VPN Connect - Elevated" task via vpn-common.ps1's Invoke-VpnElevatedTask.
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$openConnect = "C:\Program Files\OpenConnect\openconnect.exe"
+. (Join-Path -Path $PSScriptRoot -ChildPath "vpn-common.ps1")
+
 $edge = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-$caFile = "C:\tls\BEDROOTCA001.crt"
 $captureScript = Join-Path -Path $PSScriptRoot -ChildPath "vpn-capture-cookie.ps1"
 $edgeLaunchScript = Join-Path -Path $PSScriptRoot -ChildPath "vpn-open-edge.ps1"
 $edgeProfile = Join-Path -Path $PSScriptRoot -ChildPath ".openconnect-edge-profile"
 $edgeShortcut = Join-Path -Path $PSScriptRoot -ChildPath ".openconnect-edge-launch.lnk"
 $debugPort = 9223
-$gateway = "bedgw.logixhealth.com"
 
-function Get-OpenConnectProcess {
-    Get-CimInstance Win32_Process -Filter "Name='openconnect.exe'"
+$discoverStatus = Invoke-VpnElevatedTask -Action "Discover"
+if ($discoverStatus -ne 0 -or -not (Test-Path -Path $VpnDiscoverResultFile -PathType Leaf)) {
+    Write-Error "The elevated VPN discovery step failed (exit code: $discoverStatus)." -ErrorAction Continue
+    exit $(if ($discoverStatus -ne 0) { $discoverStatus } else { 1 })
 }
 
-function Test-OpenConnectAdapter {
-    $null -ne (Get-NetAdapter -InterfaceDescription "OpenConnect Tunnel" -ErrorAction SilentlyContinue)
-}
-
-function Disconnect-ExistingSession {
-    $processes = @(Get-OpenConnectProcess)
-    if ($processes.Count -eq 0) {
-        return
-    }
-
-    Write-Output "An existing VPN connection is already running; disconnecting it first."
-
-    foreach ($process in $processes) {
-        Stop-Process -Id $process.ProcessId -Force -ErrorAction SilentlyContinue
-    }
-
-    $waited = 0
-    while ($waited -lt 15 -and @(Get-OpenConnectProcess).Count -gt 0) {
-        Start-Sleep -Seconds 1
-        $waited++
-    }
-
-    $waited = 0
-    while ($waited -lt 15 -and (Test-OpenConnectAdapter)) {
-        Start-Sleep -Seconds 1
-        $waited++
-    }
-}
-
-Disconnect-ExistingSession
-
-$previousErrorActionPreference = $ErrorActionPreference
-try {
-    $ErrorActionPreference = "Continue"
-    $openConnectOutput = @(
-        & $openConnect `
-            --protocol=gp `
-            "--cafile=$caFile" `
-            --os=win `
-            --usergroup=gateway `
-            "https://$gateway" 2>&1
-    )
-    $openConnectStatus = $LASTEXITCODE
-}
-finally {
-    $ErrorActionPreference = $previousErrorActionPreference
-}
-$openConnectOutput | ForEach-Object { $_.ToString() } | Write-Output
-
-$samlPattern = "^SAML REDIRECT authentication is required via (https://login\.microsoftonline\.com/.*)$"
-$url = $openConnectOutput |
-    ForEach-Object { if ("$_" -match $samlPattern) { $Matches[1] } } |
-    Select-Object -Last 1
-
-if ([string]::IsNullOrEmpty($url)) {
-    Write-Error "Unable to find the Microsoft SAML URL." -ErrorAction Continue
-    exit $openConnectStatus
-}
+$url = Get-Content -Path $VpnDiscoverResultFile -Raw
+Remove-VpnTempFile -Path $VpnDiscoverResultFile
 
 & $edgeLaunchScript `
     -EdgePath $edge `
@@ -102,7 +53,7 @@ if (-not $debugReady) {
 
 $preloginCookie = & $captureScript `
     -Port $debugPort `
-    -TargetHost $gateway `
+    -TargetHost $VpnGateway `
     -PreferredAccount "jnesta@logixhealth.com"
 
 if ([string]::IsNullOrEmpty($preloginCookie)) {
@@ -110,23 +61,9 @@ if ([string]::IsNullOrEmpty($preloginCookie)) {
     exit 1
 }
 
-$previousErrorActionPreference = $ErrorActionPreference
-try {
-    $ErrorActionPreference = "Continue"
-    $preloginCookie |
-        & $openConnect `
-            --protocol=gp `
-            "--cafile=$caFile" `
-            --os=win `
-            "--user=jnesta@logixhealth.com" `
-            "--usergroup=gateway:prelogin-cookie" `
-            --passwd-on-stdin `
-            "https://$gateway"
-    $openConnectStatus = $LASTEXITCODE
-}
-finally {
-    $ErrorActionPreference = $previousErrorActionPreference
-}
-
+Initialize-VpnSecureDir
+Set-Content -Path $VpnCookieFile -Value $preloginCookie -NoNewline
 $preloginCookie = $null
-exit $openConnectStatus
+
+$connectStatus = Invoke-VpnElevatedTask -Action "Connect"
+exit $connectStatus
