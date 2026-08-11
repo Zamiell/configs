@@ -46,15 +46,22 @@ function Disconnect-ExistingSession {
 
 Disconnect-ExistingSession
 
-$openConnectOutput = @(
-    & $openConnect `
-        --protocol=gp `
-        "--cafile=$caFile" `
-        --os=win `
-        --usergroup=gateway `
-        "https://$gateway" 2>&1
-)
-$openConnectStatus = $LASTEXITCODE
+$previousErrorActionPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = "Continue"
+    $openConnectOutput = @(
+        & $openConnect `
+            --protocol=gp `
+            "--cafile=$caFile" `
+            --os=win `
+            --usergroup=gateway `
+            "https://$gateway" 2>&1
+    )
+    $openConnectStatus = $LASTEXITCODE
+}
+finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+}
 $openConnectOutput | Write-Output
 
 $samlPattern = "^SAML REDIRECT authentication is required via (https://login\.microsoftonline\.com/.*)$"
@@ -103,15 +110,23 @@ if ([string]::IsNullOrEmpty($preloginCookie)) {
     exit 1
 }
 
-$preloginCookie |
-    & $openConnect `
-        --protocol=gp `
-        "--cafile=$caFile" `
-        --os=win `
-        "--user=jnesta@logixhealth.com" `
-        "--usergroup=gateway:prelogin-cookie" `
-        --passwd-on-stdin `
-        "https://$gateway"
+$previousErrorActionPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = "Continue"
+    $preloginCookie |
+        & $openConnect `
+            --protocol=gp `
+            "--cafile=$caFile" `
+            --os=win `
+            "--user=jnesta@logixhealth.com" `
+            "--usergroup=gateway:prelogin-cookie" `
+            --passwd-on-stdin `
+            "https://$gateway"
+    $openConnectStatus = $LASTEXITCODE
+}
+finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+}
 
 $preloginCookie = $null
-exit $LASTEXITCODE
+exit $openConnectStatus
