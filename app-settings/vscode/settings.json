@@ -11,7 +11,7 @@
 
   // Allow custom schemas hosted on GitHub.
   "json.schemaDownload.trustedDomains": {
-    "https://raw.githubusercontent.com/": true,
+    "https://raw.githubusercontent.com/": true
   },
 
   // Prevent the annoying security popup when opening new repositories.
@@ -60,7 +60,7 @@
   "files.insertFinalNewline": true,
 
   // Automatically remove all trailing whitespace when saving a file.
-  "files.trimTrailingWhitespace": true,
+  "files.trimTrailingWhitespace": true
 
   // ------------------------------------------------
   // Other (automatically added things at the bottom)
