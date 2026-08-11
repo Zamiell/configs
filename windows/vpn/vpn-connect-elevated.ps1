@@ -1,7 +1,7 @@
-# Runs as LocalSystem via the "VPN Connect - Elevated" scheduled task. It is
-# started programmatically by vpn-connect.ps1 and handles only the pieces
-# that require rights to create the OpenConnect network adapter. It never
-# shows any UI or requires domain credentials.
+# Tied to the "VPN Connect - Elevated" scheduled task. It is started programmatically by
+# "vpn-connect.ps1" and handles only the pieces that require rights to create the OpenConnect
+# network adapter. It never shows any UI or requires domain credentials.
+
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("Discover", "Connect")]

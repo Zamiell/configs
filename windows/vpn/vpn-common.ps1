@@ -1,7 +1,5 @@
-# Shared configuration and helpers for the VPN Connect scheduled tasks.
-# Dot-sourced by both vpn-connect.ps1 (runs as the interactive standard
-# account) and vpn-connect-elevated.ps1 (runs as LocalSystem, headless, via
-# the "VPN Connect - Elevated" scheduled task).
+# Shared configuration and helpers for the "VPN Connect" scheduled tasks. Used by "vpn-connect.ps1"
+# and "vpn-connect-elevated.ps1".
 
 $script:VpnStandardAccount = "CORP\jnesta"
 $script:VpnElevatedTaskName = "VPN Connect - Elevated"
@@ -16,8 +14,8 @@ $script:VpnDiscoverResultFile = Join-Path -Path $VpnSecureDir -ChildPath "discov
 $script:VpnInteractiveLog = Join-Path -Path $VpnSecureDir -ChildPath "interactive.log"
 $script:VpnElevatedLog = Join-Path -Path $VpnSecureDir -ChildPath "elevated.log"
 
-# Grants Full Control on the secure hand-off directory only to the standard
-# account and SYSTEM, so other users cannot read the cookie or SAML URL.
+# Grants Full Control on the secure hand-off directory only to the standard account and SYSTEM, so
+# other users cannot read the cookie or SAML URL.
 function Initialize-VpnSecureDir {
     if (-not (Test-Path -Path $VpnSecureDir -PathType Container)) {
         New-Item -Path $VpnSecureDir -ItemType Directory -Force | Out-Null
@@ -44,9 +42,8 @@ function Remove-VpnTempFile {
     Remove-Item -Path $Path -Force -ErrorAction SilentlyContinue
 }
 
-# Starts the given action on the elevated task via the Task Scheduler COM
-# API (so the action string's "$(Arg0)" placeholder is filled in), then
-# blocks until that run instance finishes.
+# Starts the given action on the elevated task via the Task Scheduler COM API (so the action
+# string's "$(Arg0)" placeholder is filled in), then blocks until that run instance finishes.
 function Invoke-VpnElevatedTask {
     param(
         [Parameter(Mandatory = $true)]

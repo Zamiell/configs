@@ -26,8 +26,8 @@ $commonSettings = @{
     StartWhenAvailable = $true
 }
 
-# The helper runs as LocalSystem, which has the required local privileges and
-# never needs domain connectivity or a stored password.
+# The helper runs as LocalSystem, which has the required local privileges and never needs domain
+# connectivity or a stored password.
 $elevatedAction = New-ScheduledTaskAction `
     -Execute "powershell.exe" `
     -Argument "-NoLogo -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$elevatedScript`" -Action `$(Arg0)" `

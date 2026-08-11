@@ -1,9 +1,9 @@
-# Runs as CORP\jnesta (Interactive) via the "VPN Connect" scheduled task.
-# Drives the interactive parts of the VPN connect flow (launching Edge for
-# the SAML/SSO login and capturing the resulting prelogin cookie), and
-# delegates the privileged parts (anything invoking openconnect.exe, which
-# needs administrator rights to create the network adapter) to the
-# "VPN Connect - Elevated" task via vpn-common.ps1's Invoke-VpnElevatedTask.
+# Tied to the "VPN Connect" scheduled task. Drives the interactive parts of the VPN connect flow
+# (launching Edge for the SAML/SSO login and capturing the resulting prelogin cookie), and delegates
+# the privileged parts (anything invoking openconnect.exe, which needs administrator rights to
+# create the network adapter) to the "VPN Connect - Elevated" task via "Invoke-VpnElevatedTask" in
+# "vpn-common.ps1".
+
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
