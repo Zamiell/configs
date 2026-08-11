@@ -456,10 +456,10 @@ if ! dpkg --status autokey-qt &> /dev/null; then
   rm "$AUTOKEY_QT_PATH"
 
   mkdir -p "$HOME/.config/autokey"
-  cp "$CONFIGS_PATH/autokey/autokey.json" "$HOME/.config/autokey/"
+  cp "$CONFIGS_PATH/app-settings/autokey/autokey.json" "$HOME/.config/autokey/"
   # The "userCodeDir" setting is only for custom modules and does not specify the destination
   # directory. Thus, we revert to linking the entire data directory.
-  ln --symbolic "$CONFIGS_PATH/autokey/data" "$HOME/.config/autokey/data"
+  ln --symbolic "$CONFIGS_PATH/app-settings/autokey/data" "$HOME/.config/autokey/data"
 fi
 
 # --------------------------------

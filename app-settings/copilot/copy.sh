@@ -7,3 +7,4 @@ set -euo pipefail # Exit on errors and undefined variables.
 DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 cp "$DIR/settings.json" "$HOME/.copilot/settings.json"
+cp -r "$DIR/hooks" "$HOME/.copilot/hooks"
