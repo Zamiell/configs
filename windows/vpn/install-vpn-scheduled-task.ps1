@@ -33,9 +33,15 @@ $commonSettings = @{
 
 # "VPN Connect - Elevated" is never triggered on its own; it is started
 # programmatically by vpn-connect.ps1 (via Invoke-VpnElevatedTask) whenever
-# an administrator-only step is needed. It runs as the elevation-only admin
-# account with LogonType S4U, which grants "run whether logged on or not"
-# without ever storing that account's password.
+# an administrator-only step is needed. It is registered with LogonType S4U
+# so no password needs to be scripted here, but S4U logon for a domain
+# account commonly fails (LogonUserS4U / ERROR_NO_SUCH_LOGON_SESSION) unless
+# the domain and this machine are set up for Kerberos protocol transition.
+# Register-ScheduledTask cannot set LogonType Password without a plaintext
+# password argument, so if S4U fails, convert the task manually (one time):
+# Task Scheduler -> "VPN Connect - Elevated" -> Properties -> General tab ->
+# select "Run whether user is logged on or not", uncheck "Do not store
+# password", click OK, and enter admin_jnesta's password when prompted.
 if (-not $existingElevatedTask) {
     $elevatedAction = New-ScheduledTaskAction `
         -Execute "powershell.exe" `
@@ -53,6 +59,19 @@ if (-not $existingElevatedTask) {
         -Settings $elevatedSettings `
         -Principal $elevatedPrincipal `
         -ErrorAction Stop
+
+    # By default only administrators or the task's own principal can start a
+    # task, so CORP\jnesta (a standard, non-admin account) would be denied
+    # when Invoke-VpnElevatedTask calls Run() on this admin_jnesta-owned
+    # task. Grant jnesta GENERIC_READ | GENERIC_EXECUTE (read + run-on-demand
+    # only, no modify/delete rights) via the task's security descriptor.
+    $service = New-Object -ComObject "Schedule.Service"
+    $service.Connect()
+    $task = $service.GetFolder("\").GetTask($VpnElevatedTaskName)
+    $standardSid = (New-Object System.Security.Principal.NTAccount($VpnStandardAccount)).
+        Translate([System.Security.Principal.SecurityIdentifier]).Value
+    $securityDescriptor = $task.GetSecurityDescriptor(0xF) + "(A;;GRGX;;;$standardSid)"
+    $task.SetSecurityDescriptor($securityDescriptor, 0)
 
     Write-Host "Successfully installed scheduled task: $VpnElevatedTaskName"
 }
