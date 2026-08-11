@@ -46,7 +46,6 @@ Register-ScheduledTask `
     -Force `
     -ErrorAction Stop
 
-# Grant jnesta read and run-on-demand rights, but not modify/delete rights.
 $service = New-Object -ComObject "Schedule.Service"
 $service.Connect()
 $task = $service.GetFolder("\").GetTask($VpnElevatedTaskName)
