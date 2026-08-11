@@ -62,7 +62,7 @@ try {
 finally {
     $ErrorActionPreference = $previousErrorActionPreference
 }
-$openConnectOutput | Write-Output
+$openConnectOutput | ForEach-Object { $_.ToString() } | Write-Output
 
 $samlPattern = "^SAML REDIRECT authentication is required via (https://login\.microsoftonline\.com/.*)$"
 $url = $openConnectOutput |
