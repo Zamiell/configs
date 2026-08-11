@@ -1,10 +1,9 @@
 # Shared configuration and helpers for the VPN Connect scheduled tasks.
 # Dot-sourced by both vpn-connect.ps1 (runs as the interactive standard
-# account) and vpn-connect-elevated.ps1 (runs as the elevation-only admin
-# account, headless, via the "VPN Connect - Elevated" scheduled task).
+# account) and vpn-connect-elevated.ps1 (runs as LocalSystem, headless, via
+# the "VPN Connect - Elevated" scheduled task).
 
 $script:VpnStandardAccount = "CORP\jnesta"
-$script:VpnAdminAccount = "CORP\admin_jnesta"
 $script:VpnElevatedTaskName = "VPN Connect - Elevated"
 
 $script:VpnGateway = "bedgw.logixhealth.com"
@@ -14,10 +13,11 @@ $script:VpnCaFile = "C:\tls\BEDROOTCA001.crt"
 $script:VpnSecureDir = Join-Path -Path $env:ProgramData -ChildPath "VPNConnect"
 $script:VpnCookieFile = Join-Path -Path $VpnSecureDir -ChildPath "prelogin-cookie.tmp"
 $script:VpnDiscoverResultFile = Join-Path -Path $VpnSecureDir -ChildPath "discover-result.tmp"
+$script:VpnInteractiveLog = Join-Path -Path $VpnSecureDir -ChildPath "interactive.log"
+$script:VpnElevatedLog = Join-Path -Path $VpnSecureDir -ChildPath "elevated.log"
 
-# Grants Full Control on the secure hand-off directory only to the two
-# accounts involved (standard + elevation-only admin) plus SYSTEM, so the
-# prelogin cookie and discovered SAML URL cannot be read by other users.
+# Grants Full Control on the secure hand-off directory only to the standard
+# account and SYSTEM, so other users cannot read the cookie or SAML URL.
 function Initialize-VpnSecureDir {
     if (-not (Test-Path -Path $VpnSecureDir -PathType Container)) {
         New-Item -Path $VpnSecureDir -ItemType Directory -Force | Out-Null
@@ -28,7 +28,6 @@ function Initialize-VpnSecureDir {
 
     $identities = @(
         (New-Object System.Security.Principal.NTAccount($VpnStandardAccount)),
-        (New-Object System.Security.Principal.NTAccount($VpnAdminAccount)),
         (New-Object System.Security.Principal.SecurityIdentifier "S-1-5-18")
     )
     foreach ($identity in $identities) {

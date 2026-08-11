@@ -7,7 +7,14 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+trap {
+    $_ | Out-File -FilePath (Join-Path -Path $env:TEMP -ChildPath "vpn-connect-error.log") -Append
+    exit 1
+}
+
 . (Join-Path -Path $PSScriptRoot -ChildPath "vpn-common.ps1")
+
+Start-Transcript -Path $VpnInteractiveLog -Append
 
 $edge = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 $captureScript = Join-Path -Path $PSScriptRoot -ChildPath "vpn-capture-cookie.ps1"
@@ -61,7 +68,6 @@ if ([string]::IsNullOrEmpty($preloginCookie)) {
     exit 1
 }
 
-Initialize-VpnSecureDir
 Set-Content -Path $VpnCookieFile -Value $preloginCookie -NoNewline
 $preloginCookie = $null
 

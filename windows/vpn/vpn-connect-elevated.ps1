@@ -1,8 +1,7 @@
-# Runs as CORP\admin_jnesta via the "VPN Connect - Elevated" scheduled task,
-# started programmatically (never on its own trigger) by vpn-connect.ps1
-# using Invoke-VpnElevatedTask. Handles only the pieces of the VPN connect
-# flow that require administrator rights to create the OpenConnect network
-# adapter; never shows any UI.
+# Runs as LocalSystem via the "VPN Connect - Elevated" scheduled task. It is
+# started programmatically by vpn-connect.ps1 and handles only the pieces
+# that require rights to create the OpenConnect network adapter. It never
+# shows any UI or requires domain credentials.
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("Discover", "Connect")]
@@ -48,6 +47,7 @@ function Disconnect-ExistingSession {
 }
 
 Initialize-VpnSecureDir
+Start-Transcript -Path $VpnElevatedLog -Append
 
 if ($Action -eq "Discover") {
     Remove-VpnTempFile -Path $VpnDiscoverResultFile
