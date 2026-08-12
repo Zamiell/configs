@@ -220,6 +220,7 @@ install-vscode-extensions() {
 # Update the system.
 sudo apt-get update
 sudo apt-get upgrade --yes
+sudo apt-get auto-remove --yes
 
 # Install some operating system packages.
 # - "gvproxy" is needed for "podman machine start" to work.
