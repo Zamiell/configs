@@ -412,7 +412,8 @@ fi
 # https://learn.chatgpt.com/docs/codex/cli#getting-started
 if ! command -v codex &> /dev/null; then
   install-codex-cli() {
-    curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | sh
+    curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh \
+      | CODEX_NON_INTERACTIVE=1 sh
   }
   run-with-preserved-bashrc install-codex-cli
 fi
