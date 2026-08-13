@@ -54,21 +54,6 @@ ah() (
 azl() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  local az_path="${1:-${AZL_AZ_PATH:-}}"
-  if [[ -n "$az_path" ]]; then
-    if [[ ! -x "$az_path" ]]; then
-      echo "Error: The az executable path is not executable: $az_path" >&2
-      return 1
-    fi
-  elif command -v az &> /dev/null; then
-    az_path=$(command -v az)
-  elif [[ -x "/usr/bin/az" ]]; then
-    az_path="/usr/bin/az"
-  else
-    echo "Error: Azure CLI was not found. Install az or pass a path: azl /path/to/az" >&2
-    return 1
-  fi
-
   local tmp_dir
   tmp_dir=$(mktemp -d)
   trap 'rm -rf "$tmp_dir"' EXIT
