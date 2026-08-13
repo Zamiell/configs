@@ -123,8 +123,7 @@ BROWSER
     $handles -join ","
   ' | tr -d '\r')
 
-  BROWSER="$browser_path" "$az_path" login
-  "$az_path" account set --subscription LH-DevOps-Dev-001
+  BROWSER="$browser_path" /usr/bin/az login --subscription LH-DevOps-Dev-001
 
   # Now that the login was successful, automatically close the new Edge window.
   export AZL_EXISTING_EDGE_WINDOW_HANDLES="$existing_edge_window_handles"
