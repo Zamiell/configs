@@ -228,9 +228,11 @@ alias codex="codex --yolo"
 # Turn off GitHub Copilot CLI prompts.
 alias copilot="GITHUB_TOKEN=\${GITHUB_TOKEN_WORK:-\$GITHUB_TOKEN} copilot --yolo --no-ask-user"
 
-# "cl" is short for "claude". The "--dangerously-skip-permissions" flag is needed to turn off the
-# prompts.
-alias cl="claude --dangerously-skip-permissions"
+# "cl" is short for "claude".
+alias cl="claude"
+
+# Turn off Claude Code prompts.
+alias claude="claude --dangerously-skip-permissions"
 
 # "csf" is short for "CSpell fix", which will invoke "cspell-check-unused-words --fix".
 csf() (
@@ -503,7 +505,10 @@ o() (
 )
 
 # "oc" is short for "opencode". The "--auto" flag is needed to turn off the prompts.
-alias oc="opencode --auto"
+alias oc="opencode"
+
+# Turn off OpenCode prompts.
+alias opencode="opencode --auto"
 
 # "pi" is short for "pipeline info".
 pi() (

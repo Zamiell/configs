@@ -418,6 +418,11 @@ if ! command -v codex &> /dev/null; then
   run-with-preserved-bashrc install-codex-cli
 fi
 
+# Install OpenCode.
+if ! command -v opencode &> /dev/null; then
+  curl --silent --fail --show-error --location https://opencode.ai/install | bash
+fi
+
 # Install the Azure CLI.
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
 # Unlike other tools, we do not use "command -v az" because if the Azure CLI is installed in the
