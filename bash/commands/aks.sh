@@ -24,7 +24,7 @@ akspim() (
   local target_env=""
   local activate_all="false"
   local deactivate="false"
-  local readiness_interval_seconds=20
+  local readiness_interval_seconds=5
 
   local dev_subscription="LH-DevOps-Dev-001"
   local dev_resource_group="rg-aks-eus-dev"
