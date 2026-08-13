@@ -180,7 +180,7 @@ EOF
         return 0
       fi
 
-      akspim-info "Not effective yet for $env_name (${elapsed}s elapsed); retrying in ${readiness_interval_seconds}s..."
+      akspim-info "Not effective yet for $env_name (${elapsed}s elapsed). This can take around 120 seconds. Retrying in: ${readiness_interval_seconds}s"
       sleep "$readiness_interval_seconds"
       elapsed=$((elapsed + readiness_interval_seconds))
     done
