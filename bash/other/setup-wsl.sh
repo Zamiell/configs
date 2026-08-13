@@ -389,6 +389,9 @@ if ! command -v gh &> /dev/null; then
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
   sudo apt-get update
   sudo apt-get install gh --yes
+
+  # By default, the GitHub CLI will use HTTPS as the protocol when checking out pull requests.
+  gh config set git_protocol ssh --host github.com
 fi
 
 # Install the GitHub Copilot CLI.
