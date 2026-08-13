@@ -21,7 +21,6 @@ akspim() (
   local role_name="Azure Kubernetes Service Cluster User Role"
   local duration="PT8H"
   local justification="AKS access"
-  local auto_confirm="false"
   local target_env=""
   local activate_all="false"
   local deactivate="false"
@@ -61,19 +60,18 @@ akspim() (
 
   akspim-usage() {
     cat << EOF
-Usage: ${FUNCNAME[1]} [-e dev|prod|sbox] [-a] [-d] [-t duration] [-j justification] [-y] [-h]
+Usage: ${FUNCNAME[1]} [-e dev|prod|sbox] [-a] [-d] [-t duration] [-j justification] [-h]
 
   -e, --env <name>          Target one environment: dev, prod, or sbox
   -a, --all                 Target all environments
   -d, --deactivate          Deactivate instead of activate
   -t, --duration <iso8601>  Activation duration (default: PT8H)
   -j, --justification <txt> Justification text (default: AKS access)
-  -y, --yes                 Skip confirmation prompt
   -h, --help                Show this help message
 
 Examples:
   akspim -e dev
-  akspim --all -y
+  akspim --all
   akspim -e prod -t PT2H
   akspim -e dev -d
 EOF
@@ -350,10 +348,6 @@ EOF
         justification="$2"
         shift 2
         ;;
-      -y | --yes)
-        auto_confirm="true"
-        shift
-        ;;
       -h | --help)
         akspim-usage
         return 0
@@ -400,27 +394,6 @@ EOF
 
   if [[ -z "$target_env" && "$activate_all" == "false" ]]; then
     akspim-select-environment
-  fi
-
-  local action_verb="activation"
-  if [[ "$deactivate" == "true" ]]; then
-    action_verb="deactivation"
-  fi
-
-  if [[ "$auto_confirm" == "false" ]]; then
-    if [[ "$activate_all" == "true" ]]; then
-      akspim-warning "This will submit PIM ${action_verb} requests for dev, prod, and sbox"
-    else
-      akspim-warning "This will submit a PIM ${action_verb} request for ${target_env}"
-    fi
-
-    echo -n "Continue? (y/N): "
-    local confirm
-    read -r confirm
-    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-      akspim-info "Cancelled"
-      return 0
-    fi
   fi
 
   if [[ "$deactivate" == "true" ]]; then
