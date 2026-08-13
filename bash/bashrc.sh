@@ -15,6 +15,7 @@ source "$DIR/env-other.sh"
 source "$DIR/terminal-settings.sh"
 source "$DIR/other-application-settings.sh"
 
+source "$DIR/commands/aks.sh"
 source "$DIR/commands/browsers.sh"
 source "$DIR/commands/git.sh"
 source "$DIR/commands/github.sh"
