@@ -119,11 +119,15 @@ get-github-latest-release-url() {
     return 1
   fi
 
+  local tag_version
+  tag_version="${tag_name##*/}"
+
   local version
-  version="${tag_name#v}"
+  version="${tag_version#v}"
 
   local filename
   filename="${filename_template//\{tag_name\}/$tag_name}"
+  filename="${filename//\{tag_version\}/$tag_version}"
   filename="${filename//\{version\}/$version}"
   echo "https://github.com/${repository}/releases/download/${tag_name}/${filename}"
 }
@@ -507,7 +511,8 @@ fi
 
 # Install kustomize.
 if ! command -v kustomize &> /dev/null; then
-  curl --silent --fail --show-error --location "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | sudo bash -s -- /usr/local/bin
+  DOWNLOAD_URL=$(get-github-latest-release-url "kubernetes-sigs/kustomize" "kustomize_{tag_version}_linux_amd64.tar.gz")
+  install-binary-from-tar-url "$DOWNLOAD_URL" "kustomize"
 fi
 
 # Install Helm.
