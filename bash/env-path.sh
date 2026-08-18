@@ -1,13 +1,10 @@
+# Miscellaneous
+prepend-path "$HOME/.local/bin"
+
 # bun
 # https://bun.com/
 if ! command -v bun &> /dev/null; then
   prepend-path "$HOME/.bun/bin"
-fi
-
-# Claude Code
-# https://www.claude.com/product/claude-code
-if ! command -v claude &> /dev/null; then
-  prepend-path "$HOME/.local/bin"
 fi
 
 # Chrome
@@ -16,11 +13,6 @@ if ! command -v chrome &> /dev/null; then
 fi
 if ! command -v chrome &> /dev/null; then
   prepend-path "$HOME/AppData/Local/Google/Chrome/Application"
-fi
-
-# Codex CLI
-if ! command -v codex &> /dev/null; then
-  prepend-path "$HOME/.local/bin/codex"
 fi
 
 # fnm
