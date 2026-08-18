@@ -18,6 +18,11 @@ if ! command -v chrome &> /dev/null; then
   prepend-path "$HOME/AppData/Local/Google/Chrome/Application"
 fi
 
+# Codex CLI
+if ! command -v codex &> /dev/null; then
+  prepend-path "$HOME/.local/bin/codex"
+fi
+
 # fnm
 # https://github.com/Schniz/fnm
 if ! command -v fnm &> /dev/null; then
