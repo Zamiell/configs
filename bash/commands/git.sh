@@ -1499,9 +1499,9 @@ gwa() {
 }
 
 # "gwd" is short for "git worktree delete". (Even though the real command is "git worktree remove",
-# we use "gwd" to maintain parity with "gbd".) Note that this will only delete the worktree, not the
-# branch. (We do not use a subshell because we need to change the current working directory when
-# deleting the current worktree.)
+# we use "gwd" to maintain parity with "gbd".) If the worktree branch has no commits beyond its merge
+# base with the main branch, the branch will also be deleted. (We do not use a subshell because we
+# need to change the current working directory when deleting the current worktree.)
 gwd() {
   assert-in-git-repository || return 1
 
@@ -1527,6 +1527,10 @@ gwd() {
 
   local current_worktree_path
   current_worktree_path=$(git rev-parse --show-toplevel) || return 1
+
+  local branch_name
+  branch_name=$(git -C "$worktree_path" branch --show-current) || return 1
+
   if [[ "$worktree_path" == "$current_worktree_path" ]]; then
     if [[ "$worktree_path" == "$main_worktree_path" ]]; then
       echo "Error: You cannot remove worktree \"$worktree_path\", since it is the main worktree." >&2
@@ -1538,6 +1542,20 @@ gwd() {
 
   git worktree remove "$worktree_path" || return 1
   echo "Deleted worktree: $worktree_path"
+
+  if [[ -n "$branch_name" ]]; then
+    local main_branch_name
+    main_branch_name=$(get-main-branch-name) || return 1
+
+    local merge_base
+    merge_base=$(git merge-base "$main_branch_name" "$branch_name") || return 1
+
+    local num_branch_commits
+    num_branch_commits=$(git rev-list --count "$merge_base..$branch_name") || return 1
+    if [[ "$num_branch_commits" -eq 0 ]]; then
+      gbd "$branch_name" || return 1
+    fi
+  fi
 
   echo
   gwl
