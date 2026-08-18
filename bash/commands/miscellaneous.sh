@@ -357,7 +357,7 @@ alias full-path="readlink -f"
 
 # We do not use a subshell because the "source" would not work.
 get-env() {
-  decrypt "$HOME/.env" || exit 1
+  decrypt "$HOME/.env"
   # shellcheck source=/dev/null
   source "$HOME/.env"
   echo "Loaded new environment variables with: source $HOME/.env"
