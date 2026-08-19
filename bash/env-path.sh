@@ -59,7 +59,9 @@ if ! command -v pnpm &> /dev/null; then
 fi
 
 # Python
-# (We do not use find to dynamically get the version for performance reasons.)
+# - We cannot check for the presence of the Python command since on Windows, it defaults to a
+#   message about the Windows Store.
+# - We do not use find to dynamically get the version for performance reasons.
 # On Windows, the Microsoft Store installation goes to the "Local" directory.
 prepend-path "$HOME/AppData/Local/Python/pythoncore-3.14-64/Scripts"
 # On Windows, the "python.org" install goes to the "Roaming" directory.
@@ -68,7 +70,9 @@ prepend-path "$HOME/AppData/Roaming/Python/Python314/Scripts"
 prepend-path "$HOME/Library/Python/3.14/bin"
 
 # Pulumi
-prepend-path "$HOME/.pulumi/bin"
+if ! command -v pulumi &> /dev/null; then
+  prepend-path "$HOME/.pulumi/bin"
+fi
 
 # zoxide
 if ! command -v zoxide &> /dev/null; then
