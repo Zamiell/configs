@@ -1,0 +1,16 @@
+{
+  "project_panel": {
+    "dock": "left"
+  },
+  "wsl_connections": [
+    {
+      "distro_name": "Ubuntu",
+      "user": null,
+      "projects": [
+        {
+          "paths": ["/home/jnesta/repositories/infrastructure"]
+        }
+      ]
+    }
+  ]
+}
