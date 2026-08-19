@@ -177,10 +177,16 @@ SortNumArray(arr) {
 }
 
 ^+`::{
-  if (WinExist("ahk_exe VSCodium.exe")) {
-    WinActivate "ahk_exe VSCodium.exe"
+  ;if (WinExist("ahk_exe VSCodium.exe")) {
+  ;  WinActivate "ahk_exe VSCodium.exe"
+  ;} else {
+  ;  Run("C:\Users\jnesta\AppData\Local\Programs\VSCodium\VSCodium.exe")
+  ;}
+
+  if (WinExist("ahk_exe Zed.exe")) {
+    WinActivate "ahk_exe Zed.exe"
   } else {
-    Run("C:\Users\jnesta\AppData\Local\Programs\VSCodium\VSCodium.exe")
+    Run("C:\Users\jnesta\AppData\Local\Programs\Zed\Zed.exe")
   }
 }
 
