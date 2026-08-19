@@ -616,6 +616,7 @@ fi
 # Decrypt environment variables.
 if is-james && [[ ! -s "$HOME/.env" ]]; then
   age --decrypt --identity "$HOME/.ssh/id_ed25519" --output "$HOME/.env" "$REPOSITORIES_DIR/secrets/.env.age"
+  chmod 600 "$HOME/.env"
 fi
 
 # Clone work repositories.

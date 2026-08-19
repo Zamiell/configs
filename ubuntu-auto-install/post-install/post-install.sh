@@ -183,9 +183,11 @@ sudo apt-get install -qq --yes age
 
 # Set the ".env" file.
 age --decrypt --identity "$SSH_PRIVATE_KEY_PATH" --output "$HOME/.env" "$SECRETS_PATH/.env.age"
+chmod 600 "$HOME/.env"
 
 # Set up work SSH keys (2/2).
 age --decrypt --identity "$SSH_PRIVATE_KEY_PATH" --output "$HOME/.ssh/work/id_rsa" "$SECRETS_PATH/id_rsa.age"
+chmod 600 "$HOME/.ssh/work/id_rsa"
 
 # -------------
 # Phase 2 - GUI

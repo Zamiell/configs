@@ -272,6 +272,8 @@ decrypt() (
 
   git -C "$secrets_path" pull --rebase --quiet
 
+  umask 077 # Create new files with "600" permissions.
+
   if [[ -f "$file_path" ]]; then
     local tmp_file
     tmp_file=$(mktemp)
