@@ -288,6 +288,7 @@ fi
 # -----------------------------
 
 # Install Golang.
+# https://go.dev/doc/install
 if ! command -v go &> /dev/null; then
   LATEST_GO_VERSION=$(curl --silent --fail --show-error --location https://go.dev/VERSION?m=text | head --lines=1)
   curl --silent --fail --location --output /tmp/go.tar.gz "https://go.dev/dl/$LATEST_GO_VERSION.linux-amd64.tar.gz"
@@ -441,7 +442,7 @@ fi
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
 # Unlike other tools, we do not use "command -v az" because if the Azure CLI is installed in the
 # host Windows, it will automatically work inside WSL.
-if [[ ! -s /usr/bin/az ]]; then
+if [[ ! -x /usr/bin/az ]]; then
   curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
 
   if [[ $PERSONAL == "false" ]]; then
@@ -540,9 +541,10 @@ fi
 # Install the OPA CLI.
 # https://www.openpolicyagent.org/docs/cli
 if [[ ! -x "$HOME/.local/bin/opa" ]]; then
-  curl --location --output opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
-  chmod 755 opa
-  sudo mv opa "$HOME/.local/bin/"
+  OPA_BINARY_PATH="/tmp/opa"
+  curl --silent --fail --show-error --location --output "$OPA_BINARY_PATH" https://openpolicyagent.org/downloads/latest/opa_linux_amd64
+  install --verbose "$OPA_BINARY_PATH" "$HOME/.local/bin/"
+  rm "$OPA_BINARY_PATH"
 fi
 
 # endregion
@@ -624,8 +626,8 @@ source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
 fi
 
 # Install the wslview shim. (See the comments in the "wslview" script.)
-if [[ ! -s /usr/local/bin/wslview ]]; then
-  sudo cp "$REPOSITORIES_DIR/configs/bash/other/wslview" /usr/local/bin/wslview
+if [[ ! -x "$HOME/.local/bin/wslview" ]]; then
+  cp "$REPOSITORIES_DIR/configs/bash/other/wslview" "$HOME/.local/bin/wslview"
 fi
 
 # Decrypt environment variables.
