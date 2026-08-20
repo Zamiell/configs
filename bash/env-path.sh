@@ -1,4 +1,4 @@
-# Miscellaneous
+# First, ensure that the standard local binary location is included in the path.
 prepend-path "$HOME/.local/bin"
 
 # bun
