@@ -286,6 +286,9 @@ if is-james; then
   fi
 fi
 
+# Before installing things, add the standard binary location to the PATH.
+export PATH="$HOME/.local/bin:$PATH"
+
 # endregion
 
 # region: Install programming languages
@@ -415,14 +418,14 @@ fi
 # Install the GitHub Copilot CLI.
 # https://github.com/features/copilot/cli/
 if [[ ! -x "$HOME/.local/bin/copilot" ]]; then
-  # We need to supply "PREFIX" and "PATH" to prevent the installer from prompting us about adding
-  # itself to the PATH.
+  # We need to supply "PREFIX" to prevent the installer from prompting us about adding itself to the
+  # PATH.
   COPILOT_CERT_ARGS=()
   if [[ $PERSONAL == "false" ]]; then
     COPILOT_CERT_ARGS+=(--cacert "$CERT_PATH")
   fi
   curl --silent --fail --show-error --location "${COPILOT_CERT_ARGS[@]}" https://gh.io/copilot-install \
-    | PREFIX="$HOME/.local" PATH="$HOME/.local/bin:$PATH" bash
+    | PREFIX="$HOME/.local" bash
 
   mkdir -p "$HOME/.copilot/hooks"
   cp "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"
