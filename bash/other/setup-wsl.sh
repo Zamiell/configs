@@ -356,6 +356,10 @@ if ! command -v pwsh &> /dev/null; then
   fi
 fi
 
+if ! command -v rustup &> /dev/null; then
+  curl --silent --fail --show-error --location --proto '=https' --tlsv1.2 https://sh.rustup.rs | sh -s -- -y --no-modify-path
+fi
+
 # endregion
 
 # region: Install quality of life software

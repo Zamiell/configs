@@ -74,6 +74,11 @@ if ! command -v pulumi &> /dev/null; then
   prepend-path "$HOME/.pulumi/bin"
 fi
 
+# Rust
+if ! command -v rustup &> /dev/null; then
+  prepend-path "$HOME/.cargo/bin"
+fi
+
 # zoxide
 if ! command -v zoxide &> /dev/null; then
   prepend-path "$HOME/AppData/Local/Microsoft/WinGet/Packages/ajeetdsouza.zoxide_Microsoft.Winget.Source_8wekyb3d8bbwe"
