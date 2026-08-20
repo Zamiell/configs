@@ -262,20 +262,20 @@ fi
 mkdir -p "$HOME/.ssh"
 if is-james; then
   if [[ ! -s "$HOME/.ssh/id_ed25519" ]]; then
-    cp "/mnt/c/Users/jnesta/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519"
+    cp "/mnt/c/Users/$USER/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519"
     chmod 600 "$HOME/.ssh/id_ed25519"
   fi
   if [[ ! -s "$HOME/.ssh/id_ed25519.pub" ]]; then
-    cp "/mnt/c/Users/jnesta/.ssh/id_ed25519.pub" "$HOME/.ssh/id_ed25519.pub"
+    cp "/mnt/c/Users/$USER/.ssh/id_ed25519.pub" "$HOME/.ssh/id_ed25519.pub"
   fi
   if [[ $PERSONAL == "false" ]]; then
     mkdir -p "$HOME/.ssh/work"
     if [[ ! -s "$HOME/.ssh/work/id_rsa" ]]; then
-      cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa" "$HOME/.ssh/work/id_rsa"
+      cp "/mnt/c/Users/$USER/.ssh/work/id_rsa" "$HOME/.ssh/work/id_rsa"
       chmod 600 "$HOME/.ssh/work/id_rsa"
     fi
     if [[ ! -s "$HOME/.ssh/work/id_rsa.pub" ]]; then
-      cp "/mnt/c/Users/jnesta/.ssh/work/id_rsa.pub" "$HOME/.ssh/work/id_rsa.pub"
+      cp "/mnt/c/Users/$USER/.ssh/work/id_rsa.pub" "$HOME/.ssh/work/id_rsa.pub"
     fi
   fi
 fi
