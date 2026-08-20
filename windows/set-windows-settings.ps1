@@ -278,7 +278,7 @@ if (-not (Test-Path $notepadConfigPath)) {
 $scriptName = "set-notepad++-settings.ps1"
 $scriptPath = "$scriptsPath\$scriptName"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/notepad%2B%2B/set-notepad%2B%2B-settings.ps1" -OutFile $scriptPath
-& $scriptPath -NotepadConfigPath $notepadConfigPath
+& $scriptPath
 
 # Windows Terminal
 $terminalAppDataPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
