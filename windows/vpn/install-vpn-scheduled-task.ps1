@@ -7,10 +7,14 @@ Set-StrictMode -Version Latest
 
 $taskName = "VPN Connect"
 $vpnScript = Join-Path -Path $PSScriptRoot -ChildPath "vpn-connect.ps1"
+$hiddenLauncher = Join-Path -Path $PSScriptRoot -ChildPath "vpn-connect-hidden.vbs"
 $elevatedScript = Join-Path -Path $PSScriptRoot -ChildPath "vpn-connect-elevated.ps1"
 
 if (-not (Test-Path -Path $vpnScript -PathType Leaf)) {
     throw "VPN connection script does not exist: $vpnScript"
+}
+if (-not (Test-Path -Path $hiddenLauncher -PathType Leaf)) {
+    throw "Hidden VPN launcher does not exist: $hiddenLauncher"
 }
 if (-not (Test-Path -Path $elevatedScript -PathType Leaf)) {
     throw "Elevated VPN connection script does not exist: $elevatedScript"
@@ -57,8 +61,8 @@ $task.SetSecurityDescriptor($securityDescriptor, 0)
 Write-Host "Successfully installed scheduled task: $VpnElevatedTaskName"
 
 $action = New-ScheduledTaskAction `
-    -Execute "powershell.exe" `
-    -Argument "-NoLogo -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$vpnScript`"" `
+    -Execute "wscript.exe" `
+    -Argument "//B //NoLogo `"$hiddenLauncher`"" `
     -WorkingDirectory $PSScriptRoot
 $time = "12:00AM"
 $trigger = New-ScheduledTaskTrigger -Daily -At $time
