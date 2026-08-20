@@ -1,6 +1,14 @@
 {
+  "git": {
+    "inline_blame": {
+      "enabled": false // Defaults to enabled.
+    }
+  },
+  "preview_tabs": {
+    "enabled": false // Defaults to enabled.
+  },
   "project_panel": {
-    "dock": "left"
+    "dock": "left" // Defaults to the right side.
   },
   "wsl_connections": [
     {
