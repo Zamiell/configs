@@ -79,7 +79,7 @@ if ! command -v git &> /dev/null; then
 fi
 
 # Install the GitHub CLI.
-if ! command -v gh &> /dev/null; then
+if [[ ! -x /usr/bin/gh ]]; then
   # From: https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
   sudo mkdir -p -m 755 /etc/apt/keyrings \
     && curl --silent --fail --show-error --location https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg &> /dev/null \
@@ -90,7 +90,7 @@ if ! command -v gh &> /dev/null; then
     && sudo apt-get install -qq --yes gh
 
   # gh uses HTTPS by default.
-  gh config set git_protocol ssh
+  /usr/bin/gh config set git_protocol ssh
 fi
 
 # Install the public key for "github.com".

@@ -389,7 +389,7 @@ fi
 
 # Install the GitHub CLI.
 # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
-if ! command -v gh &> /dev/null; then
+if [[ ! -x /usr/bin/gh ]]; then
   sudo mkdir -p -m 755 /etc/apt/keyrings
   curl --silent --fail --show-error --location https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
   sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
@@ -399,7 +399,7 @@ if ! command -v gh &> /dev/null; then
   sudo apt-get install gh --yes
 
   # By default, the GitHub CLI will use HTTPS as the protocol when checking out pull requests.
-  gh config set git_protocol ssh --host github.com
+  /usr/bin/gh config set git_protocol ssh --host github.com
 fi
 
 # Install the GitHub Copilot CLI.
