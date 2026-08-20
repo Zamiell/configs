@@ -534,6 +534,14 @@ if ! command -v helmfmt &> /dev/null; then
   curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | sudo tar -xzf - -C /usr/local/bin/ helmfmt
 fi
 
+# Install the OPA CLI.
+# https://www.openpolicyagent.org/docs/cli
+if ! command -v helmfmt &> /dev/null; then
+  curl --location --output opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
+  chmod 755 opa
+  sudo mv opa /usr/local/bin/
+fi
+
 # endregion
 
 # region: Configure applications
