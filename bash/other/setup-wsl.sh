@@ -153,7 +153,10 @@ install-binary-from-tar-url() {
 
   curl --silent --fail --show-error --location --output "$tmp_path" "$download_url"
   tar -xzf "$tmp_path" -C /tmp
-  sudo mv "/tmp/$binary_name" /usr/local/bin/
+
+  local destination_path="$HOME/.local/bin/"
+  mkdir "$destination_path"
+  mv "/tmp/$binary_name" "$destination_path"
   rm "$tmp_path"
 }
 
@@ -369,13 +372,13 @@ fi
 
 # Install zoxide.
 # https://github.com/ajeetdsouza/zoxide
-if ! command -v zoxide &> /dev/null; then
+if [[ ! -x "$HOME/.local/bin/zoxide" ]]; then
   curl --silent --fail --show-error --location https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 fi
 
 # Install fzf.
 # https://github.com/junegunn/fzf
-if ! command -v fzf &> /dev/null; then
+if [[ ! -x "$HOME/.local/fzf" ]]; then
   DOWNLOAD_URL=$(get-github-latest-release-url "junegunn/fzf" "fzf-{version}-linux_amd64.tar.gz")
   install-binary-from-tar-url "$DOWNLOAD_URL" "fzf"
 fi
@@ -404,7 +407,7 @@ fi
 
 # Install the GitHub Copilot CLI.
 # https://github.com/features/copilot/cli/
-if ! command -v copilot &> /dev/null; then
+if [[ ! -x "$HOME/.local/bin/copilot" ]]; then
   # We need to supply "PREFIX" and "PATH" to prevent the installer from prompting us about adding
   # itself to the PATH.
   COPILOT_CERT_ARGS=()
@@ -483,7 +486,7 @@ if ! command -v tflint &> /dev/null; then
   (cd /tmp && sha256sum --ignore-missing --check "$TFLINT_CHECKSUMS_PATH")
   unzip -o "$TFLINT_ZIP_PATH" -d /tmp
   TFLINT_BINARY_PATH="/tmp/tflint"
-  sudo install --verbose "$TFLINT_BINARY_PATH" /usr/local/bin/
+  install --verbose "$TFLINT_BINARY_PATH" "$HOME/.local/bin/"
   rm "$TFLINT_ZIP_PATH" "$TFLINT_CHECKSUMS_PATH" "$TFLINT_BINARY_PATH"
 fi
 
@@ -530,16 +533,16 @@ fi
 
 # Install helmfmt.
 # https://github.com/digitalstudium/helmfmt
-if ! command -v helmfmt &> /dev/null; then
-  curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | sudo tar -xzf - -C /usr/local/bin/ helmfmt
+if [[ ! -x "$HOME/.local/bin/helmfmt" ]]; then
+  curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | tar -xzf - -C "$HOME/.local/bin/" helmfmt
 fi
 
 # Install the OPA CLI.
 # https://www.openpolicyagent.org/docs/cli
-if ! command -v opa &> /dev/null; then
+if [[ ! -x "$HOME/.local/bin/opa" ]]; then
   curl --location --output opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
   chmod 755 opa
-  sudo mv opa /usr/local/bin/
+  sudo mv opa "$HOME/.local/bin/"
 fi
 
 # endregion
