@@ -1,15 +1,16 @@
 {
   "git": {
     "inline_blame": {
-      "enabled": false // Defaults to enabled.
+      "enabled": false // Defaults to true.
     }
   },
   "preview_tabs": {
-    "enabled": false // Defaults to enabled.
+    "enabled": false // Defaults to true.
   },
   "project_panel": {
-    "dock": "left" // Defaults to the right side.
+    "dock": "left" // Defaults to "right".
   },
+  "show_whitespaces": "all", // Defaults to "selection".
   "wsl_connections": [
     {
       "distro_name": "Ubuntu",

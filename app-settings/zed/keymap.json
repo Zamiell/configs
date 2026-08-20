@@ -1,0 +1,9 @@
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      // https://github.com/zed-industries/zed/pull/62942
+      "ctrl-w": ["pane::CloseActiveItem", { "close_pinned": false }]
+    }
+  }
+]
