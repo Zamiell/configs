@@ -177,6 +177,12 @@ SortNumArray(arr) {
 }
 
 ^+`::{
+  ;if WinExist("ahk_exe notepad++.exe") {
+  ;  WinActivate("ahk_exe notepad++.exe")
+  ;} else {
+  ;  Run("C:\Program Files\Notepad++\notepad++.exe")
+  ;}
+
   ;if (WinExist("ahk_exe VSCodium.exe")) {
   ;  WinActivate "ahk_exe VSCodium.exe"
   ;} else {
