@@ -536,7 +536,7 @@ fi
 
 # Install the OPA CLI.
 # https://www.openpolicyagent.org/docs/cli
-if ! command -v helmfmt &> /dev/null; then
+if ! command -v opa &> /dev/null; then
   curl --location --output opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
   chmod 755 opa
   sudo mv opa /usr/local/bin/
