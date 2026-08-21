@@ -35,14 +35,19 @@ fi
 
 clone-work-repo() {
   if [[ -z "${1:-}" ]]; then
-    echo "You must pass the repository URL as the first argument." >&2
+    echo "Error: You must pass the repository URL as the first argument." >&2
     return 1
   fi
   local repository_url="$1"
 
   local directory_name="${repository_url##*/}"
   if [[ -z "$directory_name" ]]; then
-    echo "Failed to derive the repository directory name from the repository URL of: $repository_url" >&2
+    echo "Error: Failed to derive the repository directory name from the repository URL of: $repository_url" >&2
+    return 1
+  fi
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: The \"REPOSITORIES_DIR\" environment variable must be set to use this function." >&2
     return 1
   fi
 
@@ -106,13 +111,13 @@ run-with-preserved-bashrc() {
 get-github-latest-release-url() {
   local repository="$1"
   if [[ -z "$repository" ]]; then
-    echo "You must pass this function the GitHub author and repository name as the first argument." >&2
+    echo "Error: You must pass this function the GitHub author and repository name as the first argument." >&2
     return 1
   fi
 
   local filename_template="$2"
   if [[ -z "$filename_template" ]]; then
-    echo "You must pass this function the filename template as the second argument." >&2
+    echo "Error: You must pass this function the filename template as the second argument." >&2
     return 1
   fi
 
@@ -124,7 +129,7 @@ get-github-latest-release-url() {
 
   # Check if TAG_NAME is empty or literal "null" (which jq returns if the key is missing).
   if [[ -z "$tag_name" ]] || [[ "$tag_name" == "null" ]]; then
-    echo "Failed to fetch the latest version of: $repository" >&2
+    echo "Error: Failed to fetch the latest version of: $repository" >&2
     return 1
   fi
 
@@ -144,13 +149,13 @@ get-github-latest-release-url() {
 install-binary-from-tar-url() {
   local download_url="$1"
   if [[ -z "$download_url" ]]; then
-    echo "You must pass this function the tar download URL as the first argument." >&2
+    echo "Error: You must pass this function the tar download URL as the first argument." >&2
     return 1
   fi
 
   local binary_name="$2"
   if [[ -z "$binary_name" ]]; then
-    echo "You must pass this function the binary name as the second argument." >&2
+    echo "Error: You must pass this function the binary name as the second argument." >&2
     return 1
   fi
 
@@ -171,7 +176,7 @@ install-binary-from-tar-url() {
 
 install-vscode-extensions() {
   if [[ -z "${1:-}" ]]; then
-    echo "You must pass this function the file path as the first argument." >&2
+    echo "Error: You must pass this function the file path as the first argument." >&2
     return 1
   fi
   local file_path="$1"
@@ -206,7 +211,7 @@ install-vscode-extensions() {
     bunx json5 "$file_path" \
       | jq --raw-output "$jq_filter"
   ); then
-    echo "Error: Failed to parse VS Code extensions from: $file_path" >&2
+    echo "Error: Failed to parse the Visual Studio Code extensions from: $file_path" >&2
     return 1
   fi
 
@@ -484,10 +489,6 @@ if [[ ! -x "$HOME/.local/bin/copilot" ]]; then
 
   curl --silent --fail --show-error --location "${COPILOT_CERT_ARGS[@]}" https://gh.io/copilot-install \
     | PREFIX="$HOME/.local" bash
-
-  mkdir -p "$HOME/.copilot/hooks"
-  cp "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"
-  cp "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"
 fi
 
 # Install the Codex CLI.
@@ -723,6 +724,21 @@ if is-james && [[ ! -s "$HOME/.env" ]]; then
   echo "Decrypting: $HOME/.env"
   age --decrypt --identity "$HOME/.ssh/id_ed25519" --output "$HOME/.env" "$REPOSITORIES_DIR/secrets/.env.age"
   chmod 600 "$HOME/.env"
+fi
+
+# Install GitHub Copilot CLI settings.
+if is-james; then
+  if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"; then
+    echo "Installing: $HOME/.copilot/settings.json"
+    mkdir -p "$HOME/.copilot"
+    cp "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"
+  fi
+
+  if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"; then
+    echo "Installing GitHub Copilot CLI settings: $HOME/.copilot/hooks/sound.json"
+    mkdir -p "$HOME/.copilot/hooks"
+    cp "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"
+  fi
 fi
 
 # Clone work repositories.
