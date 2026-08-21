@@ -446,7 +446,7 @@ fi
 
 # Install fzf.
 # https://github.com/junegunn/fzf
-if [[ ! -x "$HOME/.local/fzf" ]]; then
+if [[ ! -x "$HOME/.local/bin/fzf" ]]; then
   echo "Installing fzf."
   DOWNLOAD_URL=$(get-github-latest-release-url "junegunn/fzf" "fzf-{version}-linux_amd64.tar.gz")
   install-binary-from-tar-url "$DOWNLOAD_URL" "fzf"
