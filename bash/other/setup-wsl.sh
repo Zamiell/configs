@@ -84,30 +84,6 @@ is-james() {
   [[ "$USER" == "james" ]] || [[ "$USER" == "jnesta" ]]
 }
 
-run-with-preserved-bashrc() {
-  local bashrc_path="$HOME/.bashrc"
-  local bashrc_backup
-  bashrc_backup=$(mktemp)
-
-  local bashrc_existed=false
-  if [[ -e "$bashrc_path" ]]; then
-    bashrc_existed=true
-    cp "$bashrc_path" "$bashrc_backup"
-  fi
-
-  local exit_status=0
-  "$@" || exit_status=$?
-
-  if "$bashrc_existed"; then
-    cp "$bashrc_backup" "$bashrc_path"
-  else
-    rm --force "$bashrc_path"
-  fi
-  rm "$bashrc_backup"
-
-  return "$exit_status"
-}
-
 get-github-latest-release-url() {
   local repository="$1"
   if [[ -z "$repository" ]]; then
