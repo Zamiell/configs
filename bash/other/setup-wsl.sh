@@ -663,9 +663,11 @@ fi
 # Load Git settings.
 "$REPOSITORIES_DIR/configs/bash/other/set-git-settings.sh"
 if is-james; then
-  if ! cmp --silent "$REPOSITORIES_DIR/configs/app-settings/ssh/config" "$HOME/.ssh/config"; then
-    echo "Installing the SSH config to: $HOME/.ssh/config"
-    cp "$REPOSITORIES_DIR/configs/app-settings/ssh/config" "$HOME/.ssh/config"
+  CONFIG_SRC="$REPOSITORIES_DIR/configs/app-settings/ssh/config"
+  CONFIG_DST="$HOME/.ssh/config"
+  if ! cmp --silent "$CONFIG_SRC" "$CONFIG_DST"; then
+    echo "Installing the SSH config to: $CONFIG_DST"
+    cp "$CONFIG_SRC" "$CONFIG_DST"
   fi
 fi
 
@@ -748,16 +750,20 @@ fi
 
 # Install GitHub Copilot CLI settings.
 if is-james; then
-  if ! cmp --silent "$REPOSITORIES_DIR/configs/app-settings/copilot/settings.json" "$HOME/.copilot/settings.json"; then
-    echo "Installing: $HOME/.copilot/settings.json"
-    mkdir -p "$HOME/.copilot"
-    cp "$REPOSITORIES_DIR/configs/app-settings/copilot/settings.json" "$HOME/.copilot/settings.json"
+  COPILOT_SETTINGS_SRC="$REPOSITORIES_DIR/configs/app-settings/copilot/settings.json"
+  COPILOT_SETTINGS_DST="$HOME/.copilot/settings.json"
+  if ! cmp --silent "$COPILOT_SETTINGS_SRC" "$COPILOT_SETTINGS_DST"; then
+    echo "Installing: $COPILOT_SETTINGS_DST"
+    mkdir -p "$(dirname "$COPILOT_SETTINGS_DST")"
+    cp "$COPILOT_SETTINGS_SRC" "$COPILOT_SETTINGS_DST"
   fi
 
-  if ! cmp --silent "$REPOSITORIES_DIR/configs/app-settings/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"; then
-    echo "Installing GitHub Copilot CLI settings: $HOME/.copilot/hooks/sound.json"
-    mkdir -p "$HOME/.copilot/hooks"
-    cp "$REPOSITORIES_DIR/configs/app-settings/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"
+  SOUND_JSON_SRC="$REPOSITORIES_DIR/configs/app-settings/copilot/hooks/sound.json"
+  SOUND_JSON_DST="$HOME/.copilot/hooks/sound.json"
+  if ! cmp --silent "$SOUND_JSON_SRC" "$SOUND_JSON_DST"; then
+    echo "Installing GitHub Copilot CLI settings: $SOUND_JSON_DST"
+    mkdir -p "$(dirname "$SOUND_JSON_DST")"
+    cp "$SOUND_JSON_SRC" "$SOUND_JSON_DST"
   fi
 fi
 
