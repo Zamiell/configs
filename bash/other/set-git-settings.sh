@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# We do not set these Git settings every time normal Bash profile loads because it was tested to
+# We do not set these Git settings every time the normal Bash profile loads because it was tested to
 # cost around 1.3 seconds. Instead, this script should be run once on a new computer.
 
 set -euo pipefail # Exit on errors and undefined variables.
@@ -47,12 +47,18 @@ is-git-bash() (
 # Default value: input
 # Explicitly setting it to false prevents Git from changing line endings at any point, which can
 # prevent issues when Windows users collaborate with MacOS/Linus users.
-git config --global core.autocrlf false
+if [[ "$(git config --global core.autocrlf)" != "false" ]]; then
+  echo "Setting Git config: core.autocrlf false"
+  git config --global core.autocrlf false
+fi
 
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-coreignoreCase
 # Default value: false (on Linux machines) or true (on Windows machines)
 # Explicitly setting it to false can prevent problems with interop between Linux & Windows.
-git config --global core.ignorecase false
+if [[ "$(git config --global core.ignorecase)" != "false" ]]; then
+  echo "Setting Git config: core.ignorecase false"
+  git config --global core.ignorecase false
+fi
 
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-corepager
 # Default value: less

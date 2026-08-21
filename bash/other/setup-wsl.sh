@@ -350,7 +350,7 @@ fi
 # Install fnm.
 # https://github.com/Schniz/fnm
 if [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
-  echo "Installing fnm."
+  echo "Installing fnm and Node.js."
 
   # The "--skip-shell" is necessary to prevent fnm from modifying the ".bashrc" file.
   curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash -s -- --skip-shell
@@ -358,12 +358,7 @@ if [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
   # Add it to PATH for the current session.
   export PATH="$HOME/.local/share/fnm:$PATH"
   eval "$(fnm env --shell bash)"
-fi
 
-# Install Node.js (using fnm).
-# fnm installs the binary to a path like: /run/user/1000/fnm_multishells/13969_1787270608748/bin/node
-if ! command -v node &> /dev/null; then
-  echo "Installing Node.js."
   fnm install --lts
 fi
 
