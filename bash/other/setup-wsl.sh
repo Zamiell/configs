@@ -627,37 +627,6 @@ fi
 
 # endregion
 
-# region: Configure applications
-# ----------------------
-# Configure applications
-# ----------------------
-
-# Set up podman.
-if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
-  echo "Setting up podman."
-
-  # On the latest version of Ubuntu (26.04), "podman machine init" does not work anymore without the
-  # "qemu-utils" dependency also installed.
-  podman machine init
-
-  # On the latest version of Ubuntu (26.04), "podman machine start" does not work anymore without
-  # some other manual fixes.
-  sudo mkdir -p /usr/libexec/podman
-  sudo ln -sf /usr/bin/gvproxy /usr/libexec/podman/gvproxy
-  sudo ln -sf /usr/libexec/virtiofsd /usr/local/bin/virtiofsd
-  sudo usermod -aG kvm "$USER"
-  # The above "usermod" command requires a restart of the shell to take effect, so we cannot
-  # immediately invoke "podman machine start".
-fi
-
-# Set up Visual Studio Code.
-install-vscode-extensions "$REPOSITORIES_DIR/configs/.vscode/extensions.json"
-if [[ $PERSONAL == "false" ]]; then
-  install-vscode-extensions "$REPOSITORIES_DIR/infrastructure/infrastructure.code-workspace"
-fi
-
-# endregion
-
 # region: Repositories
 # ------------
 # Repositories
@@ -726,21 +695,6 @@ if is-james && [[ ! -s "$HOME/.env" ]]; then
   chmod 600 "$HOME/.env"
 fi
 
-# Install GitHub Copilot CLI settings.
-if is-james; then
-  if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"; then
-    echo "Installing: $HOME/.copilot/settings.json"
-    mkdir -p "$HOME/.copilot"
-    cp "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"
-  fi
-
-  if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"; then
-    echo "Installing GitHub Copilot CLI settings: $HOME/.copilot/hooks/sound.json"
-    mkdir -p "$HOME/.copilot/hooks"
-    cp "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"
-  fi
-fi
-
 # Clone work repositories.
 if [[ $PERSONAL == "false" ]]; then
   if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
@@ -759,6 +713,52 @@ if [[ $PERSONAL == "false" ]]; then
   fi
 
   clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
+fi
+
+# endregion
+
+# region: Configure applications
+# ----------------------
+# Configure applications
+# ----------------------
+
+# Set up podman.
+if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
+  echo "Setting up podman."
+
+  # On the latest version of Ubuntu (26.04), "podman machine init" does not work anymore without the
+  # "qemu-utils" dependency also installed.
+  podman machine init
+
+  # On the latest version of Ubuntu (26.04), "podman machine start" does not work anymore without
+  # some other manual fixes.
+  sudo mkdir -p /usr/libexec/podman
+  sudo ln -sf /usr/bin/gvproxy /usr/libexec/podman/gvproxy
+  sudo ln -sf /usr/libexec/virtiofsd /usr/local/bin/virtiofsd
+  sudo usermod -aG kvm "$USER"
+  # The above "usermod" command requires a restart of the shell to take effect, so we cannot
+  # immediately invoke "podman machine start".
+fi
+
+# Install Visual Studio Code extensions.
+install-vscode-extensions "$REPOSITORIES_DIR/configs/.vscode/extensions.json"
+if [[ $PERSONAL == "false" ]]; then
+  install-vscode-extensions "$REPOSITORIES_DIR/infrastructure/infrastructure.code-workspace"
+fi
+
+# Install GitHub Copilot CLI settings.
+if is-james; then
+  if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"; then
+    echo "Installing: $HOME/.copilot/settings.json"
+    mkdir -p "$HOME/.copilot"
+    cp "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"
+  fi
+
+  if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"; then
+    echo "Installing GitHub Copilot CLI settings: $HOME/.copilot/hooks/sound.json"
+    mkdir -p "$HOME/.copilot/hooks"
+    cp "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"
+  fi
 fi
 
 # endregion
