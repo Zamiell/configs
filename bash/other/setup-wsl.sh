@@ -241,15 +241,15 @@ install-vscode-extensions() {
 # ----------
 
 # Update the system.
-sudo apt-get update
-sudo apt-get upgrade --yes
-sudo apt-get auto-remove --yes
+sudo apt-get update -qq
+sudo apt-get upgrade -qq --yes
+sudo apt-get auto-remove -qq --yes
 
 # Install some operating system packages.
 # - "gvproxy" is needed for "podman machine start" to work.
 # - "qemu-system-x86" is required for "podman machine init" to work.
 # - "virtiofsd" is needed for "podman machine start" to work.
-sudo apt-get install --yes \
+sudo apt-get install -qq --yes \
   age \
   bind9-dnsutils \
   build-essential \
@@ -751,13 +751,13 @@ if is-james; then
   if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"; then
     echo "Installing: $HOME/.copilot/settings.json"
     mkdir -p "$HOME/.copilot"
-    cp "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"
+    cp "$REPOSITORIES_DIR/configs/app-settings/copilot/settings.json" "$HOME/.copilot/settings.json"
   fi
 
   if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"; then
     echo "Installing GitHub Copilot CLI settings: $HOME/.copilot/hooks/sound.json"
     mkdir -p "$HOME/.copilot/hooks"
-    cp "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"
+    cp "$REPOSITORIES_DIR/configs/app-settings/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"
   fi
 fi
 
