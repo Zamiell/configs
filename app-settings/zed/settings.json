@@ -1,16 +1,36 @@
 {
   "git": {
+    // Defaults to true.
+    // https://zed.dev/docs/reference/all-settings?highlight=zoom#inline-git-blame
     "inline_blame": {
-      "enabled": false // Defaults to true.
+      "enabled": false
     }
   },
+
+  // Defaults to false.
+  // https://zed.dev/docs/reference/all-settings?highlight=zoom#mouse-wheel-zoom
+  "mouse_wheel_zoom": true,
+
+  // Defaults to true.
+  // https://zed.dev/docs/reference/all-settings?highlight=zoom#preview-tabs
   "preview_tabs": {
-    "enabled": false // Defaults to true.
+    "enabled": false
   },
+
+  // Defaults to "right".
+  // https://zed.dev/docs/reference/all-settings?highlight=zoom#project-panel
   "project_panel": {
-    "dock": "left" // Defaults to "right".
+    "dock": "left"
   },
-  "show_whitespaces": "all", // Defaults to "selection".
+
+  // Defaults to "selection".
+  // https://zed.dev/docs/reference/all-settings?highlight=zoom#show-whitespaces
+  "show_whitespaces": "all",
+
+  // Defaults to "none".
+  // https://zed.dev/docs/reference/all-settings?highlight=zoom#soft-wrap
+  "soft_wrap": "editor_width",
+
   "wsl_connections": [
     {
       "distro_name": "Ubuntu",
