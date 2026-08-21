@@ -64,8 +64,10 @@ $action = New-ScheduledTaskAction `
     -Execute "wscript.exe" `
     -Argument "//B //NoLogo `"$hiddenLauncher`"" `
     -WorkingDirectory $PSScriptRoot
-$time = "12:00AM"
-$trigger = New-ScheduledTaskTrigger -Daily -At $time
+$times = @("12:00AM", "12:00PM")
+$triggers = $times | ForEach-Object {
+    New-ScheduledTaskTrigger -Daily -At $_
+}
 $settings = New-ScheduledTaskSettingsSet @commonSettings -WakeToRun
 $principal = New-ScheduledTaskPrincipal `
     -UserId $VpnStandardAccount `
@@ -75,11 +77,11 @@ $principal = New-ScheduledTaskPrincipal `
 Register-ScheduledTask `
     -TaskName $taskName `
     -Action $action `
-    -Trigger $trigger `
+    -Trigger $triggers `
     -Settings $settings `
     -Principal $principal `
     -Force `
     -ErrorAction Stop
 
 Write-Host "Successfully installed scheduled task: $taskName"
-Write-Host "It will run daily at: $time"
+Write-Host "It will run daily at: $($times -join ' and ')"
