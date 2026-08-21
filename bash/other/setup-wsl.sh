@@ -330,7 +330,8 @@ if [[ ! -x "$HOME/.local/share/pnpm/bin/pnpm" ]]; then
   install-pnpm() {
     curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | sh
   }
-  run-with-preserved-bashrc install-pnpm
+  #run-with-preserved-bashrc install-pnpm
+  install-pnpm # TODO
   export PATH="$HOME/.local/share/pnpm/bin:$PATH"
 fi
 
@@ -342,7 +343,8 @@ if [[ ! -x "$HOME/.bun/bin/bun" ]]; then
   install-bun() {
     curl --silent --fail --show-error --location https://bun.com/install | bash
   }
-  run-with-preserved-bashrc install-bun
+  #run-with-preserved-bashrc install-bun
+  install-bun # TODO
   export PATH="$HOME/.bun/bin:$PATH"
 fi
 
@@ -352,7 +354,8 @@ if [[ ! -x "$HOME/.local/bin/uv" ]]; then
   install-uv() {
     curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | sh
   }
-  run-with-preserved-bashrc install-uv
+  #run-with-preserved-bashrc install-uv
+  install-uv # TODO
 fi
 
 # Install PowerShell.
@@ -380,6 +383,7 @@ fi
 # https://rust-lang.org/tools/install/
 if [[ ! -x "$HOME/.cargo/bin/rustup" ]]; then
   curl --silent --fail --show-error --location --proto '=https' --tlsv1.2 https://sh.rustup.rs | sh -s -- -y --no-modify-path
+  # shellcheck source=/dev/null
   source "$HOME/.cargo/env"
 fi
 
@@ -448,7 +452,8 @@ if [[ ! -x "$HOME/.local/bin/codex" ]]; then
   install-codex-cli() {
     curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
   }
-  run-with-preserved-bashrc install-codex-cli
+  #run-with-preserved-bashrc install-codex-cli
+  install-codex-cli # TODO
 fi
 
 # Install OpenCode.
