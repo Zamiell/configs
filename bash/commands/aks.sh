@@ -366,12 +366,12 @@ EOF
   fi
 
   if ! command -v az &> /dev/null; then
-    akspim-error "az is not installed or not in PATH"
+    akspim-error "az is not installed or not in PATH."
     return 1
   fi
 
   if ! command -v jq &> /dev/null; then
-    akspim-error "jq is required for this command"
+    akspim-error "jq is not installed or not in PATH."
     return 1
   fi
 

@@ -298,16 +298,17 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # Install Golang.
 # https://go.dev/doc/install
-if ! command -v go &> /dev/null; then
+if [[ ! -x "/usr/local/go/bin/go" ]]; then
   LATEST_GO_VERSION=$(curl --silent --fail --show-error --location https://go.dev/VERSION?m=text | head --lines=1)
   curl --silent --fail --location --output /tmp/go.tar.gz "https://go.dev/dl/$LATEST_GO_VERSION.linux-amd64.tar.gz"
   sudo tar -C /usr/local -xzf /tmp/go.tar.gz
   rm /tmp/go.tar.gz
+  export PATH="/usr/local/go/bin:$PATH"
 fi
 
 # Install fnm.
 # https://github.com/Schniz/fnm
-if ! command -v fnm &> /dev/null; then
+if [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
   # The "--skip-shell" is necessary to prevent fnm from modifying the ".bashrc" file.
   curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash -s -- --skip-shell
 
@@ -316,8 +317,8 @@ if ! command -v fnm &> /dev/null; then
   eval "$(fnm env --shell bash)"
 fi
 
-# Install Node.js
-if ! command -v node &> /dev/null && command -v fnm &> /dev/null; then
+# Install Node.js (using fnm).
+if ! command -v node &> /dev/null; then
   fnm install --lts
 fi
 

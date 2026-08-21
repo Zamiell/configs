@@ -72,7 +72,7 @@ fi
 touch "$HOME/.hushlogin"
 
 # Install Git.
-if ! command -v git &> /dev/null; then
+if [[ ! -x "/usr/bin/git" ]]; then
   sudo apt-get install -qq --yes git
   git config --global user.name "$FULL_NAME"
   git config --global user.email "$WORK_EMAIL"
