@@ -325,31 +325,20 @@ gbr() (
 
   assert-in-git-repository
 
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Branch name is required. Usage: ${FUNCNAME[0]} <branch-name>" >&2
+    return 1
+  fi
+
   local old_branch_name
   old_branch_name=$(git branch --show-current) # e.g. "feature/alice/fix-bug-1"
 
   local new_branch_name
   if [[ "$use_logixhealth_convention" == "true" ]]; then
-    IFS='/' read -ra branch_parts <<< "$old_branch_name"
-    if [[ ${#branch_parts[@]} -ne 3 ]]; then
-      echo "Error: Branch name must have exactly 3 parts separated by a forward slash. The current branch name is: $old_branch_name" >&2
-      return 1
-    fi
-
-    local branch_type="${branch_parts[0]}"     # e.g. "feature"
-    local branch_username="${branch_parts[1]}" # e.g. "alice"
-    local old_description="${branch_parts[2]}" # e.g. "fix-bug-1"
-    local new_description="$old_description"
-    if [[ -n "${1:-}" ]]; then
-      new_description="$1"
-    fi
-
-    new_branch_name="$branch_type/$branch_username/$new_description"
+    local username
+    username=$(get-username)
+    new_branch_name="feature/$username/$1"
   else
-    if [[ -z "${1:-}" ]]; then
-      echo "Error: Branch name is required. Usage: ${FUNCNAME[0]} <branch-name>" >&2
-      return 1
-    fi
     new_branch_name="$1"
   fi
 
