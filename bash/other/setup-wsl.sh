@@ -184,8 +184,7 @@ install-vscode-extensions() {
 
   local extensions_output
   if ! extensions_output=$(
-    bunx json5 "$file_path" \
-      | jq --raw-output "$jq_filter"
+    "$HOME/.bun/bin/bunx" json5 "$file_path" | jq --raw-output "$jq_filter"
   ); then
     echo "Error: Failed to parse the Visual Studio Code extensions from: $file_path" >&2
     return 1
@@ -646,8 +645,7 @@ if ! grep --quiet "Load the commands from the \"configs\"" "$BASHRC_PATH"; then
 # Load the commands from the "configs" GitHub repository: https://github.com/Zamiell/configs
 CONFIGS_REPO_PATH="$HOME/repositories/configs"
 # shellcheck source=/dev/null
-source "$CONFIGS_REPO_PATH/bash/bashrc.sh"
-' >> "$BASHRC_PATH"
+source "$CONFIGS_REPO_PATH/bash/bashrc.sh"' >> "$BASHRC_PATH"
 fi
 
 # Install the wslview shim. (See the comments in the "wslview" script.)
