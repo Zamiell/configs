@@ -347,12 +347,11 @@ if [[ ! -x "/usr/local/go/bin/go" ]]; then
   export PATH="/usr/local/go/bin:$PATH"
 fi
 
-# Install fnm.
+# Install fnm and Node.js.
 # https://github.com/Schniz/fnm
 if [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
   echo "Installing fnm and Node.js."
-
-  # The "--skip-shell" is necessary to prevent fnm from modifying the ".bashrc" file.
+  # "--skip-shell" is necessary to prevent the installer from modifying the ".bashrc" file.
   curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash -s -- --skip-shell
 
   # Add it to PATH for the current session.
@@ -366,11 +365,9 @@ fi
 # https://pnpm.io/installation#on-posix-systems
 if [[ ! -x "$HOME/.local/share/pnpm/bin/pnpm" ]]; then
   echo "Installing pnpm."
-  install-pnpm() {
-    curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | sh
-  }
-  #run-with-preserved-bashrc install-pnpm
-  install-pnpm # TODO
+  # "ENV" and "SHELL" are necessary to prevent the installer from modifying the ".bashrc" file:
+  # https://github.com/pnpm/pnpm/issues/5771?utm_source=chatgpt.com
+  curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | ENV=/dev/null SHELL=/bin/sh sh
   export PATH="$HOME/.local/share/pnpm/bin:$PATH"
 fi
 
@@ -380,11 +377,8 @@ fi
 # time.)
 if [[ ! -x "$HOME/.bun/bin/bun" ]]; then
   echo "Installing bun."
-  install-bun() {
-    curl --silent --fail --show-error --location https://bun.com/install | bash
-  }
-  #run-with-preserved-bashrc install-bun
-  install-bun # TODO
+  # "PATH" is necessary to prevent the installer from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://bun.com/install | PATH="$HOME/.bun/bin:$PATH" bash
   export PATH="$HOME/.bun/bin:$PATH"
 fi
 
@@ -392,11 +386,8 @@ fi
 # https://docs.astral.sh/uv/getting-started/installation/
 if [[ ! -x "$HOME/.local/bin/uv" ]]; then
   echo "Installing uv."
-  install-uv() {
-    curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | sh
-  }
-  #run-with-preserved-bashrc install-uv
-  install-uv # TODO
+  # "UV_NO_MODIFY_PATH" is necessary to prevent the installer from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | UV_NO_MODIFY_PATH=1 sh
 fi
 
 # Install PowerShell.
@@ -425,6 +416,7 @@ fi
 # https://rust-lang.org/tools/install/
 if [[ ! -x "$HOME/.cargo/bin/rustup" ]]; then
   echo "Installing Rust."
+  # "--no-modify-path" is necessary to prevent the installer from modifying the ".bashrc" file.
   curl --silent --fail --show-error --location --proto '=https' --tlsv1.2 https://sh.rustup.rs | sh -s -- -y --no-modify-path
   # shellcheck source=/dev/null
   source "$HOME/.cargo/env"
@@ -480,31 +472,28 @@ fi
 if [[ ! -x "$HOME/.local/bin/copilot" ]]; then
   echo "Installing the GitHub Copilot CLI."
 
-  # We need to supply "PREFIX" to prevent the installer from prompting us about adding itself to the
-  # PATH.
   COPILOT_CERT_ARGS=()
   if [[ $PERSONAL == "false" ]]; then
     COPILOT_CERT_ARGS+=(--cacert "$CERT_PATH")
   fi
 
-  curl --silent --fail --show-error --location "${COPILOT_CERT_ARGS[@]}" https://gh.io/copilot-install \
-    | PREFIX="$HOME/.local" bash
+  # "PREFIX" is necessary to prevent the installer from prompting us about adding itself to the
+  # PATH.
+  curl --silent --fail --show-error --location "${COPILOT_CERT_ARGS[@]}" https://gh.io/copilot-install | PREFIX="$HOME/.local" bash
 fi
 
 # Install the Codex CLI.
 # https://learn.chatgpt.com/docs/codex/cli#getting-started
 if [[ ! -x "$HOME/.local/bin/codex" ]]; then
   echo "Installing the Codex CLI."
-  install-codex-cli() {
-    curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
-  }
-  #run-with-preserved-bashrc install-codex-cli
-  install-codex-cli # TODO
+  # "CODEX_NON_INTERACTIVE" is necessary to prevent the installer from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | PATH="$HOME/.local/bin:$PATH" CODEX_NON_INTERACTIVE=1 sh
 fi
 
 # Install OpenCode.
 if [[ ! -x "$HOME/.opencode/bin/opencode" ]]; then
   echo "Installing OpenCode."
+  # "--no-modify-path" is necessary to prevent the installer from modifying the ".bashrc" file.
   curl --silent --fail --show-error --location https://opencode.ai/install | bash -s -- --no-modify-path
 fi
 
@@ -573,7 +562,8 @@ fi
 # Install Pulumi.
 if [[ ! -x "$HOME/.pulumi/bin/pulumi" ]]; then
   echo "Installing Pulumi."
-  curl --silent --fail --show-error --location https://get.pulumi.com | sh
+  # "--no-edit-path" is necessary to prevent the installer from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://get.pulumi.com | sh -s -- --no-edit-path
   export PATH="$HOME/.pulumi/bin:$PATH"
 fi
 
