@@ -219,6 +219,7 @@ install-vscode-extensions() {
   local extension
   for extension in "${extensions[@]}"; do
     if [[ -z "${installed_extensions[${extension,,}]:-}" ]]; then
+      echo "Installing Visual Studio Code extension: $extension"
       code --install-extension "$extension"
     fi
   done
@@ -260,6 +261,7 @@ sudo apt-get install --yes \
 if [[ $PERSONAL == "false" ]]; then
   CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
   if [[ ! -s "$CERT_PATH" ]]; then
+    echo "Installing the LogixHealth certificate to: $CERT_PATH"
     sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH"
     sudo update-ca-certificates
   fi
@@ -268,21 +270,45 @@ fi
 # Set up SSH.
 mkdir -p "$HOME/.ssh"
 if is-james; then
-  if [[ ! -s "$HOME/.ssh/id_ed25519" ]]; then
-    cp "/mnt/c/Users/$USER/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519"
-    chmod 600 "$HOME/.ssh/id_ed25519"
+  PRIVATE_KEY_FILE_NAME="id_ed25519"
+  PUBLIC_KEY_FILE_NAME="$PRIVATE_KEY_FILE_NAME.pub"
+
+  HOST_SSH_DIRECTORY_PATH="/mnt/c/Users/$USER/.ssh"
+  GUEST_SSH_DIRECTORY_PATH="$HOME/.ssh"
+  mkdir -p "$GUEST_SSH_DIRECTORY_PATH"
+
+  SSH_PRIVATE_KEY_PATH_PERSONAL="$GUEST_SSH_DIRECTORY_PATH/$PRIVATE_KEY_FILE_NAME"
+  if [[ ! -s "$SSH_PRIVATE_KEY_PATH_PERSONAL" ]]; then
+    echo "Installing the private SSH key (personal) to: $SSH_PRIVATE_KEY_PATH_PERSONAL"
+    cp "$HOST_SSH_DIRECTORY_PATH/$PRIVATE_KEY_FILE_NAME" "$SSH_PRIVATE_KEY_PATH_PERSONAL"
+    chmod 600 "$SSH_PRIVATE_KEY_PATH_PERSONAL"
   fi
-  if [[ ! -s "$HOME/.ssh/id_ed25519.pub" ]]; then
-    cp "/mnt/c/Users/$USER/.ssh/id_ed25519.pub" "$HOME/.ssh/id_ed25519.pub"
+
+  SSH_PUBLIC_KEY_PATH_PERSONAL="$GUEST_SSH_DIRECTORY_PATH/$PUBLIC_KEY_FILE_NAME"
+  if [[ ! -s "$SSH_PUBLIC_KEY_PATH_PERSONAL" ]]; then
+    echo "Installing the public SSH key (personal) to: $SSH_PUBLIC_KEY_PATH_PERSONAL"
+    cp "$HOST_SSH_DIRECTORY_PATH/$PUBLIC_KEY_FILE_NAME" "$SSH_PUBLIC_KEY_PATH_PERSONAL"
   fi
+
   if [[ $PERSONAL == "false" ]]; then
-    mkdir -p "$HOME/.ssh/work"
-    if [[ ! -s "$HOME/.ssh/work/id_rsa" ]]; then
-      cp "/mnt/c/Users/$USER/.ssh/work/id_rsa" "$HOME/.ssh/work/id_rsa"
-      chmod 600 "$HOME/.ssh/work/id_rsa"
+    PRIVATE_KEY_FILE_NAME_WORK="id_rsa"
+    PUBLIC_KEY_FILE_NAME_WORK="$PRIVATE_KEY_FILE_NAME_WORK.pub"
+
+    HOST_SSH_DIRECTORY_PATH_WORK="$HOST_SSH_DIRECTORY_PATH/work"
+    GUEST_SSH_DIRECTORY_PATH_WORK="$GUEST_SSH_DIRECTORY_PATH/work"
+    mkdir -p "$GUEST_SSH_DIRECTORY_PATH_WORK"
+
+    SSH_PRIVATE_KEY_PATH_WORK="$GUEST_SSH_DIRECTORY_PATH_WORK/$PRIVATE_KEY_FILE_NAME_WORK"
+    if [[ ! -s "$SSH_PRIVATE_KEY_PATH_WORK" ]]; then
+      echo "Installing the private SSH key (work) to: $SSH_PRIVATE_KEY_PATH_WORK"
+      cp "$HOST_SSH_DIRECTORY_PATH_WORK/$PRIVATE_KEY_FILE_NAME_WORK" "$SSH_PRIVATE_KEY_PATH_WORK"
+      chmod 600 "$SSH_PRIVATE_KEY_PATH_WORK"
     fi
-    if [[ ! -s "$HOME/.ssh/work/id_rsa.pub" ]]; then
-      cp "/mnt/c/Users/$USER/.ssh/work/id_rsa.pub" "$HOME/.ssh/work/id_rsa.pub"
+
+    SSH_PUBLIC_KEY_PATH_WORK="$GUEST_SSH_DIRECTORY_PATH_WORK/$PUBLIC_KEY_FILE_NAME"
+    if [[ ! -s "$SSH_PUBLIC_KEY_PATH_WORK" ]]; then
+      echo "Installing the public SSH key (work) to: $SSH_PUBLIC_KEY_PATH_WORK"
+      cp "$HOST_SSH_DIRECTORY_PATH_WORK/$PUBLIC_KEY_FILE_NAME_WORK" "$SSH_PUBLIC_KEY_PATH_WORK"
     fi
   fi
 fi
@@ -300,6 +326,7 @@ export PATH="$HOME/.local/bin:$PATH"
 # Install Golang.
 # https://go.dev/doc/install
 if [[ ! -x "/usr/local/go/bin/go" ]]; then
+  echo "Installing Golang."
   LATEST_GO_VERSION=$(curl --silent --fail --show-error --location https://go.dev/VERSION?m=text | head --lines=1)
   curl --silent --fail --location --output /tmp/go.tar.gz "https://go.dev/dl/$LATEST_GO_VERSION.linux-amd64.tar.gz"
   sudo tar -C /usr/local -xzf /tmp/go.tar.gz
@@ -310,6 +337,8 @@ fi
 # Install fnm.
 # https://github.com/Schniz/fnm
 if [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
+  echo "Installing fnm."
+
   # The "--skip-shell" is necessary to prevent fnm from modifying the ".bashrc" file.
   curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash -s -- --skip-shell
 
@@ -321,12 +350,14 @@ fi
 # Install Node.js (using fnm).
 # fnm installs the binary to a path like: /run/user/1000/fnm_multishells/13969_1787270608748/bin/node
 if ! command -v node &> /dev/null; then
+  echo "Installing Node.js."
   fnm install --lts
 fi
 
 # Install pnpm.
 # https://pnpm.io/installation#on-posix-systems
 if [[ ! -x "$HOME/.local/share/pnpm/bin/pnpm" ]]; then
+  echo "Installing pnpm."
   install-pnpm() {
     curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | sh
   }
@@ -340,6 +371,7 @@ fi
 # (This is needed before cloning repositories so that we can install the dependencies at the same
 # time.)
 if [[ ! -x "$HOME/.bun/bin/bun" ]]; then
+  echo "Installing bun."
   install-bun() {
     curl --silent --fail --show-error --location https://bun.com/install | bash
   }
@@ -351,6 +383,7 @@ fi
 # Install uv.
 # https://docs.astral.sh/uv/getting-started/installation/
 if [[ ! -x "$HOME/.local/bin/uv" ]]; then
+  echo "Installing uv."
   install-uv() {
     curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | sh
   }
@@ -361,6 +394,7 @@ fi
 # Install PowerShell.
 # https://learn.microsoft.com/en-us/powershell/scripting/install/install-ubuntu
 if [[ ! -x "/usr/bin/pwsh" ]]; then
+  echo "Installing PowerShell."
   DEB_PATH="/tmp/packages-microsoft-prod.deb"
   curl --silent --fail --show-error --location --output "$DEB_PATH" "https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb"
   sudo dpkg --install "$DEB_PATH"
@@ -382,6 +416,7 @@ fi
 # Install Rust.
 # https://rust-lang.org/tools/install/
 if [[ ! -x "$HOME/.cargo/bin/rustup" ]]; then
+  echo "Installing Rust."
   curl --silent --fail --show-error --location --proto '=https' --tlsv1.2 https://sh.rustup.rs | sh -s -- -y --no-modify-path
   # shellcheck source=/dev/null
   source "$HOME/.cargo/env"
@@ -397,12 +432,14 @@ fi
 # Install zoxide.
 # https://github.com/ajeetdsouza/zoxide
 if [[ ! -x "$HOME/.local/bin/zoxide" ]]; then
+  echo "Installing zoxide."
   curl --silent --fail --show-error --location https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 fi
 
 # Install fzf.
 # https://github.com/junegunn/fzf
 if [[ ! -x "$HOME/.local/fzf" ]]; then
+  echo "Installing fzf."
   DOWNLOAD_URL=$(get-github-latest-release-url "junegunn/fzf" "fzf-{version}-linux_amd64.tar.gz")
   install-binary-from-tar-url "$DOWNLOAD_URL" "fzf"
 fi
@@ -417,6 +454,7 @@ fi
 # Install the GitHub CLI.
 # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
 if [[ ! -x /usr/bin/gh ]]; then
+  echo "Installing the GitHub CLI."
   sudo mkdir -p -m 755 /etc/apt/keyrings
   curl --silent --fail --show-error --location https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
   sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
@@ -432,12 +470,15 @@ fi
 # Install the GitHub Copilot CLI.
 # https://github.com/features/copilot/cli/
 if [[ ! -x "$HOME/.local/bin/copilot" ]]; then
+  echo "Installing the GitHub Copilot CLI."
+
   # We need to supply "PREFIX" to prevent the installer from prompting us about adding itself to the
   # PATH.
   COPILOT_CERT_ARGS=()
   if [[ $PERSONAL == "false" ]]; then
     COPILOT_CERT_ARGS+=(--cacert "$CERT_PATH")
   fi
+
   curl --silent --fail --show-error --location "${COPILOT_CERT_ARGS[@]}" https://gh.io/copilot-install \
     | PREFIX="$HOME/.local" bash
 
@@ -449,6 +490,7 @@ fi
 # Install the Codex CLI.
 # https://learn.chatgpt.com/docs/codex/cli#getting-started
 if [[ ! -x "$HOME/.local/bin/codex" ]]; then
+  echo "Installing the Codex CLI."
   install-codex-cli() {
     curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
   }
@@ -458,12 +500,14 @@ fi
 
 # Install OpenCode.
 if [[ ! -x "$HOME/.opencode/bin/opencode" ]]; then
+  echo "Installing OpenCode."
   curl --silent --fail --show-error --location https://opencode.ai/install | bash -s -- --no-modify-path
 fi
 
 # Install the Azure CLI.
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
 if [[ ! -x /usr/bin/az ]]; then
+  echo "Installing the Azure CLI."
   curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
 
   if [[ $PERSONAL == "false" ]]; then
@@ -487,6 +531,7 @@ fi
 # Install Terraform.
 # https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
 if [[ ! -x /usr/bin/terraform ]]; then
+  echo "Installing Terraform."
   curl --silent --fail --show-error --location https://apt.releases.hashicorp.com/gpg \
     | gpg --dearmor \
     | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
@@ -499,6 +544,7 @@ fi
 # Install TFLint.
 # https://github.com/terraform-linters/tflint
 if [[ ! -x "$HOME/.local/bin/tflint" ]]; then
+  echo "Installing TFLint."
   TFLINT_ZIP_PATH="/tmp/tflint_linux_amd64.zip"
   TFLINT_CHECKSUMS_PATH="/tmp/tflint_checksums.txt"
   curl --silent --fail --show-error --location --output "$TFLINT_ZIP_PATH" \
@@ -515,12 +561,14 @@ fi
 # Install `terraform-docs`.
 # https://github.com/terraform-docs/terraform-docs
 if [[ ! -x "$HOME/.local/bin/terraform-docs" ]]; then
+  echo "Installing terraform-docs."
   DOWNLOAD_URL=$(get-github-latest-release-url "terraform-docs/terraform-docs" "terraform-docs-v{version}-linux-amd64.tar.gz")
   install-binary-from-tar-url "$DOWNLOAD_URL" "terraform-docs"
 fi
 
 # Install Pulumi.
 if [[ ! -x "$HOME/.pulumi/bin/pulumi" ]]; then
+  echo "Installing Pulumi."
   curl --silent --fail --show-error --location https://get.pulumi.com | sh
   export PATH="$HOME/.pulumi/bin:$PATH"
 fi
@@ -533,6 +581,7 @@ fi
 # ERROR: Connection error while attempting to download client (<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Missing Authority Key Identifier (_ssl.c:1032)>)
 # The "--client-version" and "--kubelogin-version" flags are needed to prevent warnings from appearing.
 if [[ ! -x "/usr/local/bin/kubectl" ]]; then
+  echo "Installing kubectl and kubelogin."
   export KUBECTL_VERSION="1.35.2" \
     && export KUBELOGIN_VERSION="0.2.16" \
     && sudo az aks install-cli --client-version "$KUBECTL_VERSION" --kubelogin-version "$KUBELOGIN_VERSION"
@@ -540,6 +589,7 @@ fi
 
 # Install kustomize.
 if [[ ! -x "$HOME/.local/bin/kustomize" ]]; then
+  echo "Installing kustomize."
   DOWNLOAD_URL=$(get-github-latest-release-url "kubernetes-sigs/kustomize" "kustomize_{tag_version}_linux_amd64.tar.gz")
   install-binary-from-tar-url "$DOWNLOAD_URL" "kustomize"
 fi
@@ -547,6 +597,7 @@ fi
 # Install Helm.
 # https://helm.sh/docs/intro/install/
 if [[ ! -x "/usr/sbin/helm" ]]; then
+  echo "Installing Helm."
   curl --silent --fail --show-error --location https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
   echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
   sudo apt-get update
@@ -556,12 +607,14 @@ fi
 # Install helmfmt.
 # https://github.com/digitalstudium/helmfmt
 if [[ ! -x "$HOME/.local/bin/helmfmt" ]]; then
+  echo "Installing helmfmt."
   curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | tar -xzf - -C "$HOME/.local/bin/" helmfmt
 fi
 
 # Install the OPA CLI.
 # https://www.openpolicyagent.org/docs/cli
 if [[ ! -x "$HOME/.local/bin/opa" ]]; then
+  echo "Installing the OPA CLI."
   OPA_BINARY_PATH="/tmp/opa"
   curl --silent --fail --show-error --location --output "$OPA_BINARY_PATH" https://openpolicyagent.org/downloads/latest/opa_linux_amd64
   install --verbose "$OPA_BINARY_PATH" "$HOME/.local/bin/"
@@ -577,6 +630,8 @@ fi
 
 # Set up podman.
 if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
+  echo "Setting up podman."
+
   # On the latest version of Ubuntu (26.04), "podman machine init" does not work anymore without the
   # "qemu-utils" dependency also installed.
   podman machine init
@@ -606,12 +661,14 @@ fi
 
 # Clone personal repositories.
 if ! ssh-keygen -F github.com &> /dev/null; then
+  echo "Installing the GitHub SSH key."
   ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
 fi
 REPOSITORIES_DIR="$HOME/repositories"
 mkdir -p "$REPOSITORIES_DIR"
 cd "$REPOSITORIES_DIR"
 if [[ ! -d "$REPOSITORIES_DIR/configs" ]]; then
+  echo "Cloning the \"configs\" repository."
   if [[ -s "$HOME/.ssh/id_ed25519" ]]; then
     git clone git@github.com:Zamiell/configs.git
   else
@@ -621,9 +678,11 @@ if [[ ! -d "$REPOSITORIES_DIR/configs" ]]; then
 fi
 if is-james; then
   if [[ ! -d "$REPOSITORIES_DIR/notes" ]]; then
+    echo "Cloning the \"notes\" repository."
     git clone git@github.com:Zamiell/notes.git
   fi
   if [[ ! -d "$REPOSITORIES_DIR/secrets" ]]; then
+    echo "Cloning the \"secrets\" repository."
     git clone git@github.com:Zamiell/secrets.git
   fi
 fi
