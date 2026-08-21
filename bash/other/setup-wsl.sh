@@ -161,7 +161,7 @@ install-binary-from-tar-url() {
   tar -xzf "$tmp_path" -C /tmp
 
   local destination_path="$HOME/.local/bin/"
-  mkdir "$destination_path"
+  mkdir -p "$destination_path"
   mv "/tmp/$binary_name" "$destination_path"
   rm "$tmp_path"
 }
@@ -192,6 +192,7 @@ install-vscode-extensions() {
       ;;
   esac
 
+  # "code" is located at: /mnt/c/Users/$USER/AppData/Local/Programs/Microsoft VS Code/bin/code
   if ! command -v code &> /dev/null; then
     echo "Error: The \"code\" command is not available. Install the \"WSL\" extension in Visual Studio Code and then re-run this script." >&2
     return 1
@@ -318,24 +319,26 @@ if [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
 fi
 
 # Install Node.js (using fnm).
+# fnm installs the binary to a path like: /run/user/1000/fnm_multishells/13969_1787270608748/bin/node
 if ! command -v node &> /dev/null; then
   fnm install --lts
 fi
 
 # Install pnpm.
 # https://pnpm.io/installation#on-posix-systems
-if ! command -v pnpm &> /dev/null; then
+if [[ ! -x "$HOME/.local/share/pnpm/bin/pnpm" ]]; then
   install-pnpm() {
     curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | sh
   }
   run-with-preserved-bashrc install-pnpm
+  export PATH="$HOME/.local/share/pnpm/bin:$PATH"
 fi
 
 # Install Bun.
 # https://bun.sh/
 # (This is needed before cloning repositories so that we can install the dependencies at the same
 # time.)
-if ! command -v bun &> /dev/null; then
+if [[ ! -x "$HOME/.bun/bin/bun" ]]; then
   install-bun() {
     curl --silent --fail --show-error --location https://bun.com/install | bash
   }
@@ -345,13 +348,16 @@ fi
 
 # Install uv.
 # https://docs.astral.sh/uv/getting-started/installation/
-if ! command -v uv &> /dev/null; then
-  curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | sh
+if [[ ! -x "$HOME/.local/bin/uv" ]]; then
+  install-uv() {
+    curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | sh
+  }
+  run-with-preserved-bashrc install-uv
 fi
 
 # Install PowerShell.
 # https://learn.microsoft.com/en-us/powershell/scripting/install/install-ubuntu
-if ! command -v pwsh &> /dev/null; then
+if [[ ! -x "/usr/bin/pwsh" ]]; then
   DEB_PATH="/tmp/packages-microsoft-prod.deb"
   curl --silent --fail --show-error --location --output "$DEB_PATH" "https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb"
   sudo dpkg --install "$DEB_PATH"
@@ -370,8 +376,11 @@ if ! command -v pwsh &> /dev/null; then
   fi
 fi
 
-if ! command -v rustup &> /dev/null; then
+# Install Rust.
+# https://rust-lang.org/tools/install/
+if [[ ! -x "$HOME/.cargo/bin/rustup" ]]; then
   curl --silent --fail --show-error --location --proto '=https' --tlsv1.2 https://sh.rustup.rs | sh -s -- -y --no-modify-path
+  source "$HOME/.cargo/env"
 fi
 
 # endregion
@@ -435,23 +444,20 @@ fi
 
 # Install the Codex CLI.
 # https://learn.chatgpt.com/docs/codex/cli#getting-started
-if ! command -v codex &> /dev/null; then
+if [[ ! -x "$HOME/.local/bin/codex" ]]; then
   install-codex-cli() {
-    curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh \
-      | CODEX_NON_INTERACTIVE=1 sh
+    curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
   }
   run-with-preserved-bashrc install-codex-cli
 fi
 
 # Install OpenCode.
-if ! command -v opencode &> /dev/null; then
-  curl --silent --fail --show-error --location https://opencode.ai/install | bash
+if [[ ! -x "$HOME/.opencode/bin/opencode" ]]; then
+  curl --silent --fail --show-error --location https://opencode.ai/install | bash -s -- --no-modify-path
 fi
 
 # Install the Azure CLI.
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
-# Unlike other tools, we do not use "command -v az" because if the Azure CLI is installed in the
-# host Windows, it will automatically work inside WSL.
 if [[ ! -x /usr/bin/az ]]; then
   curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
 
@@ -475,7 +481,7 @@ fi
 
 # Install Terraform.
 # https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
-if ! command -v terraform &> /dev/null; then
+if [[ ! -x /usr/bin/terraform ]]; then
   curl --silent --fail --show-error --location https://apt.releases.hashicorp.com/gpg \
     | gpg --dearmor \
     | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
@@ -487,7 +493,7 @@ fi
 
 # Install TFLint.
 # https://github.com/terraform-linters/tflint
-if ! command -v tflint &> /dev/null; then
+if [[ ! -x "$HOME/.local/bin/tflint" ]]; then
   TFLINT_ZIP_PATH="/tmp/tflint_linux_amd64.zip"
   TFLINT_CHECKSUMS_PATH="/tmp/tflint_checksums.txt"
   curl --silent --fail --show-error --location --output "$TFLINT_ZIP_PATH" \
@@ -503,13 +509,13 @@ fi
 
 # Install `terraform-docs`.
 # https://github.com/terraform-docs/terraform-docs
-if ! command -v terraform-docs &> /dev/null; then
+if [[ ! -x "$HOME/.local/bin/terraform-docs" ]]; then
   DOWNLOAD_URL=$(get-github-latest-release-url "terraform-docs/terraform-docs" "terraform-docs-v{version}-linux-amd64.tar.gz")
   install-binary-from-tar-url "$DOWNLOAD_URL" "terraform-docs"
 fi
 
 # Install Pulumi.
-if ! command -v pulumi &> /dev/null; then
+if [[ ! -x "$HOME/.pulumi/bin/pulumi" ]]; then
   curl --silent --fail --show-error --location https://get.pulumi.com | sh
   export PATH="$HOME/.pulumi/bin:$PATH"
 fi
@@ -521,21 +527,21 @@ fi
 # The "SSL_CERT_FILE" and "REQUESTS_CA_BUNDLE" are both needed to prevent the error:
 # ERROR: Connection error while attempting to download client (<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Missing Authority Key Identifier (_ssl.c:1032)>)
 # The "--client-version" and "--kubelogin-version" flags are needed to prevent warnings from appearing.
-if ! command -v kubectl &> /dev/null; then
+if [[ ! -x "/usr/local/bin/kubectl" ]]; then
   export KUBECTL_VERSION="1.35.2" \
     && export KUBELOGIN_VERSION="0.2.16" \
     && sudo az aks install-cli --client-version "$KUBECTL_VERSION" --kubelogin-version "$KUBELOGIN_VERSION"
 fi
 
 # Install kustomize.
-if ! command -v kustomize &> /dev/null; then
+if [[ ! -x "$HOME/.local/bin/kustomize" ]]; then
   DOWNLOAD_URL=$(get-github-latest-release-url "kubernetes-sigs/kustomize" "kustomize_{tag_version}_linux_amd64.tar.gz")
   install-binary-from-tar-url "$DOWNLOAD_URL" "kustomize"
 fi
 
 # Install Helm.
 # https://helm.sh/docs/intro/install/
-if ! command -v helm &> /dev/null; then
+if [[ ! -x "/usr/sbin/helm" ]]; then
   curl --silent --fail --show-error --location https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
   echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
   sudo apt-get update
