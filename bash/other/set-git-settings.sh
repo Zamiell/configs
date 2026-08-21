@@ -63,7 +63,10 @@ fi
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-corepager
 # Default value: less
 # `pager` is better than `less`.
-git config --global core.pager delta
+if [[ "$(git config --global core.pager)" != "delta" ]]; then
+  echo "Setting Git config: core.pager delta"
+  git config --global core.pager delta
+fi
 
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-coresymlinks
 # Default value: true in some cases and false in some cases
@@ -71,7 +74,10 @@ git config --global core.pager delta
 # repository on Windows. Note that this setting will not actually do anything unless Developer Mode
 # is also enabled: https://learn.microsoft.com/en-us/windows/advanced-settings/developer-mode
 if is-git-bash; then
-  git config --global core.symlinks true
+  if [[ "$(git config --global core.symlinks)" != "true" ]]; then
+    echo "Setting Git config: core.symlinks true"
+    git config --global core.symlinks true
+  fi
 
   if ! is-developer-mode-enabled; then
     echo "Warning: Developer Mode is not enabled, so Linux-style symbolic links will not work properly. You should turn on Developer Mode. See: https://learn.microsoft.com/en-us/windows/advanced-settings/developer-mode" >&2
@@ -81,22 +87,34 @@ fi
 # https://github.com/dandavison/delta/#line-numbers
 # Default value: false
 # It is helpful to see line numbers in git diffs.
-git config --global delta.line-numbers true
+if [[ "$(git config --global delta.line-numbers)" != "true" ]]; then
+  echo "Setting Git config: delta.line-numbers true"
+  git config --global delta.line-numbers true
+fi
 
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-diffcolorMoved
 # Default value: false
 # Setting zebra can make git diffs easier to read by having a different color for moved lines.
-git config --global diff.colorMoved zebra
+if [[ "$(git config --global diff.colorMoved)" != "zebra" ]]; then
+  echo "Setting Git config: diff.colorMoved zebra"
+  git config --global diff.colorMoved zebra
+fi
 
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-fetchprune
 # Default value: false
 # Automatically remove any remote-tracking references that no longer exist on the remote.
-git config --global fetch.prune true
+if [[ "$(git config --global fetch.prune)" != "true" ]]; then
+  echo "Setting Git config: fetch.prune true"
+  git config --global fetch.prune true
+fi
 
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-fetchpruneTags
 # Default value: false
 # Automatically remove any tags that no longer exist on the remote.
-git config --global fetch.pruneTags true
+if [[ "$(git config --global fetch.pruneTags)" != "true" ]]; then
+  echo "Setting Git config: fetch.pruneTags true"
+  git config --global fetch.pruneTags true
+fi
 
 # https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpsslBackend
 # Default value: openssl
@@ -104,22 +122,38 @@ git config --global fetch.pruneTags true
 # This is necessary in situations where self-signed company certificates are present in the Windows
 # Certificate Store.
 if is-git-bash; then
-  git config --global http.sslBackend schannel
+  if [[ "$(git config --global http.sslBackend)" != "schannel" ]]; then
+    echo "Setting Git config: http.sslBackend schannel"
+    git config --global http.sslBackend schannel
+  fi
 fi
 
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-pullrebase
 # Default value: false
 # Setting this prevents spurious merge commits.
-git config --global pull.rebase true
+if [[ "$(git config --global pull.rebase)" != "true" ]]; then
+  echo "Setting Git config: pull.rebase true"
+  git config --global pull.rebase true
+fi
 
 # https://git-scm.com/docs/git-config/#Documentation/git-config.txt-pushautoSetupRemote
 # Default value: false
 # Setting this automates having "git pull" and "git push" work properly after setting up a new
 # branch.
-git config --global push.autoSetupRemote true
+if [[ "$(git config --global push.autoSetupRemote)" != "true" ]]; then
+  echo "Setting Git config: push.autoSetupRemote true"
+  git config --global push.autoSetupRemote true
+fi
 
 OS_USERNAME=$(get-username)
 if [[ "$OS_USERNAME" == "james" || "$OS_USERNAME" == "jnesta" ]]; then
-  git config --global user.name "Zamiell"
-  git config --global user.email "5511220+Zamiell@users.noreply.github.com"
+  if [[ "$(git config --global user.name)" != "Zamiell" ]]; then
+    echo "Setting Git config: user.name Zamiell"
+    git config --global user.name "Zamiell"
+  fi
+
+  if [[ "$(git config --global user.email)" != "5511220+Zamiell@users.noreply.github.com" ]]; then
+    echo "Setting Git config: user.email 5511220+Zamiell@users.noreply.github.com"
+    git config --global user.email "5511220+Zamiell@users.noreply.github.com"
+  fi
 fi
