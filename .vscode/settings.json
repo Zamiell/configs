@@ -9,11 +9,11 @@
   "editor.tabSize": 2,
 
   "files.associations": {
-    "**/.ssh/config": "text",
     "**/app-settings/vscode/keybindings.json": "jsonc",
     "**/app-settings/vscode/settings.json": "jsonc",
     "**/app-settings/zed/keymap.json": "jsonc",
     "**/app-settings/zed/settings.json": "jsonc",
+    "**/ssh/config": "text",
     ".env*": "shellscript", // e.g. ".env.example" is the same as ".env".
   },
 

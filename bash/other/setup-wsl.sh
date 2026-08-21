@@ -47,28 +47,31 @@ clone-work-repo() {
   fi
 
   local repository_path="$REPOSITORIES_DIR/$directory_name"
-  if [[ ! -d "$repository_path" ]]; then
-    if [[ ! -s "$HOME/.ssh/id_rsa" ]] && [[ ! -s "$HOME/.ssh/work/id_rsa" ]]; then
-      echo "Warning: Skipping the git clone of \"repository_url\" since you do not seem to have an SSH key installed at \"$HOME/.ssh/id_rsa\" or \"$HOME/.ssh/work/id_rsa\"." >&2
-      return
-    fi
+  if [[ -d "$repository_path" ]]; then
+    return
+  fi
 
-    git clone "$repository_url" "$repository_path"
+  if [[ ! -s "$HOME/.ssh/id_rsa" ]] && [[ ! -s "$HOME/.ssh/work/id_rsa" ]]; then
+    echo "Warning: Skipping the git clone of \"repository_url\" since you do not seem to have an SSH key installed at \"$HOME/.ssh/id_rsa\" or \"$HOME/.ssh/work/id_rsa\"." >&2
+    return
+  fi
 
-    if is-james; then
-      git -C "$repository_path" config user.name "James Nesta"
-      git -C "$repository_path" config user.email "jnesta@logixhealth.com"
-    fi
+  echo "Cloning the repository of: $repository_url"
+  git clone "$repository_url" "$repository_path"
 
-    if [[ -s "$repository_path/package-lock.json" ]]; then
-      (cd "$repository_path" && npm ci)
-    fi
-    if [[ -s "$repository_path/bun.lock" ]]; then
-      (cd "$repository_path" && bun ci)
-    fi
-    if [[ -s "$repository_path/pyproject.toml" ]]; then
-      (cd "$repository_path" && uv sync --frozen)
-    fi
+  if is-james; then
+    git -C "$repository_path" config user.name "James Nesta"
+    git -C "$repository_path" config user.email "jnesta@logixhealth.com"
+  fi
+
+  if [[ -s "$repository_path/package-lock.json" ]]; then
+    (cd "$repository_path" && npm ci)
+  fi
+  if [[ -s "$repository_path/bun.lock" ]]; then
+    (cd "$repository_path" && bun ci)
+  fi
+  if [[ -s "$repository_path/pyproject.toml" ]]; then
+    (cd "$repository_path" && uv sync --frozen)
   fi
 }
 
@@ -690,12 +693,16 @@ fi
 # Load Git settings.
 "$REPOSITORIES_DIR/configs/bash/other/set-git-settings.sh"
 if is-james; then
-  cp "$REPOSITORIES_DIR/configs/ubuntu-auto-install/post-install/.ssh/config" "$HOME/.ssh/config"
+  if ! cmp --silent "$REPOSITORIES_DIR/configs/app-settings/ssh/config" "$HOME/.ssh/config"; then
+    echo "Installing the SSH config to: $HOME/.ssh/config"
+    cp "$REPOSITORIES_DIR/configs/app-settings/ssh/config" "$HOME/.ssh/config"
+  fi
 fi
 
 # Load the Bash configs.
 BASHRC_PATH="$HOME/.bashrc"
 if ! grep --quiet "Load the commands from the \"configs\"" "$BASHRC_PATH"; then
+  echo "Modifying: $BASHRC_PATH"
   # shellcheck disable=SC2016
   echo '
 # Load the commands from the "configs" GitHub repository: https://github.com/Zamiell/configs
@@ -707,11 +714,13 @@ fi
 
 # Install the wslview shim. (See the comments in the "wslview" script.)
 if [[ ! -x "$HOME/.local/bin/wslview" ]]; then
+  echo "Installing wslview."
   cp "$REPOSITORIES_DIR/configs/bash/other/wslview" "$HOME/.local/bin/wslview"
 fi
 
 # Decrypt environment variables.
 if is-james && [[ ! -s "$HOME/.env" ]]; then
+  echo "Decrypting: $HOME/.env"
   age --decrypt --identity "$HOME/.ssh/id_ed25519" --output "$HOME/.env" "$REPOSITORIES_DIR/secrets/.env.age"
   chmod 600 "$HOME/.env"
 fi
@@ -719,15 +728,20 @@ fi
 # Clone work repositories.
 if [[ $PERSONAL == "false" ]]; then
   if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
+    echo "Installing the Azure DevOps Server SSH key."
     ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
   fi
+
   clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
   clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
   clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
   clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
+
   if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
+    echo "Installing the Azure DevOps Services SSH key."
     ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
   fi
+
   clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 fi
 

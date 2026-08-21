@@ -142,7 +142,7 @@ if ! grep --quiet BASH_PROFILE_REMOTE_PATH "$BASHRC_PATH"; then
 fi
 
 # Set up the SSH config.
-cp "$CONFIGS_PATH/ubuntu-auto-install/post-install/.ssh/config" "$HOME/.ssh/"
+cp "$CONFIGS_PATH/app-settings/ssh/config" "$HOME/.ssh/"
 
 # Set up work SSH keys (1/2).
 mkdir -p "$HOME/.ssh/work"
