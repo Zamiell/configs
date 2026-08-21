@@ -22,5 +22,5 @@ for FILE_NAME in keymap.json settings.json; do
 done
 
 if [[ "$UPDATED" == false ]]; then
-  echo "The Zed configuration files are already up to date. Nothing needs to be updated."
+  echo "The Zed configuration files are already up to date."
 fi

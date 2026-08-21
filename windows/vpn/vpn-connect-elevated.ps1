@@ -83,7 +83,7 @@ if ($Action -eq "Discover") {
     }
 
     Set-Content -Path $VpnDiscoverResultFile -Value $url -NoNewline
-    exit 0
+    exit
 }
 else {
     if (-not (Test-Path -Path $VpnCookieFile -PathType Leaf)) {

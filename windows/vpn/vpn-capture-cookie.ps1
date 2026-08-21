@@ -147,7 +147,7 @@ while ([DateTime]::UtcNow -lt $deadline) {
                     # Capturing succeeded even if Edge closed the target first.
                 }
                 Write-Output $cookieMatch.Groups[1].Value
-                exit 0
+                exit
             }
         }
     }

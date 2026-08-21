@@ -748,13 +748,13 @@ fi
 
 # Install GitHub Copilot CLI settings.
 if is-james; then
-  if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/settings.json" "$HOME/.copilot/settings.json"; then
+  if ! cmp --silent "$REPOSITORIES_DIR/configs/app-settings/copilot/settings.json" "$HOME/.copilot/settings.json"; then
     echo "Installing: $HOME/.copilot/settings.json"
     mkdir -p "$HOME/.copilot"
     cp "$REPOSITORIES_DIR/configs/app-settings/copilot/settings.json" "$HOME/.copilot/settings.json"
   fi
 
-  if ! cmp --silent "$REPOSITORIES_DIR/configs/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"; then
+  if ! cmp --silent "$REPOSITORIES_DIR/configs/app-settings/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"; then
     echo "Installing GitHub Copilot CLI settings: $HOME/.copilot/hooks/sound.json"
     mkdir -p "$HOME/.copilot/hooks"
     cp "$REPOSITORIES_DIR/configs/app-settings/copilot/hooks/sound.json" "$HOME/.copilot/hooks/sound.json"

@@ -6,12 +6,13 @@ set -euo pipefail # Exit on errors and undefined variables.
 # https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
 DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-SETTINGS_PATH="$HOME/.claude/settings.json"
+SETTINGS_PATH_SRC="$DIR/settings.json"
+SETTINGS_PATH_DST="$HOME/.claude/settings.json"
 
-if [[ -f "$SETTINGS_PATH" ]] && cmp --silent "$DIR/settings.json" "$SETTINGS_PATH"; then
-  echo "The Claude settings are already up to date. Nothing needs to be updated."
-  exit 0
+if [[ -f "$SETTINGS_PATH_DST" ]] && cmp --silent "$SETTINGS_PATH_SRC" "$SETTINGS_PATH_DST"; then
+  echo "The \"$SETTINGS_PATH_DST\" file is already up to date."
+  exit
 fi
 
-cp "$DIR/settings.json" "$SETTINGS_PATH"
-echo "Successfully updated: $SETTINGS_PATH"
+cp "$SETTINGS_PATH_SRC" "$SETTINGS_PATH_DST"
+echo "Successfully updated: $SETTINGS_PATH_DST"
