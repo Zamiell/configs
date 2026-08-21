@@ -246,24 +246,29 @@ sudo apt-get upgrade -qq --yes
 sudo apt-get auto-remove -qq --yes
 
 # Install some operating system packages.
-# - "gvproxy" is needed for "podman machine start" to work.
-# - "qemu-system-x86" is required for "podman machine init" to work.
-# - "virtiofsd" is needed for "podman machine start" to work.
-sudo apt-get install -qq --yes \
-  age \
-  bind9-dnsutils \
-  build-essential \
-  git-delta \
-  gvproxy \
-  jq \
-  podman \
-  python-is-python3 \
-  qemu-system-x86 \
-  ripgrep \
-  shellcheck \
-  tree \
-  unzip \
-  virtiofsd
+declare -a packages=(
+  "age"
+  "bind9-dnsutils"
+  "build-essential"
+  "git-delta"
+  "gvproxy" # Needed for "podman machine start" to work.
+  "jq"
+  "podman"
+  "python-is-python3"
+  "qemu-system-x86" # Required for "podman machine init" to work.
+  "ripgrep"
+  "shellcheck"
+  "tree"
+  "unzip"
+  "virtiofsd" # Needed for "podman machine start" to work.
+)
+
+for package in "${packages[@]}"; do
+  if ! dpkg -s "$package" > /dev/null 2>&1; then
+    echo "Installing aptitude package: $package"
+    sudo apt-get install -qq --yes "$package"
+  fi
+done
 
 # Set up the company certificate.
 if [[ $PERSONAL == "false" ]]; then
