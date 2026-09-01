@@ -355,6 +355,15 @@ encrypt() (
   echo "Successfully encrypted: $file_path --> $age_path"
 )
 
+eslint-open() {
+  npx eslint --format json "$@" \
+    | jq -j '.[] | select(.messages | length > 0) | .filePath, "\u0000"' \
+    | sort -zu \
+    | xargs -0 -r code --reuse-window
+
+  return "${PIPESTATUS[0]}"
+}
+
 alias full-path="readlink -f"
 
 # We do not use a subshell because the "source" would not work.
