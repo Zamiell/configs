@@ -13,11 +13,14 @@ if command -v npm &> /dev/null; then
   fi
 
   if ! grep --quiet "save-exact=true" "$NPM_CONFIG_PATH"; then
-    npm config set save-exact=true
+    # Silence the warning that says:
+    # npm warn Unknown env config "token". This will error in a future major version of npm. See
+    # `npm help npmrc` for supported config options.
+    npm config set save-exact=true 2> /dev/null
   fi
 
-  if [[ -n "${NPM_CONFIG_TOKEN:-}" ]] && ! grep --quiet "registry.npmjs.org" "$NPM_CONFIG_PATH"; then
-    sed --in-place "/registry.npmjs.org/d" "$HOME/.npmrc"
-    echo "//registry.npmjs.org/:_authToken=$NPM_CONFIG_TOKEN" >> "$HOME/.npmrc"
+  if [[ -n "${NPM_CONFIG_TOKEN:-}" ]]; then
+    sed --in-place "/registry.npmjs.org/d" "$NPM_CONFIG_PATH"
+    echo "//registry.npmjs.org/:_authToken=$NPM_CONFIG_TOKEN" >> "$NPM_CONFIG_PATH"
   fi
 fi
