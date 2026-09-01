@@ -18,6 +18,6 @@ if command -v npm &> /dev/null; then
 
   if [[ -n "${NPM_CONFIG_TOKEN:-}" ]] && ! grep --quiet "registry.npmjs.org" "$NPM_CONFIG_PATH"; then
     sed --in-place "/registry.npmjs.org/d" "$HOME/.npmrc"
-    echo "//registry.npmjs.org/:_authToken=\$NPM_TOKEN" >> "$HOME/.npmrc"
+    echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> "$HOME/.npmrc"
   fi
 fi
