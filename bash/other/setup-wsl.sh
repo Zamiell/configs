@@ -232,6 +232,7 @@ declare -a packages=(
   "python-is-python3"
   "qemu-system-x86" # Required for "podman machine init" to work.
   "ripgrep"
+  "runc" # Required for BuildKit.
   "shellcheck"
   "tree"
   "unzip"
@@ -578,6 +579,14 @@ fi
 if [[ ! -x "$HOME/.local/bin/helmfmt" ]]; then
   echo "Installing helmfmt."
   curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | tar -xzf - -C "$HOME/.local/bin/" helmfmt
+fi
+
+# Install BuildKit.
+# https://github.com/moby/buildkit#linux-setup
+if [[ ! -x "$HOME/.local/bin/buildkitd" ]]; then
+  echo "Installing BuildKit."
+  DOWNLOAD_URL=$(get-github-latest-release-url "moby/buildkit" "buildkit-{tag_name}.linux-amd64.tar.gz")
+  curl --silent --fail --show-error --location "$DOWNLOAD_URL" | tar -xzf - -C "$HOME/.local/"
 fi
 
 # Install the OPA CLI.
