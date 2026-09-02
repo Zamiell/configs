@@ -233,7 +233,7 @@ declare -a packages=(
   "qemu-system-x86" # Required for "podman machine init" to work.
   "ripgrep"
   "rootlesskit" # Required for rootless BuildKit.
-  "runc" # Required for BuildKit.
+  "runc"        # Required for BuildKit.
   "shellcheck"
   "tree"
   "unzip"
