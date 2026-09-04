@@ -4,7 +4,7 @@
     "agentStop": [
       {
         "type": "command",
-        "bash": "ffplay.exe -nodisp -autoexit \"C:\\Users\\jnesta\\turn-blind1.mp3\" &",
+        "bash": "ffplay.exe -nodisp -autoexit \"__MP3_PATH__\" &",
         "timeoutSec": 1
       }
     ]
