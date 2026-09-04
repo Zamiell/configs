@@ -1536,13 +1536,15 @@ gwd() {
     local main_branch_name
     main_branch_name=$(get-main-branch-name) || return 1
 
-    local merge_base
-    merge_base=$(git merge-base "$main_branch_name" "$branch_name") || return 1
+    if [[ "$branch_name" != "$main_branch_name" ]]; then
+      local merge_base
+      merge_base=$(git merge-base "$main_branch_name" "$branch_name") || return 1
 
-    local num_branch_commits
-    num_branch_commits=$(git rev-list --count "$merge_base..$branch_name") || return 1
-    if [[ "$num_branch_commits" -eq 0 ]]; then
-      gbd "$branch_name" || return 1
+      local num_branch_commits
+      num_branch_commits=$(git rev-list --count "$merge_base..$branch_name") || return 1
+      if [[ "$num_branch_commits" -eq 0 ]]; then
+        gbd "$branch_name" || return 1
+      fi
     fi
   fi
 
