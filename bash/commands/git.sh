@@ -205,6 +205,26 @@ gbdl() (
   gbd "$1" --only-local
 )
 
+# "gbe" is short for "git branch exists", which will check if the current branch exists on the
+# remote repository.
+gbe() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local branch_name
+  branch_name=$(git branch --show-current)
+
+  local remote_branch
+  remote_branch=$(git ls-remote --heads origin "$branch_name")
+
+  if [[ -n "$remote_branch" ]]; then
+    echo "This branch exists on remote."
+  else
+    echo "This branch does not exist on remote."
+  fi
+)
+
 # "gbl" is short for "git branch list". ("gb" is already taken by another command.)
 gbl() (
   set -euo pipefail # Exit on errors and undefined variables.
