@@ -1341,6 +1341,7 @@ gsp() (
   git apply --index "$patch_file"
   git commit --message "chore: split changes from $split_description"
   git push
+  gpr
 
   git switch "$current_branch_name"
   git apply --reverse --index "$patch_file"
