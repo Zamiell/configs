@@ -6,18 +6,40 @@ set -euo pipefail # Exit on errors and undefined variables.
 # https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
 DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-# First, copy the main settings file.
-cp "$DIR/settings.json" "$HOME/.copilot/settings.json"
+SETTINGS_PATH_SRC="$DIR/settings.json"
+SETTINGS_PATH_DST="$HOME/.copilot/settings.json"
 
-# Second, handle the hooks. First, validate that the mp3 file exists.
-MP3_PATH="/mnt/c/Users/$USER/turn-blind1.mp3"
-if [[ ! -f "$MP3_PATH" ]]; then
-  echo "Error: The sound file does not exist: $MP3_PATH" >&2
+# First, copy the main settings file.
+if [[ -f "$SETTINGS_PATH_DST" ]] && cmp --silent "$SETTINGS_PATH_SRC" "$SETTINGS_PATH_DST"; then
+  echo "The \"$SETTINGS_PATH_DST\" file is already up to date."
+else
+  cp "$SETTINGS_PATH_SRC" "$SETTINGS_PATH_DST"
+  echo "Successfully updated: $SETTINGS_PATH_DST"
+fi
+
+# Second, handle the hooks. First, validate that the sound file exists.
+SOUND_PATH="/mnt/c/Users/$USER/turn-blind1.mp3"
+if [[ ! -f "$SOUND_PATH" ]]; then
+  echo "Error: The sound file does not exist: $SOUND_PATH" >&2
   exit 1
 fi
 
-HOOKS_DIR="$HOME/.copilot/hooks"
-mkdir -p "$HOOKS_DIR"
-cp -r "$DIR/hooks/." "$HOOKS_DIR"
-WINDOWS_MP3_PATH=$(wslpath -m "$MP3_PATH")
-sed --in-place "s|__MP3_PATH__|$WINDOWS_MP3_PATH|g" "$HOOKS_DIR/sound.json"
+HOOK_PATH_SRC="$DIR/hooks/sound.json"
+HOOK_PATH_DST="$HOME/.copilot/hooks/sound.json"
+
+TEMP_DIR=$(mktemp --directory)
+trap 'rm -rf -- "$TEMP_DIR"' EXIT
+
+HOOK_PATH_TEMP="$TEMP_DIR/sound.json"
+cp "$HOOK_PATH_SRC" "$HOOK_PATH_TEMP"
+
+WINDOWS_SOUND_PATH=$(wslpath -m "$SOUND_PATH")
+sed --in-place "s|__MP3_PATH__|$WINDOWS_SOUND_PATH|g" "$HOOK_PATH_TEMP"
+
+if [[ -f "$HOOK_PATH_DST" ]] && cmp --silent "$HOOK_PATH_TEMP" "$HOOK_PATH_DST"; then
+  echo "The \"$HOOK_PATH_DST\" file is already up to date."
+else
+  mkdir -p "$(dirname "$HOOK_PATH_DST")"
+  cp "$HOOK_PATH_TEMP" "$HOOK_PATH_DST"
+  echo "Successfully updated: $HOOK_PATH_DST"
+fi
