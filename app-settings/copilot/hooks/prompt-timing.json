@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "bash": "~/.copilot/hooks/prompt-timing.sh start"
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "~/.copilot/hooks/prompt-timing.sh stop"
+      }
+    ]
+  }
+}

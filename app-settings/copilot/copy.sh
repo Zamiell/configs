@@ -10,6 +10,8 @@ SETTINGS_PATH_SRC="$DIR/settings.json"
 SETTINGS_PATH_DST="$HOME/.copilot/settings.json"
 
 # First, copy the main settings file.
+mkdir -p "$(dirname "$SETTINGS_PATH_DST")"
+
 if [[ -f "$SETTINGS_PATH_DST" ]] && cmp --silent "$SETTINGS_PATH_SRC" "$SETTINGS_PATH_DST"; then
   echo "The \"$SETTINGS_PATH_DST\" file is already up to date."
 else
@@ -42,4 +44,24 @@ else
   mkdir -p "$(dirname "$HOOK_PATH_DST")"
   cp "$HOOK_PATH_TEMP" "$HOOK_PATH_DST"
   echo "Successfully updated: $HOOK_PATH_DST"
+fi
+
+TIMING_HOOK_PATH_SRC="$DIR/hooks/prompt-timing.json"
+TIMING_HOOK_PATH_DST="$HOME/.copilot/hooks/prompt-timing.json"
+
+if [[ -f "$TIMING_HOOK_PATH_DST" ]] && cmp --silent "$TIMING_HOOK_PATH_SRC" "$TIMING_HOOK_PATH_DST"; then
+  echo "The \"$TIMING_HOOK_PATH_DST\" file is already up to date."
+else
+  cp "$TIMING_HOOK_PATH_SRC" "$TIMING_HOOK_PATH_DST"
+  echo "Successfully updated: $TIMING_HOOK_PATH_DST"
+fi
+
+TIMING_SCRIPT_PATH_SRC="$DIR/hooks/prompt-timing.sh"
+TIMING_SCRIPT_PATH_DST="$HOME/.copilot/hooks/prompt-timing.sh"
+
+if [[ -x "$TIMING_SCRIPT_PATH_DST" ]] && cmp --silent "$TIMING_SCRIPT_PATH_SRC" "$TIMING_SCRIPT_PATH_DST"; then
+  echo "The \"$TIMING_SCRIPT_PATH_DST\" file is already up to date."
+else
+  install --mode=755 "$TIMING_SCRIPT_PATH_SRC" "$TIMING_SCRIPT_PATH_DST"
+  echo "Successfully updated: $TIMING_SCRIPT_PATH_DST"
 fi
