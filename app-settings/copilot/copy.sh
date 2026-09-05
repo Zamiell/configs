@@ -65,3 +65,5 @@ else
   install --mode=755 "$TIMING_SCRIPT_PATH_SRC" "$TIMING_SCRIPT_PATH_DST"
   echo "Successfully updated: $TIMING_SCRIPT_PATH_DST"
 fi
+
+copilot plugin install "$DIR/plugins/azure-devops-pr"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -euo pipefail # Exit on errors and undefined variables.
 
 INPUT=$(cat)
 SESSION_ID=$(jq --raw-output ".sessionId" <<< "$INPUT")
