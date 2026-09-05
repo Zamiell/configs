@@ -413,6 +413,8 @@ gc() {
   return "$exit_status"
 }
 
+# Splitting the logic into a separate function like this is necessary to prevent the bug where doing
+# "gc" in a directory that does not yet exist on the upstream will throw an error.
 _gc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
