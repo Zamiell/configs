@@ -1,6 +1,0 @@
-{
-  "name": "azure-devops-pr",
-  "description": "Manage an Azure DevOps pull request until all required checks pass.",
-  "version": "1.0.0",
-  "commands": "commands/"
-}

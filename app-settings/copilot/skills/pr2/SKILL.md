@@ -1,6 +1,7 @@
 ---
 name: pr2
 description: Create and autonomously complete an Azure DevOps pull request.
+disable-model-invocation: true
 ---
 
 Manage the Azure DevOps pull request for the current Git branch from creation

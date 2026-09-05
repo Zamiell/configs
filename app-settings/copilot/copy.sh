@@ -66,4 +66,24 @@ else
   echo "Successfully updated: $TIMING_SCRIPT_PATH_DST"
 fi
 
-copilot plugin install "$DIR/plugins/azure-devops-pr"
+if copilot plugin list | grep --quiet "azure-devops-pr ("; then
+  copilot plugin uninstall azure-devops-pr
+fi
+
+LEGACY_COMMAND_PATH="$HOME/.claude/commands/pr2.md"
+if [[ -f "$LEGACY_COMMAND_PATH" ]] \
+  && grep --quiet "Manage the Azure DevOps pull request for the current Git branch" "$LEGACY_COMMAND_PATH"; then
+  rm "$LEGACY_COMMAND_PATH"
+  echo "Successfully removed: $LEGACY_COMMAND_PATH"
+fi
+
+SKILL_PATH_SRC="$DIR/skills/pr2/SKILL.md"
+SKILL_PATH_DST="$HOME/.copilot/skills/pr2/SKILL.md"
+
+if [[ -f "$SKILL_PATH_DST" ]] && cmp --silent "$SKILL_PATH_SRC" "$SKILL_PATH_DST"; then
+  echo "The \"$SKILL_PATH_DST\" file is already up to date."
+else
+  mkdir -p "$(dirname "$SKILL_PATH_DST")"
+  cp "$SKILL_PATH_SRC" "$SKILL_PATH_DST"
+  echo "Successfully updated: $SKILL_PATH_DST"
+fi
