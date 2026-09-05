@@ -1,0 +1,5 @@
+{
+  "type": "command",
+  "command": "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"__SCRIPT_PATH__\"",
+  "timeout": 15
+}
