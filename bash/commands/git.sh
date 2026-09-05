@@ -403,7 +403,17 @@ gbs() (
 # "gc" is short for "git commit", which will perform all the steps involved in making a new commit
 # with all unstaged changes. The arguments that are provided will be the commit message. If no
 # arguments are provided, then the script will attempt to find a suitable commit message.
-gc() (
+gc() {
+  local original_directory="$PWD"
+  local exit_status="0"
+
+  _gc "$@" || exit_status="$?"
+  builtin cd "$original_directory" || return 1
+
+  return "$exit_status"
+}
+
+_gc() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local amend="false"
@@ -550,6 +560,10 @@ gc() (
     fi
 
     git commit --message "$commit_message"
+
+    local repository_root
+    repository_root=$(git rev-parse --show-toplevel)
+    builtin cd "$repository_root"
 
     if [[ "$repository_has_commits" == "true" ]]; then
       set-gh-remote
