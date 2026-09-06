@@ -55,17 +55,20 @@ gb() (
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
-  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
-    git switch "$main_branch_name"
-  fi
-
   add-upstream-remote-if-github-fork
 
+  local base_ref
   if git remote get-url upstream &> /dev/null; then
-    gh-sync
+    git fetch origin --prune --quiet
+    git fetch upstream --prune --quiet
+    base_ref="upstream/$main_branch_name"
+
+    if [[ "$(git rev-parse "origin/$main_branch_name")" != "$(git rev-parse "$base_ref")" ]]; then
+      git push origin "$base_ref:refs/heads/$main_branch_name" --force-with-lease
+    fi
   else
     git fetch --prune origin
-    git rebase "origin/$main_branch_name"
+    base_ref="origin/$main_branch_name"
   fi
 
   if git show-ref --verify --quiet "refs/remotes/origin/$new_branch_name"; then
@@ -73,8 +76,8 @@ gb() (
     return 1
   fi
 
-  git switch --create "$new_branch_name"
-  git push
+  git switch --create "$new_branch_name" --no-track "$base_ref"
+  git push --set-upstream origin "$new_branch_name"
 
   if [[ $(git stash list | wc -l) -gt 0 ]]; then
     echo "A previous git stash exists. Applying it to this new branch."
