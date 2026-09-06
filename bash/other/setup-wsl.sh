@@ -269,22 +269,18 @@ if is-james; then
 
   SSH_PRIVATE_KEY_PATH_PERSONAL_SRC="$HOST_SSH_DIRECTORY_PATH/$PRIVATE_KEY_FILE_NAME"
   SSH_PRIVATE_KEY_PATH_PERSONAL_DST="$GUEST_SSH_DIRECTORY_PATH/$PRIVATE_KEY_FILE_NAME"
-  if [[ -f "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST" ]] \
-    && [[ $(stat --format="%a" "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST") == "600" ]] \
-    && cmp --silent "$SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST"; then
-    echo "The \"$SSH_PRIVATE_KEY_PATH_PERSONAL_DST\" file is already up to date."
-  else
+  if [[ ! -f "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST" ]] \
+    || [[ $(stat --format="%a" "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST") != "600" ]] \
+    || ! cmp --silent "$SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST"; then
     install --mode=600 "$SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST"
     echo "Successfully updated: $SSH_PRIVATE_KEY_PATH_PERSONAL_DST"
   fi
 
   SSH_PUBLIC_KEY_PATH_PERSONAL_SRC="$HOST_SSH_DIRECTORY_PATH/$PUBLIC_KEY_FILE_NAME"
   SSH_PUBLIC_KEY_PATH_PERSONAL_DST="$GUEST_SSH_DIRECTORY_PATH/$PUBLIC_KEY_FILE_NAME"
-  if [[ -f "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST" ]] \
-    && [[ $(stat --format="%a" "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST") == "644" ]] \
-    && cmp --silent "$SSH_PUBLIC_KEY_PATH_PERSONAL_SRC" "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST"; then
-    echo "The \"$SSH_PUBLIC_KEY_PATH_PERSONAL_DST\" file is already up to date."
-  else
+  if [[ ! -f "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST" ]] \
+    || [[ $(stat --format="%a" "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST") != "644" ]] \
+    || ! cmp --silent "$SSH_PUBLIC_KEY_PATH_PERSONAL_SRC" "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST"; then
     install --mode=644 "$SSH_PUBLIC_KEY_PATH_PERSONAL_SRC" "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST"
     echo "Successfully updated: $SSH_PUBLIC_KEY_PATH_PERSONAL_DST"
   fi
@@ -299,22 +295,18 @@ if is-james; then
 
     SSH_PRIVATE_KEY_PATH_WORK_SRC="$HOST_SSH_DIRECTORY_PATH_WORK/$PRIVATE_KEY_FILE_NAME_WORK"
     SSH_PRIVATE_KEY_PATH_WORK_DST="$GUEST_SSH_DIRECTORY_PATH_WORK/$PRIVATE_KEY_FILE_NAME_WORK"
-    if [[ -f "$SSH_PRIVATE_KEY_PATH_WORK_DST" ]] \
-      && [[ $(stat --format="%a" "$SSH_PRIVATE_KEY_PATH_WORK_DST") == "600" ]] \
-      && cmp --silent "$SSH_PRIVATE_KEY_PATH_WORK_SRC" "$SSH_PRIVATE_KEY_PATH_WORK_DST"; then
-      echo "The \"$SSH_PRIVATE_KEY_PATH_WORK_DST\" file is already up to date."
-    else
+    if [[ ! -f "$SSH_PRIVATE_KEY_PATH_WORK_DST" ]] \
+      || [[ $(stat --format="%a" "$SSH_PRIVATE_KEY_PATH_WORK_DST") != "600" ]] \
+      || ! cmp --silent "$SSH_PRIVATE_KEY_PATH_WORK_SRC" "$SSH_PRIVATE_KEY_PATH_WORK_DST"; then
       install --mode=600 "$SSH_PRIVATE_KEY_PATH_WORK_SRC" "$SSH_PRIVATE_KEY_PATH_WORK_DST"
       echo "Successfully updated: $SSH_PRIVATE_KEY_PATH_WORK_DST"
     fi
 
     SSH_PUBLIC_KEY_PATH_WORK_SRC="$HOST_SSH_DIRECTORY_PATH_WORK/$PUBLIC_KEY_FILE_NAME_WORK"
     SSH_PUBLIC_KEY_PATH_WORK_DST="$GUEST_SSH_DIRECTORY_PATH_WORK/$PUBLIC_KEY_FILE_NAME_WORK"
-    if [[ -f "$SSH_PUBLIC_KEY_PATH_WORK_DST" ]] \
-      && [[ $(stat --format="%a" "$SSH_PUBLIC_KEY_PATH_WORK_DST") == "644" ]] \
-      && cmp --silent "$SSH_PUBLIC_KEY_PATH_WORK_SRC" "$SSH_PUBLIC_KEY_PATH_WORK_DST"; then
-      echo "The \"$SSH_PUBLIC_KEY_PATH_WORK_DST\" file is already up to date."
-    else
+    if [[ ! -f "$SSH_PUBLIC_KEY_PATH_WORK_DST" ]] \
+      || [[ $(stat --format="%a" "$SSH_PUBLIC_KEY_PATH_WORK_DST") != "644" ]] \
+      || ! cmp --silent "$SSH_PUBLIC_KEY_PATH_WORK_SRC" "$SSH_PUBLIC_KEY_PATH_WORK_DST"; then
       install --mode=644 "$SSH_PUBLIC_KEY_PATH_WORK_SRC" "$SSH_PUBLIC_KEY_PATH_WORK_DST"
       echo "Successfully updated: $SSH_PUBLIC_KEY_PATH_WORK_DST"
     fi
