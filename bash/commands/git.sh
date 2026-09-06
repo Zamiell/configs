@@ -1110,7 +1110,6 @@ grbm() (
   main_branch_name=$(get-main-branch-name)
 
   git fetch origin "$main_branch_name" --prune --quiet
-  git branch -f "$main_branch_name" "origin/$main_branch_name" # Update the local branch.
   git rebase "origin/$main_branch_name"
   git push --force-with-lease
 )
