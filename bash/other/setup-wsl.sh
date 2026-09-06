@@ -435,6 +435,23 @@ fi
 # Install tools
 # -------------
 
+# Install agenix.
+# https://github.com/ryantm/agenix
+if [[ ! -x "$HOME/.nix-profile/bin/agenix" ]]; then
+  if [[ ! -x "/nix/var/nix/profiles/default/bin/nix" ]]; then
+    echo "Installing Nix."
+    NIX_INSTALLER_PATH="/tmp/install-nix"
+    curl --silent --fail --show-error --location --output "$NIX_INSTALLER_PATH" https://nixos.org/nix/install
+    sh "$NIX_INSTALLER_PATH" --daemon --yes
+    rm "$NIX_INSTALLER_PATH"
+  fi
+
+  echo "Installing agenix."
+  # shellcheck source=/dev/null
+  source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+  nix profile install github:ryantm/agenix --extra-experimental-features "nix-command flakes"
+fi
+
 # Install the Azure CLI.
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
 if [[ ! -x /usr/bin/az ]]; then
