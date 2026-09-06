@@ -1431,12 +1431,28 @@ gswm() (
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
+  local current_branch_name
+  current_branch_name=$(git branch --show-current)
+
+  if [[ "$current_branch_name" != "$main_branch_name" ]]; then
+    local main_worktree_path
+    main_worktree_path=$(git for-each-ref --format="%(worktreepath)" "refs/heads/$main_branch_name")
+
+    local current_worktree_path
+    current_worktree_path=$(git rev-parse --show-toplevel)
+
+    if [[ -n "$main_worktree_path" && "$main_worktree_path" != "$current_worktree_path" ]]; then
+      echo "Error: The \"$main_branch_name\" branch is already checked out in worktree \"$main_worktree_path\"." >&2
+      return 1
+    fi
+  fi
+
   if [[ -n "$(git status --porcelain)" ]]; then
     echo "The repository is not clean. Stashing all of your existing changes."
     git stash push --message "Auto-stash before switching to $main_branch_name"
   fi
 
-  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
+  if [[ "$current_branch_name" != "$main_branch_name" ]]; then
     git switch "$main_branch_name"
   fi
 
