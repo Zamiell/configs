@@ -1421,6 +1421,23 @@ gsw() (
   git switch "$branch_name"
 )
 
+# "gsww" is short for "git switch workspace". It requires an argument of the number corresponding to
+# the worktree. (We do not use a subshell because we need to change the current working directory.)
+gsww() {
+  assert-in-git-repository || return 1
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: Worktree path or number is required. Usage: ${FUNCNAME[0]} <worktree-path-or-number>" >&2
+    return 1
+  fi
+  local worktree_path_or_number="$1"
+
+  local worktree_path
+  worktree_path=$(get-worktree-path-from-number "$worktree_path_or_number") || return 1
+
+  builtin cd "$worktree_path" || return 1
+}
+
 # "gswc" is short for "git switch -c". (However, the "gb" command should be used in most contexts.)
 alias gswc="git switch -c"
 
