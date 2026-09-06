@@ -308,21 +308,10 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # endregion
 
-# region: Install programming languages
-# -----------------------------
-# Install programming languages
-# -----------------------------
-
-# Install Golang.
-# https://go.dev/doc/install
-if [[ ! -x "/usr/local/go/bin/go" ]]; then
-  echo "Installing Golang."
-  LATEST_GO_VERSION=$(curl --silent --fail --show-error --location https://go.dev/VERSION?m=text | head --lines=1)
-  curl --silent --fail --location --output /tmp/go.tar.gz "https://go.dev/dl/$LATEST_GO_VERSION.linux-amd64.tar.gz"
-  sudo tar -C /usr/local -xzf /tmp/go.tar.gz
-  rm /tmp/go.tar.gz
-  export PATH="/usr/local/go/bin:$PATH"
-fi
+# region: Install programming languages - JavaScript/TypeScript
+# -----------------------------------------------------
+# Install programming languages - JavaScript/TypeScript
+# ------------------------------------------------------
 
 # Install fnm and Node.js.
 # https://github.com/Schniz/fnm
@@ -338,16 +327,6 @@ if [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
   fnm install --lts
 fi
 
-# Install pnpm.
-# https://pnpm.io/installation#on-posix-systems
-if [[ ! -x "$HOME/.local/share/pnpm/bin/pnpm" ]]; then
-  echo "Installing pnpm."
-  # "ENV" and "SHELL" are necessary to prevent the installer from modifying the ".bashrc" file:
-  # https://github.com/pnpm/pnpm/issues/5771?utm_source=chatgpt.com
-  curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | ENV=/dev/null SHELL=/bin/sh sh
-  export PATH="$HOME/.local/share/pnpm/bin:$PATH"
-fi
-
 # Install Bun.
 # https://bun.sh/
 # (This is needed before cloning repositories so that we can install the dependencies at the same
@@ -359,12 +338,32 @@ if [[ ! -x "$HOME/.bun/bin/bun" ]]; then
   export PATH="$HOME/.bun/bin:$PATH"
 fi
 
-# Install uv.
-# https://docs.astral.sh/uv/getting-started/installation/
-if [[ ! -x "$HOME/.local/bin/uv" ]]; then
-  echo "Installing uv."
-  # "UV_NO_MODIFY_PATH" is necessary to prevent the installer from modifying the ".bashrc" file.
-  curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | UV_NO_MODIFY_PATH=1 sh
+# Install pnpm.
+# https://pnpm.io/installation#on-posix-systems
+if [[ ! -x "$HOME/.local/share/pnpm/bin/pnpm" ]]; then
+  echo "Installing pnpm."
+  # "ENV" and "SHELL" are necessary to prevent the installer from modifying the ".bashrc" file:
+  # https://github.com/pnpm/pnpm/issues/5771?utm_source=chatgpt.com
+  curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | ENV=/dev/null SHELL=/bin/sh sh
+  export PATH="$HOME/.local/share/pnpm/bin:$PATH"
+fi
+
+# endregion
+
+# region: Install programming languages - Other
+# -------------------------------------
+# Install programming languages - Other
+# -------------------------------------
+
+# Install Golang.
+# https://go.dev/doc/install
+if [[ ! -x "/usr/local/go/bin/go" ]]; then
+  echo "Installing Golang."
+  LATEST_GO_VERSION=$(curl --silent --fail --show-error --location https://go.dev/VERSION?m=text | head --lines=1)
+  curl --silent --fail --location --output /tmp/go.tar.gz "https://go.dev/dl/$LATEST_GO_VERSION.linux-amd64.tar.gz"
+  sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+  rm /tmp/go.tar.gz
+  export PATH="/usr/local/go/bin:$PATH"
 fi
 
 # Install PowerShell.
@@ -387,6 +386,14 @@ if [[ ! -x "/usr/bin/pwsh" ]]; then
     sudo apt-get install "$DEB_PATH" --yes
     rm "$DEB_PATH"
   fi
+fi
+
+# Install uv (for Python).
+# https://docs.astral.sh/uv/getting-started/installation/
+if [[ ! -x "$HOME/.local/bin/uv" ]]; then
+  echo "Installing uv."
+  # "UV_NO_MODIFY_PATH" is necessary to prevent the installer from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://astral.sh/uv/install.sh | UV_NO_MODIFY_PATH=1 sh
 fi
 
 # Install Rust.
@@ -428,6 +435,46 @@ fi
 # Install tools
 # -------------
 
+# Install the Azure CLI.
+# https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
+if [[ ! -x /usr/bin/az ]]; then
+  echo "Installing the Azure CLI."
+  curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+  if [[ $PERSONAL == "false" ]]; then
+    # Install the LogixHealth certificate.
+    REQUESTS_CA_BUNDLE=$("/opt/az/bin/python3" -c "import certifi; print(certifi.where())")
+    if [[ ! -s "$REQUESTS_CA_BUNDLE" ]]; then
+      echo "Error: Failed to find the Azure CLI CA bundle at: $REQUESTS_CA_BUNDLE" >&2
+      exit 1
+    fi
+
+    export REQUESTS_CA_BUNDLE
+    CERTIFICATE_NAME="BEDROOTCA001"
+    {
+      echo
+      echo "# $CERTIFICATE_NAME"
+      curl --silent --fail --show-error --location "http://certs.logixhealth.com/$CERTIFICATE_NAME.crt"
+    } | sudo tee -a "$REQUESTS_CA_BUNDLE" > /dev/null
+  fi
+fi
+
+# Install BuildKit.
+# https://github.com/moby/buildkit#linux-setup
+if [[ ! -x "$HOME/.local/bin/buildkitd" ]]; then
+  echo "Installing BuildKit."
+  DOWNLOAD_URL=$(get-github-latest-release-url "moby/buildkit" "buildkit-{tag_name}.linux-amd64.tar.gz")
+  curl --silent --fail --show-error --location "$DOWNLOAD_URL" | tar -xzf - -C "$HOME/.local/"
+fi
+
+# Install the Codex CLI.
+# https://learn.chatgpt.com/docs/codex/cli#getting-started
+if [[ ! -x "$HOME/.local/bin/codex" ]]; then
+  echo "Installing the Codex CLI."
+  # "CODEX_NON_INTERACTIVE" is necessary to prevent the installer from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | PATH="$HOME/.local/bin:$PATH" CODEX_NON_INTERACTIVE=1 sh
+fi
+
 # Install the GitHub CLI.
 # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
 if [[ ! -x /usr/bin/gh ]]; then
@@ -459,89 +506,21 @@ if [[ ! -x "$HOME/.local/bin/copilot" ]]; then
   curl --silent --fail --show-error --location "${COPILOT_CERT_ARGS[@]}" https://gh.io/copilot-install | PREFIX="$HOME/.local" bash
 fi
 
-# Install the Codex CLI.
-# https://learn.chatgpt.com/docs/codex/cli#getting-started
-if [[ ! -x "$HOME/.local/bin/codex" ]]; then
-  echo "Installing the Codex CLI."
-  # "CODEX_NON_INTERACTIVE" is necessary to prevent the installer from modifying the ".bashrc" file.
-  curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | PATH="$HOME/.local/bin:$PATH" CODEX_NON_INTERACTIVE=1 sh
-fi
-
-# Install OpenCode.
-if [[ ! -x "$HOME/.opencode/bin/opencode" ]]; then
-  echo "Installing OpenCode."
-  # "--no-modify-path" is necessary to prevent the installer from modifying the ".bashrc" file.
-  curl --silent --fail --show-error --location https://opencode.ai/install | bash -s -- --no-modify-path
-fi
-
-# Install the Azure CLI.
-# https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-1-install-with-one-command
-if [[ ! -x /usr/bin/az ]]; then
-  echo "Installing the Azure CLI."
-  curl --silent --fail --show-error --location https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-  if [[ $PERSONAL == "false" ]]; then
-    # Install the LogixHealth certificate.
-    REQUESTS_CA_BUNDLE=$("/opt/az/bin/python3" -c "import certifi; print(certifi.where())")
-    if [[ ! -s "$REQUESTS_CA_BUNDLE" ]]; then
-      echo "Error: Failed to find the Azure CLI CA bundle at: $REQUESTS_CA_BUNDLE" >&2
-      exit 1
-    fi
-
-    export REQUESTS_CA_BUNDLE
-    CERTIFICATE_NAME="BEDROOTCA001"
-    {
-      echo
-      echo "# $CERTIFICATE_NAME"
-      curl --silent --fail --show-error --location "http://certs.logixhealth.com/$CERTIFICATE_NAME.crt"
-    } | sudo tee -a "$REQUESTS_CA_BUNDLE" > /dev/null
-  fi
-fi
-
-# Install Terraform.
-# https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
-if [[ ! -x /usr/bin/terraform ]]; then
-  echo "Installing Terraform."
-  curl --silent --fail --show-error --location https://apt.releases.hashicorp.com/gpg \
-    | gpg --dearmor \
-    | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
-  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
-    | sudo tee /etc/apt/sources.list.d/hashicorp.list
+# Install Helm.
+# https://helm.sh/docs/intro/install/
+if [[ ! -x "/usr/sbin/helm" ]]; then
+  echo "Installing Helm."
+  curl --silent --fail --show-error --location https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+  echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
   sudo apt-get update
-  sudo apt-get install terraform --yes
+  sudo apt-get install helm --yes
 fi
 
-# Install TFLint.
-# https://github.com/terraform-linters/tflint
-if [[ ! -x "$HOME/.local/bin/tflint" ]]; then
-  echo "Installing TFLint."
-  TFLINT_ZIP_PATH="/tmp/tflint_linux_amd64.zip"
-  TFLINT_CHECKSUMS_PATH="/tmp/tflint_checksums.txt"
-  curl --silent --fail --show-error --location --output "$TFLINT_ZIP_PATH" \
-    https://github.com/terraform-linters/tflint/releases/latest/download/tflint_linux_amd64.zip
-  curl --silent --fail --show-error --location --output "$TFLINT_CHECKSUMS_PATH" \
-    https://github.com/terraform-linters/tflint/releases/latest/download/checksums.txt
-  (cd /tmp && sha256sum --ignore-missing --check "$TFLINT_CHECKSUMS_PATH")
-  unzip -o "$TFLINT_ZIP_PATH" -d /tmp
-  TFLINT_BINARY_PATH="/tmp/tflint"
-  install --verbose "$TFLINT_BINARY_PATH" "$HOME/.local/bin/"
-  rm "$TFLINT_ZIP_PATH" "$TFLINT_CHECKSUMS_PATH" "$TFLINT_BINARY_PATH"
-fi
-
-# Install `terraform-docs`.
-# https://github.com/terraform-docs/terraform-docs
-if [[ ! -x "$HOME/.local/bin/terraform-docs" ]]; then
-  echo "Installing terraform-docs."
-  DOWNLOAD_URL=$(get-github-latest-release-url "terraform-docs/terraform-docs" "terraform-docs-v{version}-linux-amd64.tar.gz")
-  install-binary-from-tar-url "$DOWNLOAD_URL" "terraform-docs"
-fi
-
-# Install Pulumi.
-if [[ ! -x "$HOME/.pulumi/bin/pulumi" ]]; then
-  echo "Installing Pulumi."
-  # "--no-edit-path" is necessary to prevent the installer from modifying the ".bashrc" file.
-  curl --silent --fail --show-error --location https://get.pulumi.com | sh -s -- --no-edit-path
-  export PATH="$HOME/.pulumi/bin:$PATH"
+# Install helmfmt.
+# https://github.com/digitalstudium/helmfmt
+if [[ ! -x "$HOME/.local/bin/helmfmt" ]]; then
+  echo "Installing helmfmt."
+  curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | tar -xzf - -C "$HOME/.local/bin/" helmfmt
 fi
 
 # Install kubectl and kubelogin.
@@ -565,31 +544,6 @@ if [[ ! -x "$HOME/.local/bin/kustomize" ]]; then
   install-binary-from-tar-url "$DOWNLOAD_URL" "kustomize"
 fi
 
-# Install Helm.
-# https://helm.sh/docs/intro/install/
-if [[ ! -x "/usr/sbin/helm" ]]; then
-  echo "Installing Helm."
-  curl --silent --fail --show-error --location https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
-  echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
-  sudo apt-get update
-  sudo apt-get install helm --yes
-fi
-
-# Install helmfmt.
-# https://github.com/digitalstudium/helmfmt
-if [[ ! -x "$HOME/.local/bin/helmfmt" ]]; then
-  echo "Installing helmfmt."
-  curl --silent --fail --show-error --location https://github.com/digitalstudium/helmfmt/releases/latest/download/helmfmt_Linux_x86_64.tar.gz | tar -xzf - -C "$HOME/.local/bin/" helmfmt
-fi
-
-# Install BuildKit.
-# https://github.com/moby/buildkit#linux-setup
-if [[ ! -x "$HOME/.local/bin/buildkitd" ]]; then
-  echo "Installing BuildKit."
-  DOWNLOAD_URL=$(get-github-latest-release-url "moby/buildkit" "buildkit-{tag_name}.linux-amd64.tar.gz")
-  curl --silent --fail --show-error --location "$DOWNLOAD_URL" | tar -xzf - -C "$HOME/.local/"
-fi
-
 # Install the OPA CLI.
 # https://www.openpolicyagent.org/docs/cli
 if [[ ! -x "$HOME/.local/bin/opa" ]]; then
@@ -598,6 +552,59 @@ if [[ ! -x "$HOME/.local/bin/opa" ]]; then
   curl --silent --fail --show-error --location --output "$OPA_BINARY_PATH" https://openpolicyagent.org/downloads/latest/opa_linux_amd64
   install --verbose "$OPA_BINARY_PATH" "$HOME/.local/bin/"
   rm "$OPA_BINARY_PATH"
+fi
+
+# Install OpenCode.
+if [[ ! -x "$HOME/.opencode/bin/opencode" ]]; then
+  echo "Installing OpenCode."
+  # "--no-modify-path" is necessary to prevent the installer from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://opencode.ai/install | bash -s -- --no-modify-path
+fi
+
+# Install Pulumi.
+if [[ ! -x "$HOME/.pulumi/bin/pulumi" ]]; then
+  echo "Installing Pulumi."
+  # "--no-edit-path" is necessary to prevent the installer from modifying the ".bashrc" file.
+  curl --silent --fail --show-error --location https://get.pulumi.com | sh -s -- --no-edit-path
+  export PATH="$HOME/.pulumi/bin:$PATH"
+fi
+
+# Install Terraform.
+# https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
+if [[ ! -x /usr/bin/terraform ]]; then
+  echo "Installing Terraform."
+  curl --silent --fail --show-error --location https://apt.releases.hashicorp.com/gpg \
+    | gpg --dearmor \
+    | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
+    | sudo tee /etc/apt/sources.list.d/hashicorp.list
+  sudo apt-get update
+  sudo apt-get install terraform --yes
+fi
+
+# Install `terraform-docs`.
+# https://github.com/terraform-docs/terraform-docs
+if [[ ! -x "$HOME/.local/bin/terraform-docs" ]]; then
+  echo "Installing terraform-docs."
+  DOWNLOAD_URL=$(get-github-latest-release-url "terraform-docs/terraform-docs" "terraform-docs-v{version}-linux-amd64.tar.gz")
+  install-binary-from-tar-url "$DOWNLOAD_URL" "terraform-docs"
+fi
+
+# Install TFLint.
+# https://github.com/terraform-linters/tflint
+if [[ ! -x "$HOME/.local/bin/tflint" ]]; then
+  echo "Installing TFLint."
+  TFLINT_ZIP_PATH="/tmp/tflint_linux_amd64.zip"
+  TFLINT_CHECKSUMS_PATH="/tmp/tflint_checksums.txt"
+  curl --silent --fail --show-error --location --output "$TFLINT_ZIP_PATH" \
+    https://github.com/terraform-linters/tflint/releases/latest/download/tflint_linux_amd64.zip
+  curl --silent --fail --show-error --location --output "$TFLINT_CHECKSUMS_PATH" \
+    https://github.com/terraform-linters/tflint/releases/latest/download/checksums.txt
+  (cd /tmp && sha256sum --ignore-missing --check "$TFLINT_CHECKSUMS_PATH")
+  unzip -o "$TFLINT_ZIP_PATH" -d /tmp
+  TFLINT_BINARY_PATH="/tmp/tflint"
+  install --verbose "$TFLINT_BINARY_PATH" "$HOME/.local/bin/"
+  rm "$TFLINT_ZIP_PATH" "$TFLINT_CHECKSUMS_PATH" "$TFLINT_BINARY_PATH"
 fi
 
 # endregion
