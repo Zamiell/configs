@@ -743,6 +743,13 @@ get-new-worktree-directory() (
 
   assert-in-git-repository
 
+  local requested_branch_name="${1:-}"
+  if [[ -n "$requested_branch_name" ]] \
+    && ! git check-ref-format "refs/heads/$requested_branch_name"; then
+    echo "Error: The branch name of \"$requested_branch_name\" contains illegal characters." >&2
+    return 1
+  fi
+
   local repo_root
   repo_root=$(git rev-parse --show-toplevel)
 
@@ -759,23 +766,44 @@ get-new-worktree-directory() (
   local main_branch_name
   main_branch_name=$(get-main-branch-name)
 
-  local suffix=2
-  local new_worktree_directory
   local new_branch_name
-  while true; do
-    new_worktree_directory="$repositories_directory/$repository_base_name$suffix"
-    if is-github-repository; then
-      new_branch_name="$suffix"
-    else
+  if [[ -n "$requested_branch_name" ]]; then
+    new_branch_name="$requested_branch_name"
+    if ! is-github-repository; then
       local username
       username=$(get-username)
-      new_branch_name="feature/$username/$suffix"
+      new_branch_name="feature/$username/$new_branch_name"
     fi
 
-    if [[ ! -e "$new_worktree_directory" ]] \
-      && ! git show-ref --verify --quiet "refs/heads/$new_branch_name" \
-      && ! git show-ref --verify --quiet "refs/remotes/origin/$new_branch_name"; then
-      break
+    if git show-ref --verify --quiet "refs/heads/$new_branch_name" \
+      || git show-ref --verify --quiet "refs/remotes/origin/$new_branch_name"; then
+      echo "Error: The branch name of \"$new_branch_name\" already exists." >&2
+      return 1
+    fi
+  fi
+
+  local suffix=2
+  local new_worktree_directory
+  while true; do
+    new_worktree_directory="$repositories_directory/$repository_base_name$suffix"
+
+    if [[ ! -e "$new_worktree_directory" ]]; then
+      if [[ -n "$requested_branch_name" ]]; then
+        break
+      fi
+
+      if is-github-repository; then
+        new_branch_name="$suffix"
+      else
+        local username
+        username=$(get-username)
+        new_branch_name="feature/$username/$suffix"
+      fi
+
+      if ! git show-ref --verify --quiet "refs/heads/$new_branch_name" \
+        && ! git show-ref --verify --quiet "refs/remotes/origin/$new_branch_name"; then
+        break
+      fi
     fi
 
     ((suffix++))

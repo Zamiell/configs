@@ -1537,11 +1537,12 @@ guo() (
   code "${changed_files[@]}"
 )
 
-# "gwa" is short for "git worktree add". (We do not use a subshell because we need to change the
-# current working directory.)
+# "gwa" is short for "git worktree add". An optional argument specifies the branch name without
+# changing the numbered worktree directory name. (We do not use a subshell because we need to change
+# the current working directory.)
 gwa() {
   local new_worktree_directory
-  new_worktree_directory=$(get-new-worktree-directory)
+  new_worktree_directory=$(get-new-worktree-directory "${1:-}") || return 1
   builtin cd "$new_worktree_directory"
   git push
 
