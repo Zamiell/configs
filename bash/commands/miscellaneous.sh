@@ -598,13 +598,17 @@ tpr() (
     exit 1
   fi
 
-  local logix_path="$REPOSITORIES_DIR/infrastructure/3_Applications/containers/logix-ci-cd-tasks"
-  if [[ ! -d "$logix_path" ]]; then
-    echo "Error: The directory does not exist at: $logix_path" >&2
+  local logix_ci_cd_tasks_path="$REPOSITORIES_DIR/infrastructure/3_Applications/containers/logix-ci-cd-tasks"
+  if [[ ! -d "$logix_ci_cd_tasks_path" ]]; then
+    echo "Error: The directory does not exist at: $logix_ci_cd_tasks_path" >&2
     exit 1
   fi
 
-  builtin cd "$logix_path"
+  local infrastructure_git_root
+  infrastructure_git_root=$(git -C "$logix_ci_cd_tasks_path" rev-parse --show-toplevel)
+  echo "Using infrastructure Git root: $infrastructure_git_root"
+
+  builtin cd "$logix_ci_cd_tasks_path"
   bun run test-pr "$repository_name" "$pull_request_id" "$@"
 )
 
