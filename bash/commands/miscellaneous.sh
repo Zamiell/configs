@@ -593,20 +593,29 @@ tpr() (
     shift 2
   fi
 
-  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
-    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
-    exit 1
+  local infrastructure_path
+  local current_repo_root
+  local current_repo_remote_url
+  if current_repo_root=$(git rev-parse --show-toplevel 2> /dev/null) \
+    && current_repo_remote_url=$(git -C "$current_repo_root" remote get-url origin 2> /dev/null) \
+    && [[ "${current_repo_remote_url%.git}" == */infrastructure ]]; then
+    infrastructure_path="$current_repo_root"
+  else
+    if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+      echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+      exit 1
+    fi
+
+    infrastructure_path="$REPOSITORIES_DIR/infrastructure"
   fi
 
-  local logix_ci_cd_tasks_path="$REPOSITORIES_DIR/infrastructure/3_Applications/containers/logix-ci-cd-tasks"
+  local logix_ci_cd_tasks_path="$infrastructure_path/3_Applications/containers/logix-ci-cd-tasks"
   if [[ ! -d "$logix_ci_cd_tasks_path" ]]; then
     echo "Error: The directory does not exist at: $logix_ci_cd_tasks_path" >&2
     exit 1
   fi
 
-  local infrastructure_git_root
-  infrastructure_git_root=$(git -C "$logix_ci_cd_tasks_path" rev-parse --show-toplevel)
-  echo "Using infrastructure Git root: $infrastructure_git_root"
+  echo "Using infrastructure Git root: $infrastructure_path"
 
   builtin cd "$logix_ci_cd_tasks_path"
   bun run test-pr "$repository_name" "$pull_request_id" "$@"
