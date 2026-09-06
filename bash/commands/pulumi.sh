@@ -15,12 +15,22 @@ alias pp="pulumi preview"
 ppf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
-    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
-    exit 1
+  local infrastructure_path
+  local current_repo_root
+  local current_repo_remote_url
+  if current_repo_root=$(git rev-parse --show-toplevel 2> /dev/null) \
+    && current_repo_remote_url=$(git -C "$current_repo_root" remote get-url origin 2> /dev/null) \
+    && [[ "${current_repo_remote_url%.git}" == */infrastructure ]]; then
+    infrastructure_path="$current_repo_root"
+  else
+    if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+      echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+      exit 1
+    fi
+
+    infrastructure_path="$REPOSITORIES_DIR/infrastructure"
   fi
 
-  local infrastructure_path="$REPOSITORIES_DIR/infrastructure"
   if [[ ! -d "$infrastructure_path" ]]; then
     echo "Error: The \"infrastructure\" repository does not exist." >&2
     exit 1
