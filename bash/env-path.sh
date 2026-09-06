@@ -1,6 +1,11 @@
 # First, ensure that the standard local binary location is included in the path.
 prepend-path "$HOME/.local/bin"
 
+# agenix
+if ! command -v agenix &> /dev/null; then
+  prepend-path "$HOME/.nix-profile/bin"
+fi
+
 # bun
 # https://bun.com/
 if ! command -v bun &> /dev/null; then
