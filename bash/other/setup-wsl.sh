@@ -705,6 +705,25 @@ fi
 # Configure applications
 # ----------------------
 
+# Install GitHub Copilot CLI settings.
+if is-james; then
+  COPILOT_SETTINGS_SRC="$REPOSITORIES_DIR/configs/app-settings/copilot/settings.json"
+  COPILOT_SETTINGS_DST="$HOME/.copilot/settings.json"
+  if ! cmp --silent "$COPILOT_SETTINGS_SRC" "$COPILOT_SETTINGS_DST"; then
+    echo "Installing: $COPILOT_SETTINGS_DST"
+    mkdir -p "$(dirname "$COPILOT_SETTINGS_DST")"
+    cp "$COPILOT_SETTINGS_SRC" "$COPILOT_SETTINGS_DST"
+  fi
+
+  SOUND_JSON_SRC="$REPOSITORIES_DIR/configs/app-settings/copilot/hooks/sound.json"
+  SOUND_JSON_DST="$HOME/.copilot/hooks/sound.json"
+  if ! cmp --silent "$SOUND_JSON_SRC" "$SOUND_JSON_DST"; then
+    echo "Installing GitHub Copilot CLI settings: $SOUND_JSON_DST"
+    mkdir -p "$(dirname "$SOUND_JSON_DST")"
+    cp "$SOUND_JSON_SRC" "$SOUND_JSON_DST"
+  fi
+fi
+
 # Set up podman.
 if ! podman machine inspect podman-machine-default > /dev/null 2>&1; then
   echo "Setting up podman."
@@ -727,25 +746,6 @@ fi
 install-vscode-extensions "$REPOSITORIES_DIR/configs/.vscode/extensions.json"
 if [[ $PERSONAL == "false" ]]; then
   install-vscode-extensions "$REPOSITORIES_DIR/infrastructure/infrastructure.code-workspace"
-fi
-
-# Install GitHub Copilot CLI settings.
-if is-james; then
-  COPILOT_SETTINGS_SRC="$REPOSITORIES_DIR/configs/app-settings/copilot/settings.json"
-  COPILOT_SETTINGS_DST="$HOME/.copilot/settings.json"
-  if ! cmp --silent "$COPILOT_SETTINGS_SRC" "$COPILOT_SETTINGS_DST"; then
-    echo "Installing: $COPILOT_SETTINGS_DST"
-    mkdir -p "$(dirname "$COPILOT_SETTINGS_DST")"
-    cp "$COPILOT_SETTINGS_SRC" "$COPILOT_SETTINGS_DST"
-  fi
-
-  SOUND_JSON_SRC="$REPOSITORIES_DIR/configs/app-settings/copilot/hooks/sound.json"
-  SOUND_JSON_DST="$HOME/.copilot/hooks/sound.json"
-  if ! cmp --silent "$SOUND_JSON_SRC" "$SOUND_JSON_DST"; then
-    echo "Installing GitHub Copilot CLI settings: $SOUND_JSON_DST"
-    mkdir -p "$(dirname "$SOUND_JSON_DST")"
-    cp "$SOUND_JSON_SRC" "$SOUND_JSON_DST"
-  fi
 fi
 
 # endregion
