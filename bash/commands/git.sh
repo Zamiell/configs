@@ -106,13 +106,6 @@ gbcl() (
 
   assert-in-git-repository
 
-  local main_branch_name
-  main_branch_name=$(get-main-branch-name)
-
-  if [[ "$(git branch --show-current)" != "$main_branch_name" ]]; then
-    git switch "$main_branch_name"
-  fi
-
   if [[ "$skip_fetch" == false ]]; then
     git fetch --prune --quiet
   fi

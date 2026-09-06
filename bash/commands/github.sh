@@ -3,7 +3,6 @@ gh-clean() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   assert-in-github-repository
-  assert-main-branch
 
   if ! git remote get-url upstream &> /dev/null; then
     echo "Error: There is no upstream remote. This command is intended to be used inside a forked GitHub repository." >&2
@@ -31,10 +30,10 @@ gh-clean() (
   fi
 
   local local_branches
-  local_branches=$(git branch --format="%(refname:lstrip=2)" | sort)
+  local_branches=$(git for-each-ref --format="%(refname:lstrip=2)%09%(worktreepath)" refs/heads | sort)
 
-  while IFS= read -r branch; do
-    if [[ "$branch" == "$main_branch_name" ]]; then
+  while IFS=$'\t' read -r branch worktree_path; do
+    if [[ "$branch" == "$main_branch_name" || -n "$worktree_path" ]]; then
       continue
     fi
 
