@@ -1436,24 +1436,24 @@ alias gstl="git stash list"
 # "gstp" is short for "git stash pop"
 alias gstp="git stash pop"
 
-# "gsw" is short for "git switch". Numeric arguments switch worktrees via "gsww".
-# ("gs" is already taken by another command.)
-gsw() {
-  if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
-    gsww "$@"
-    return $?
-  fi
+# "gsw" is short for "git switch". It requires an argument of the number corresponding to the
+# alphabetical local branch. ("gs" is already taken by another command.)
+gsw() (
+  set -euo pipefail # Exit on errors and undefined variables.
 
-  assert-in-git-repository || return 1
+  assert-in-git-repository
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name or worktree number is required. Usage: ${FUNCNAME[0]} <branch-name-or-worktree-number>" >&2
+    echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
     return 1
   fi
-  local branch_name="$1"
+  local branch_name_or_number="$1"
+
+  local branch_name
+  branch_name=$(get-branch-name-from-number "$branch_name_or_number")
 
   git switch "$branch_name"
-}
+)
 
 # "gsww" is short for "git switch workspace". It requires an argument of the number corresponding to
 # the worktree. (We do not use a subshell because we need to change the current working directory.)
