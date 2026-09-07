@@ -24,10 +24,12 @@ case "$1" in
       START_TIMESTAMP=$(< "$STATE_PATH")
       ELAPSED_MILLISECONDS=$((TIMESTAMP - START_TIMESTAMP))
       ELAPSED_SECONDS=$((ELAPSED_MILLISECONDS / 1000))
-      COMPLETED_AT=$(date --date="@$(("$TIMESTAMP" / 1000))" --iso-8601=seconds)
+      ELAPSED_MINUTES=$((ELAPSED_SECONDS / 60))
+      REMAINING_SECONDS=$((ELAPSED_SECONDS % 60))
+      COMPLETED_AT=$(date --date="@$(("$TIMESTAMP" / 1000))" +"%-I:%M %p %Z on %b %-d, %Y")
 
       jq --compact-output --null-input \
-        --arg message "Prompt completed at $COMPLETED_AT after ${ELAPSED_SECONDS}s" \
+        --arg message "Prompt completed at $COMPLETED_AT after ${ELAPSED_MINUTES}m ${REMAINING_SECONDS}s" \
         '{type: "progress", message: $message}'
 
       rm --force "$STATE_PATH"
