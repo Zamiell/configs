@@ -150,6 +150,19 @@ install-binary-from-tar-url() {
   rm "$tmp_path"
 }
 
+ensure-microsoft-package-repository() {
+  if dpkg -s packages-microsoft-prod > /dev/null 2>&1; then
+    return
+  fi
+
+  local deb_path="/tmp/packages-microsoft-prod.deb"
+  curl --silent --fail --show-error --location --output "$deb_path" \
+    "https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb"
+  sudo dpkg --install "$deb_path"
+  rm "$deb_path"
+  sudo apt-get update
+}
+
 install-vscode-extensions() {
   if [[ -z "${1:-}" ]]; then
     echo "Error: You must pass this function the file path as the first argument." >&2
@@ -376,15 +389,19 @@ if [[ ! -x "/usr/local/go/bin/go" ]]; then
   export PATH="/usr/local/go/bin:$PATH"
 fi
 
+# Install the .NET 10 SDK.
+# https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu-install
+if ! command -v dotnet > /dev/null 2>&1 || ! dotnet --list-sdks | grep --quiet '^10\.0\.'; then
+  echo "Installing the .NET 10 SDK."
+  ensure-microsoft-package-repository
+  sudo apt-get install dotnet-sdk-10.0 --yes
+fi
+
 # Install PowerShell.
 # https://learn.microsoft.com/en-us/powershell/scripting/install/install-ubuntu
 if [[ ! -x "/usr/bin/pwsh" ]]; then
   echo "Installing PowerShell."
-  DEB_PATH="/tmp/packages-microsoft-prod.deb"
-  curl --silent --fail --show-error --location --output "$DEB_PATH" "https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb"
-  sudo dpkg --install "$DEB_PATH"
-  rm "$DEB_PATH"
-  sudo apt-get update
+  ensure-microsoft-package-repository
   if apt-cache show powershell &> /dev/null; then
     sudo apt-get install powershell --yes
   else
