@@ -1434,7 +1434,7 @@ gsww() {
 # "gswc" is short for "git switch -c". (However, the "gb" command should be used in most contexts.)
 alias gswc="git switch -c"
 
-# "gswm" is short for "git switch main".
+# "gswm" is short for "git switch main". Linked worktrees detach at the remote main branch.
 gswm() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -1446,7 +1446,16 @@ gswm() (
   local current_branch_name
   current_branch_name=$(git branch --show-current)
 
-  if [[ "$current_branch_name" != "$main_branch_name" ]]; then
+  local git_directory
+  git_directory=$(git rev-parse --absolute-git-dir)
+  local common_git_directory
+  common_git_directory=$(git rev-parse --path-format=absolute --git-common-dir)
+  local is_linked_worktree=false
+  if [[ "$git_directory" != "$common_git_directory" ]]; then
+    is_linked_worktree=true
+  fi
+
+  if [[ "$is_linked_worktree" == false && "$current_branch_name" != "$main_branch_name" ]]; then
     local main_worktree_path
     main_worktree_path=$(git for-each-ref --format="%(worktreepath)" "refs/heads/$main_branch_name")
 
@@ -1464,13 +1473,21 @@ gswm() (
     git stash push --message "Auto-stash before switching to $main_branch_name"
   fi
 
-  if [[ "$current_branch_name" != "$main_branch_name" ]]; then
+  if [[ "$is_linked_worktree" == false && "$current_branch_name" != "$main_branch_name" ]]; then
     git switch "$main_branch_name"
   fi
 
   add-upstream-remote-if-github-fork
 
-  if git remote get-url upstream &> /dev/null; then
+  if [[ "$is_linked_worktree" == true ]]; then
+    local main_remote=origin
+    git fetch origin --prune --quiet
+    if git remote get-url upstream &> /dev/null; then
+      git fetch upstream --prune --quiet
+      main_remote=upstream
+    fi
+    git switch --detach "$main_remote/$main_branch_name"
+  elif git remote get-url upstream &> /dev/null; then
     gh-sync
   else
     git fetch origin --prune --quiet
