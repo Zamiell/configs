@@ -1392,27 +1392,24 @@ alias gstl="git stash list"
 # "gstp" is short for "git stash pop"
 alias gstp="git stash pop"
 
-# "gsw" is short for "git switch". It requires an argument of the number corresponding to the
-# alphabetical local branch. ("gs" is already taken by another command.)
-gsw() (
-  set -euo pipefail # Exit on errors and undefined variables.
+# "gsw" is short for "git switch". Numeric arguments switch worktrees via "gsww".
+# ("gs" is already taken by another command.)
+gsw() {
+  if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    gsww "$@"
+    return $?
+  fi
 
-  assert-in-git-repository
-
-  local main_branch_name
-  main_branch_name=$(get-main-branch-name)
+  assert-in-git-repository || return 1
 
   if [[ -z "${1:-}" ]]; then
-    echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number>" >&2
+    echo "Error: Branch name or worktree number is required. Usage: ${FUNCNAME[0]} <branch-name-or-worktree-number>" >&2
     return 1
   fi
-  local branch_name_or_number="$1"
-
-  local branch_name
-  branch_name=$(get-branch-name-from-number "$branch_name_or_number")
+  local branch_name="$1"
 
   git switch "$branch_name"
-)
+}
 
 # "gsww" is short for "git switch workspace". It requires an argument of the number corresponding to
 # the worktree. (We do not use a subshell because we need to change the current working directory.)
@@ -1554,16 +1551,19 @@ guo() (
   code "${changed_files[@]}"
 )
 
-# "gwa" is short for "git worktree add". An optional argument specifies the branch name without
-# changing the numbered worktree directory name. (We do not use a subshell because we need to change
-# the current working directory.)
+# "gwa" is short for "git worktree add". Creates a detached worktree in a numbered directory.
+# We do not use a subshell because we need to change the current working directory.
 gwa() {
-  local new_worktree_directory
-  new_worktree_directory=$(get-new-worktree-directory "${1:-}") || return 1
-  builtin cd "$new_worktree_directory"
-  git push
+  if [[ "$#" -ne 0 ]]; then
+    echo "Error: This command does not accept arguments. Usage: ${FUNCNAME[0]}" >&2
+    return 1
+  fi
 
-  install-repository-dependencies
+  local new_worktree_directory
+  new_worktree_directory=$(get-new-worktree-directory) || return 1
+  builtin cd "$new_worktree_directory" || return 1
+
+  install-repository-dependencies || return 1
 
   if [[ -f "$new_worktree_directory/uv.lock" ]]; then
     uv sync --frozen
