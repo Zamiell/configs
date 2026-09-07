@@ -1516,7 +1516,11 @@ gswm() (
       git fetch upstream --prune --quiet
       main_remote=upstream
     fi
-    git switch --detach "$main_remote/$main_branch_name"
+    if [[ -z "$current_branch_name" ]]; then
+      git merge --ff-only "$main_remote/$main_branch_name"
+    else
+      git switch --detach "$main_remote/$main_branch_name"
+    fi
   elif git remote get-url upstream &> /dev/null; then
     gh-sync
   else
