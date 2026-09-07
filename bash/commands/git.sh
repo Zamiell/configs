@@ -736,9 +736,42 @@ gmco() (
   code "${conflicted_files[@]}"
 )
 
-# "gp" is short for "git pull". (We always include the "--rebase" and "--prune" flags, since they
-# are best practice.)
-alias gp="git pull --rebase --prune"
+# "gp" is short for "git pull". Detached worktrees fast-forward to the remote main branch.
+gp() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local current_branch_name
+  current_branch_name=$(git branch --show-current)
+  if [[ -n "$current_branch_name" ]]; then
+    git pull --rebase --prune "$@"
+    return
+  fi
+
+  if [[ "$#" -ne 0 ]]; then
+    echo "Error: This command does not accept arguments when HEAD is detached. Usage: ${FUNCNAME[0]}" >&2
+    return 1
+  fi
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Error: The repository is not clean. Commit or stash your changes before updating detached HEAD." >&2
+    return 1
+  fi
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  add-upstream-remote-if-github-fork
+
+  local main_remote=origin
+  git fetch origin --prune --quiet
+  if git remote get-url upstream &> /dev/null; then
+    git fetch upstream --prune --quiet
+    main_remote=upstream
+  fi
+  git merge --ff-only "$main_remote/$main_branch_name"
+)
 
 # "gpm" is short for "git pull mine", which will fetch all remote branches that start with
 # "feature/misc/[username]/" and create local tracking branches for them if they do not already
