@@ -402,7 +402,7 @@ get-branch-name-from-number() (
     local branch_number="$branch_name_or_number"
 
     local local_branches
-    local_branches=$(git branch --format="%(refname:lstrip=2)" | sort)
+    local_branches=$(git for-each-ref --format="%(refname:lstrip=2)" refs/heads | sort)
 
     branch_name=$(echo "$local_branches" | sed --quiet "${branch_number}p")
     if [[ -z "$branch_name" ]]; then

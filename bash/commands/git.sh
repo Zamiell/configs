@@ -230,7 +230,7 @@ gbl() (
   local local_branches
   # We need to use "lstrip" instead of "short" since the latter does not work properly with branches
   # from "gh pr checkout".
-  local_branches=$(git branch --format="%(refname:lstrip=2)" | sort)
+  local_branches=$(git for-each-ref --format="%(refname:lstrip=2)" refs/heads | sort)
   local current_branch
   current_branch=$(git branch --show-current)
 
