@@ -241,6 +241,9 @@ code() (
 # Turn off Codex CLI prompts.
 alias codex="codex --yolo"
 
+# Reload these Bash configs.
+alias configs='source "$REPOSITORIES_DIR/configs/bash/bashrc.sh"'
+
 # Turn off GitHub Copilot CLI prompts.
 alias copilot="GITHUB_TOKEN=\${GITHUB_TOKEN_WORK:-\$GITHUB_TOKEN} copilot --yolo --no-ask-user"
 
