@@ -19,30 +19,20 @@ else
   echo "Successfully updated: $SETTINGS_PATH_DST"
 fi
 
-# Second, handle the hooks. First, validate that the sound file exists.
-SOUND_PATH="/mnt/c/Users/$USER/turn-blind1.mp3"
-if [[ ! -f "$SOUND_PATH" ]]; then
-  echo "Error: The sound file does not exist: $SOUND_PATH" >&2
-  exit 1
-fi
+# Second, handle the hooks.
+python3 -c "import yaml"
 
 HOOK_PATH_SRC="$DIR/hooks/sound.json"
 HOOK_PATH_DST="$HOME/.copilot/hooks/sound.json"
 
-TEMP_DIR=$(mktemp --directory)
-trap 'rm -rf -- "$TEMP_DIR"' EXIT
+mkdir -p "$(dirname "$HOOK_PATH_DST")"
+install --mode=755 "$DIR/../../bash/commands/say.sh" "$HOME/.copilot/hooks/say.sh"
+install --mode=755 "$DIR/hooks/sound.sh" "$HOME/.copilot/hooks/sound.sh"
 
-HOOK_PATH_TEMP="$TEMP_DIR/sound.json"
-cp "$HOOK_PATH_SRC" "$HOOK_PATH_TEMP"
-
-WINDOWS_SOUND_PATH=$(wslpath -m "$SOUND_PATH")
-sed --in-place "s|__MP3_PATH__|$WINDOWS_SOUND_PATH|g" "$HOOK_PATH_TEMP"
-
-if [[ -f "$HOOK_PATH_DST" ]] && cmp --silent "$HOOK_PATH_TEMP" "$HOOK_PATH_DST"; then
+if [[ -f "$HOOK_PATH_DST" ]] && cmp --silent "$HOOK_PATH_SRC" "$HOOK_PATH_DST"; then
   echo "The \"$HOOK_PATH_DST\" file is already up to date."
 else
-  mkdir -p "$(dirname "$HOOK_PATH_DST")"
-  cp "$HOOK_PATH_TEMP" "$HOOK_PATH_DST"
+  cp "$HOOK_PATH_SRC" "$HOOK_PATH_DST"
   echo "Successfully updated: $HOOK_PATH_DST"
 fi
 

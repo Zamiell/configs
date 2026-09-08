@@ -243,6 +243,7 @@ declare -a packages=(
   "jq"
   "podman"
   "python-is-python3"
+  "python3-yaml"
   "qemu-system-x86" # Required for "podman machine init" to work.
   "ripgrep"
   "rootlesskit" # Required for rootless BuildKit.
@@ -751,21 +752,7 @@ fi
 
 # Install GitHub Copilot CLI settings.
 if is-james; then
-  COPILOT_SETTINGS_SRC="$REPOSITORIES_DIR/configs/app-settings/copilot/settings.json"
-  COPILOT_SETTINGS_DST="$HOME/.copilot/settings.json"
-  if ! cmp --silent "$COPILOT_SETTINGS_SRC" "$COPILOT_SETTINGS_DST"; then
-    echo "Installing: $COPILOT_SETTINGS_DST"
-    mkdir -p "$(dirname "$COPILOT_SETTINGS_DST")"
-    cp "$COPILOT_SETTINGS_SRC" "$COPILOT_SETTINGS_DST"
-  fi
-
-  SOUND_JSON_SRC="$REPOSITORIES_DIR/configs/app-settings/copilot/hooks/sound.json"
-  SOUND_JSON_DST="$HOME/.copilot/hooks/sound.json"
-  if ! cmp --silent "$SOUND_JSON_SRC" "$SOUND_JSON_DST"; then
-    echo "Installing GitHub Copilot CLI settings: $SOUND_JSON_DST"
-    mkdir -p "$(dirname "$SOUND_JSON_DST")"
-    cp "$SOUND_JSON_SRC" "$SOUND_JSON_DST"
-  fi
+  bash "$REPOSITORIES_DIR/configs/app-settings/copilot-cli/copy.sh"
 fi
 
 # Set up podman.

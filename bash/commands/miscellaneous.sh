@@ -562,32 +562,6 @@ if command -v python &> /dev/null && ! command -v pip &> /dev/null; then
   alias pip="python -m pip"
 fi
 
-# Emulate the macOS "say" command on WSL. (We need to check if "say" already exists so that we do
-# not blow it away on macOS.)
-if ! command -v chrome &> /dev/null; then
-  say() (
-    set -euo pipefail # Exit on errors and undefined variables.
-
-    if [[ -z "$*" ]]; then
-      echo "Error: Text is required. Usage: ${FUNCNAME[0]} <text>" >&2
-      return 1
-    fi
-
-    # shellcheck disable=SC2016
-    printf '%s' "$*" | powershell.exe -NoProfile -Command '
-    $ErrorActionPreference = "Stop"
-    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
-    Add-Type -AssemblyName System.Speech
-    $s = New-Object System.Speech.Synthesis.SpeechSynthesizer
-    try {
-      $s.Speak([Console]::In.ReadToEnd())
-    } finally {
-      $s.Dispose()
-    }
-  '
-  )
-fi
-
 set-claude-settings() (
   set -euo pipefail # Exit on errors and undefined variables.
 

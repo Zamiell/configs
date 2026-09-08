@@ -4,8 +4,8 @@
     "agentStop": [
       {
         "type": "command",
-        "bash": "ffplay.exe -nodisp -autoexit \"__MP3_PATH__\" &",
-        "timeoutSec": 1
+        "bash": "\"${COPILOT_HOME:-$HOME/.copilot}/hooks/sound.sh\"",
+        "timeoutSec": 60
       }
     ]
   }
