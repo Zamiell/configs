@@ -235,7 +235,7 @@ code() (
     done
   done
 
-  command code .
+  command code "${repo_root:-.}"
 )
 
 # Turn off Codex CLI prompts.
