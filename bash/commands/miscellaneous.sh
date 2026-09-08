@@ -208,6 +208,36 @@ alias clip="clip.exe"
 # "co" is short for "copilot". (See below.)
 alias co="copilot"
 
+code() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ $# -gt 0 ]]; then
+    command code "$@"
+    return
+  fi
+
+  local directories=(.)
+  local repo_root
+  if repo_root=$(git rev-parse --show-toplevel 2> /dev/null); then
+    directories+=("$repo_root")
+  fi
+
+  shopt -s nullglob dotglob
+
+  local directory
+  local workspace
+  for directory in "${directories[@]}"; do
+    for workspace in "$directory"/*.code-workspace; do
+      if [[ -f "$workspace" ]]; then
+        command code "$workspace"
+        return
+      fi
+    done
+  done
+
+  command code .
+)
+
 # Turn off Codex CLI prompts.
 alias codex="codex --yolo"
 
@@ -359,7 +389,7 @@ eslint-open() {
   npx eslint --format json "$@" \
     | jq -j '.[] | select(.messages | length > 0) | .filePath, "\u0000"' \
     | sort -zu \
-    | xargs -0 -r code --reuse-window
+    | xargs -0 -r env code --reuse-window
 
   return "${PIPESTATUS[0]}"
 }
