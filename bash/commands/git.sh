@@ -1036,6 +1036,9 @@ gpr() (
   o "$pull_request_url"
 )
 
+# "gpro" is short for "git pull request open".
+alias gpro="gpr --check"
+
 # "gpr-dry" is similar to "gpr", but will just open the URL that will begin the process of creating
 # the pull request instead of actually fully opening the pull request. This is useful to see the
 # files changed on the branch.
