@@ -1,3 +1,5 @@
+# Emulate the macOS "say" command on WSL. (We need to check if "say" already exists so that we do
+# not blow it away on macOS.)
 if ! command -v say &> /dev/null; then
   say() (
     set -euo pipefail # Exit on errors and undefined variables.

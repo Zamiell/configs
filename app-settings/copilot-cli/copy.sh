@@ -20,6 +20,8 @@ else
 fi
 
 # Second, handle the hooks.
+# The sound hook requires PyYAML, which is not built into Python. Fail early if it is missing.
+# On Ubuntu, install it with: sudo apt-get install python3-yaml
 python3 -c "import yaml"
 
 HOOK_PATH_SRC="$DIR/hooks/sound.json"
