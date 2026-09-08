@@ -1037,7 +1037,20 @@ gpr() (
 )
 
 # "gpro" is short for "git pull request open".
-alias gpro="gpr --check"
+gpro() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ "$#" -gt 1 || ("$#" -eq 1 && ! "$1" =~ ^[1-9][0-9]*$) ]]; then
+    echo "Error: This command only accepts a positive workspace number from \"gwl\". Usage: ${FUNCNAME[0]} [workspace-number]" >&2
+    return 1
+  fi
+
+  if [[ "$#" -eq 1 ]]; then
+    gsww "$1" || return 1
+  fi
+
+  gpr --check
+)
 
 # "gpr-dry" is similar to "gpr", but will just open the URL that will begin the process of creating
 # the pull request instead of actually fully opening the pull request. This is useful to see the
