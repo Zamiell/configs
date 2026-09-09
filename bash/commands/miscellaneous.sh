@@ -238,6 +238,9 @@ code() (
   command code "${repo_root:-.}"
 )
 
+# "cod" is short for "codex".
+alias cod="codex"
+
 # Turn off Codex CLI prompts.
 alias codex="codex --yolo"
 
