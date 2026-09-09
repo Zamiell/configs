@@ -1,5 +1,6 @@
 {
   "beep": false,
   "copyOnSelect": true,
-  "model": "gpt-6-astra"
+  "model": "gpt-6-astra",
+  "contextTier": "long_context"
 }
