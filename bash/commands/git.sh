@@ -370,7 +370,7 @@ gbr() (
 # "gbr_" is an alias for "gbr --no-convention".
 alias gbr_="gbr --no-convention"
 
-# "gbs" is short for "git branch squash", which squash all commits on the branch.
+# "gbs" is short for "git branch squash", which squashes all commits on the branch.
 gbs() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -380,18 +380,50 @@ gbs() (
   local branch_name
   branch_name=$(git branch --show-current)
 
+  if [[ -z "$branch_name" ]]; then
+    echo "Error: Cannot squash commits while HEAD is detached. Switch to a feature branch first." >&2
+    return 1
+  fi
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Error: The repository is not clean. Commit or stash your changes before squashing the branch." >&2
+    return 1
+  fi
+
+  local main_branch_name
+  main_branch_name=$(get-main-branch-name)
+
+  local base_remote="origin"
+  if git remote get-url upstream &> /dev/null; then
+    base_remote="upstream"
+  fi
+
+  # Fetch only the base branch so the feature branch's force-with-lease protection is preserved.
+  local base_ref="refs/remotes/$base_remote/$main_branch_name"
+  git fetch --quiet "$base_remote" "refs/heads/$main_branch_name:$base_ref"
+
   local merge_base
-  merge_base=$(get-merge-base)
+  merge_base=$(git merge-base "$base_ref" HEAD)
 
   local num_branch_commits
   num_branch_commits=$(git rev-list --count "$merge_base..$branch_name")
+
+  if [[ "$num_branch_commits" -eq 0 ]]; then
+    echo "There are no commits on this branch to squash."
+    return
+  fi
 
   if [[ "$num_branch_commits" -eq 1 ]]; then
     echo "There is only 1 commit on this branch, so no squashing is needed."
     return
   fi
 
-  git reset --soft "HEAD~$num_branch_commits"
+  if git diff --quiet "$merge_base" HEAD; then
+    echo "Error: The branch has no net changes to squash." >&2
+    return 1
+  fi
+
+  git reset --soft "$merge_base"
   git commit --message "chore: squashed $num_branch_commits commits"
   git push --force-with-lease
 )

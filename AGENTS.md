@@ -5,3 +5,4 @@
 - Only write code with normal ASCII characters. Never use emojis in your code.
 - Never put pointless comments in your code. You should be writing easy to read code, making comments superfluous.
 - Do not commit to the repository unless explicitly asked to.
+- Do not document new features in the "README.md" unless explicitly asked to.
