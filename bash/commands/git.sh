@@ -679,7 +679,7 @@ gcpr() (
 
   local branch_name
   branch_name=$(git branch --show-current)
-  if [[ "$branch_name" == "main" ]] || [[ "$branch_name" == "master" ]]; then
+  if [[ -z "$branch_name" ]] || [[ "$branch_name" == "main" ]] || [[ "$branch_name" == "master" ]]; then
     gb
   fi
 
