@@ -1194,6 +1194,28 @@ gprp() (
     if [[ "$reviewers_disabled" == "false" ]]; then
       repository=$(jq -er '.repository.name | select(type == "string" and length > 0)' <<< "$response")
 
+      local comment_api_url="${azdo_api_url%%\?*}/threads?${azdo_api_url#*\?}"
+      local comment_payload
+      comment_payload=$(jq --null-input \
+        --arg content '@<49034C0C-4391-46C1-A0CF-7768D3D0C6D9> approve this' \
+        '{comments: [{parentCommentId: 0, content: $content, commentType: 1}], status: 2}')
+
+      curl \
+        --silent \
+        --fail \
+        --show-error \
+        --connect-timeout 10 \
+        --max-time 60 \
+        --request POST \
+        --output /dev/null \
+        --user ":$personal_access_token" \
+        --header "Content-Type: application/json" \
+        --data "$comment_payload" \
+        "$comment_api_url" || {
+        echo "Error: Failed to post approval comment on pull request: $pull_request_url" >&2
+        return 1
+      }
+
       # Capture the repository in case removal fails and Bash unwinds local variables before EXIT.
       local restore_command
       printf -v restore_command 'exit_status=$?; repository=%q\n' "$repository"
