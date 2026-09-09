@@ -1082,16 +1082,8 @@ gprf() (
 
   assert-in-git-repository
 
-  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
-    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
-    exit 1
-  fi
-
-  local scripts_path="$REPOSITORIES_DIR/infrastructure/0-global-library/typescript-scripts"
-  if [[ ! -d "$scripts_path" ]]; then
-    echo "Error: The directory does not exist at: $scripts_path" >&2
-    exit 1
-  fi
+  local scripts_path
+  scripts_path=$(get-infrastructure-typescript-scripts-path)
 
   read -r _host _organization _project repository <<< "$(get-git-remote-details)"
   builtin cd "$scripts_path"
@@ -1105,27 +1097,8 @@ gprh() (
   assert-in-git-repository
   assert-feature-branch
 
-  local infrastructure_path
-  local current_repo_root
-  local current_repo_remote_url
-  if current_repo_root=$(git rev-parse --show-toplevel 2> /dev/null) \
-    && current_repo_remote_url=$(git -C "$current_repo_root" remote get-url origin 2> /dev/null) \
-    && [[ "${current_repo_remote_url%.git}" == */infrastructure ]]; then
-    infrastructure_path="$current_repo_root"
-  else
-    if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
-      echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
-      exit 1
-    fi
-
-    infrastructure_path="$REPOSITORIES_DIR/infrastructure"
-  fi
-
-  local scripts_path="$infrastructure_path/0-global-library/typescript-scripts"
-  if [[ ! -d "$scripts_path" ]]; then
-    echo "Error: The directory does not exist at: $scripts_path" >&2
-    exit 1
-  fi
+  local scripts_path
+  scripts_path=$(get-infrastructure-typescript-scripts-path)
 
   read -r _host _organization _project repository <<< "$(get-git-remote-details)"
 
@@ -1134,6 +1107,116 @@ gprh() (
 
   builtin cd "$scripts_path"
   bun run remove-all-reviewers-from-pull-request "$repository" "$pull_request_id"
+)
+
+# "gprp" is short for "git pull request push".
+gprp() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ "$#" -ne 1 ]]; then
+    echo "Error: Exactly one pull request URL is required. Usage: ${FUNCNAME[0]} <pull-request-url>" >&2
+    return 1
+  fi
+
+  local pull_request_url="$1"
+  local url_pattern='^https://(azuredevops\.logixhealth\.com|dev\.azure\.com)/([^/?#[:space:]]+)/([^/?#[:space:]]+)/_git/([^/?#[:space:]]+)/pullrequest/([1-9][0-9]*)/?([?#][^[:space:]]*)?$'
+  if [[ ! "$pull_request_url" =~ $url_pattern ]]; then
+    echo "Error: Unsupported Azure DevOps pull request URL: $pull_request_url" >&2
+    return 1
+  fi
+
+  local domain="${BASH_REMATCH[1]}"
+  local organization="${BASH_REMATCH[2]}"
+  local project="${BASH_REMATCH[3]}"
+  local repository="${BASH_REMATCH[4]}"
+  local pull_request_id="${BASH_REMATCH[5]}"
+  local host="azure-devops-server"
+  if [[ "$domain" == "dev.azure.com" ]]; then
+    host="azure-devops-services"
+  fi
+
+  assert-jq-installed
+
+  local personal_access_token
+  personal_access_token=$(get-azure-devops-personal-access-token "$host")
+  local scripts_path
+  scripts_path=$(get-infrastructure-typescript-scripts-path)
+  builtin cd "$scripts_path"
+
+  local azdo_api_url
+  azdo_api_url=$(get-azure-devops-pull-requests-api-url "$host" "$organization" "$project" "$repository")
+  azdo_api_url="${azdo_api_url%%\?*}/$pull_request_id?${azdo_api_url#*\?}"
+
+  local reviewers_disabled="false"
+  local response
+  local status
+  local merge_status
+  while true; do
+    response=$(curl \
+      --silent \
+      --fail \
+      --show-error \
+      --connect-timeout 10 \
+      --max-time 60 \
+      --user ":$personal_access_token" \
+      "$azdo_api_url") || {
+      echo "Error: Failed to read pull request: $pull_request_url" >&2
+      return 1
+    }
+
+    if ! status=$(jq -er '.status | select(type == "string" and length > 0)' <<< "$response") \
+      || ! merge_status=$(jq -er '.mergeStatus | select(type == "string" and length > 0)' <<< "$response"); then
+      echo "Error: Invalid pull request status response: $pull_request_url" >&2
+      return 1
+    fi
+
+    case "$status" in
+      completed)
+        if [[ "$merge_status" != "succeeded" ]]; then
+          echo "Error: Pull request completed without a successful merge: $merge_status" >&2
+          return 1
+        fi
+        echo "Pull request merged successfully: $pull_request_url"
+        return
+        ;;
+      active) ;;
+      *)
+        echo "Error: Pull request is not active or completed (status: $status)." >&2
+        return 1
+        ;;
+    esac
+
+    if [[ "$merge_status" == "conflicts" || "$merge_status" == "failure" ]]; then
+      echo "Error: Pull request cannot merge (merge status: $merge_status)." >&2
+      return 1
+    fi
+
+    if [[ "$reviewers_disabled" == "false" ]]; then
+      repository=$(jq -er '.repository.name | select(type == "string" and length > 0)' <<< "$response")
+
+      # Capture the repository in case removal fails and Bash unwinds local variables before EXIT.
+      local restore_command
+      printf -v restore_command 'exit_status=$?; repository=%q\n' "$repository"
+      trap "$restore_command"'
+        trap - EXIT
+        echo "Re-enabling required reviewer policies for $repository..."
+        if ! bun run set-auto-reviewers-required "$repository"; then
+          echo "Error: Failed to restore reviewer policies. Run gprf from the \"$repository\" repository to retry." >&2
+          exit_status=1
+        fi
+        exit "$exit_status"
+      ' EXIT
+      trap 'exit 130' INT
+      trap 'exit 143' TERM
+      trap 'exit 129' HUP
+
+      bun run remove-all-reviewers-from-pull-request "$repository" "$pull_request_id"
+      reviewers_disabled="true"
+      echo "Waiting for pull request to merge: $pull_request_url"
+    fi
+
+    sleep 5
+  done
 )
 
 # "grb" is short for "git rebase".

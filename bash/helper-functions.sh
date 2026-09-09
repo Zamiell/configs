@@ -556,6 +556,48 @@ get-git-remote-details() (
   return 1
 )
 
+get-infrastructure-path() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local infrastructure_path
+  local current_repo_root
+  local current_repo_remote_url
+  if current_repo_root=$(git rev-parse --show-toplevel 2> /dev/null) \
+    && current_repo_remote_url=$(git -C "$current_repo_root" remote get-url origin 2> /dev/null) \
+    && [[ "${current_repo_remote_url%.git}" == */infrastructure ]]; then
+    infrastructure_path="$current_repo_root"
+  else
+    if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+      echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+      return 1
+    fi
+
+    infrastructure_path="$REPOSITORIES_DIR/infrastructure"
+  fi
+
+  if [[ ! -d "$infrastructure_path" ]]; then
+    echo "Error: The \"infrastructure\" repository does not exist." >&2
+    return 1
+  fi
+
+  echo "$infrastructure_path"
+)
+
+get-infrastructure-typescript-scripts-path() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local infrastructure_path
+  infrastructure_path=$(get-infrastructure-path)
+
+  local scripts_path="$infrastructure_path/0-global-library/typescript-scripts"
+  if [[ ! -d "$scripts_path" ]]; then
+    echo "Error: The directory does not exist at: $scripts_path" >&2
+    return 1
+  fi
+
+  echo "$scripts_path"
+)
+
 # This will return a descriptive commit message based on the currently staged files.
 get-llm-commit-message() (
   set -euo pipefail # Exit on errors and undefined variables.
