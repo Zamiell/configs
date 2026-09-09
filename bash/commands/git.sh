@@ -137,6 +137,7 @@ gbcp() (
 )
 
 # "gbd" is short for "git branch delete", which will delete the branch both locally and remotely.
+# Use "current" to run "gswm" before deleting the current branch.
 gbd() (
   set -euo pipefail # Exit on errors and undefined variables.
 
@@ -154,16 +155,28 @@ gbd() (
   done
 
   if [[ -z "$branch_name_or_number" ]]; then
-    echo "Error: Branch name or number is required. Usage: ${FUNCNAME[0]} <branch-name-or-number> [--only-local]" >&2
+    echo "Error: Branch name, number, or \"current\" is required. Usage: ${FUNCNAME[0]} <branch-name-or-number|current> [--only-local]" >&2
     return 1
   fi
 
   local branch_name
-  branch_name=$(get-branch-name-from-number "$branch_name_or_number")
+  if [[ "$branch_name_or_number" == "current" ]]; then
+    branch_name=$(git branch --show-current)
+    if [[ -z "$branch_name" ]]; then
+      echo "Error: You are not currently on a branch." >&2
+      return 1
+    fi
+  else
+    branch_name=$(get-branch-name-from-number "$branch_name_or_number")
+  fi
 
   if [[ "$branch_name" == "main" ]] || [[ "$branch_name" == "master" ]]; then
     echo "Error: You cannot use this command to delete the \"$branch_name\" branch. Are you sure you want to delete that?" >&2
     return 1
+  fi
+
+  if [[ "$branch_name_or_number" == "current" ]]; then
+    gswm
   fi
 
   local current_branch_name
