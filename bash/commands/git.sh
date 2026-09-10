@@ -223,6 +223,10 @@ gbe() (
 
   local branch_name
   branch_name=$(git branch --show-current)
+  if [[ -z "$branch_name" ]]; then
+    echo "Error: HEAD is detached. Switch to a branch before checking if it exists on remote." >&2
+    return 1
+  fi
 
   local remote_branch
   remote_branch=$(git ls-remote --heads origin "$branch_name")
