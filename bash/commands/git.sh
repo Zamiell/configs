@@ -1168,23 +1168,18 @@ gprp() (
   fi
 
   local pull_request_url="$1"
-  local url_pattern='^https://(azuredevops\.logixhealth\.com|dev\.azure\.com)/([^/?#[:space:]]+)/([^/?#[:space:]]+)/_git/([^/?#[:space:]]+)/pullrequest/([1-9][0-9]*)/?([?#][^[:space:]]*)?$'
+  local url_pattern='^https://(azuredevops\.logixhealth\.com|dev\.azure\.com)/([^/?#[:space:]]+)/([^/?#[:space:]]+)/_git/([^/?#[:space:]]+)/pullrequest/([1-9][0-9]*)/?([?#][^[:space:]]*)?$' # TODO: Fix the domain
   if [[ ! "$pull_request_url" =~ $url_pattern ]]; then
     echo "Error: Unsupported Azure DevOps pull request URL: $pull_request_url" >&2
     return 1
   fi
 
-  local domain="${BASH_REMATCH[1]}"
   local organization="${BASH_REMATCH[2]}"
   local project="${BASH_REMATCH[3]}"
   local repository="${BASH_REMATCH[4]}"
   local pull_request_id="${BASH_REMATCH[5]}"
-  local host="azure-devops-server"
-  local minion_id="49034C0C-4391-46C1-A0CF-7768D3D0C6D9"
-  if [[ "$domain" == "dev.azure.com" ]]; then
-    host="azure-devops-services"
-    minion_id="1DF39606-0652-60FA-AEF6-92A5C63856B7"
-  fi
+  local host="azure-devops-services"
+  local minion_id="1DF39606-0652-60FA-AEF6-92A5C63856B7"
 
   assert-jq-installed
 
