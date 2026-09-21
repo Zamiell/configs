@@ -281,12 +281,12 @@ get-azure-devops-personal-access-token() (
 
     echo "$AZDO_PERSONAL_ACCESS_TOKEN_SERVER"
   elif [[ "$host" == "azure-devops-services" ]]; then
-    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVICES:-}" ]]; then
-      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVICES\" environment variable is not set." >&2
+    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN:-}" ]]; then
+      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN\" environment variable is not set." >&2
       return 1
     fi
 
-    echo "$AZDO_PERSONAL_ACCESS_TOKEN_SERVICES"
+    echo "$AZDO_PERSONAL_ACCESS_TOKEN"
   else
     echo "Error: The Azure DevOps host is invalid: $host" >&2
     return 1
