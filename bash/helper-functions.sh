@@ -976,7 +976,8 @@ set-cd-alias() {
   fi
 
   local alias_name="cd$first_letter"
-  if alias "$alias_name" &> /dev/null; then
+  if alias "$alias_name" &> /dev/null \
+    && [[ "${BASH_ALIASES[$alias_name]}" != "builtin cd $REPOSITORIES_DIR/$repository_name" ]]; then
     echo "Error: The \"$alias_name\" alias already exists, so it cannot be used for the \"$repository_name\" repository." >&2
     return 1
   fi
