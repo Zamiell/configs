@@ -1179,7 +1179,6 @@ gprp() (
   local repository="${BASH_REMATCH[4]}"
   local pull_request_id="${BASH_REMATCH[5]}"
   local host="azure-devops-services"
-  local minion_id="1DF39606-0652-60FA-AEF6-92A5C63856B7"
 
   assert-jq-installed
 
@@ -1243,7 +1242,7 @@ gprp() (
       local comment_api_url="${azdo_api_url%%\?*}/threads?${azdo_api_url#*\?}"
       local comment_payload
       comment_payload=$(jq --null-input \
-        --arg content "@<$minion_id> approve this" \
+        --arg content "minion approve this" \
         '{comments: [{parentCommentId: 0, content: $content, commentType: 1}], status: 2}')
 
       curl \
