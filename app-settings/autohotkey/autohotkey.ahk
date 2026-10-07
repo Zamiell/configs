@@ -21,6 +21,10 @@ SetWinDelay(-1) ; No delay
 ^+!s::Suspend
 #SuspendExempt False
 
+; Disable side mouse buttons.
+*XButton1::Return
+*XButton2::Return
+
 ; Emulate the "Fn" key (since it does not work properly on Ducky keyboards).
 RCtrl & RWin::{
   Send("+{F10}")
