@@ -984,6 +984,8 @@ set-cd-alias() {
 
   # shellcheck disable=SC2139
   alias "$alias_name"="builtin cd $REPOSITORIES_DIR/$repository_name"
+  # shellcheck disable=SC2139
+  alias "${alias_name}1"="builtin cd $REPOSITORIES_DIR/$repository_name"
   local directory_number
   for directory_number in {2..9}; do
     # shellcheck disable=SC2139
