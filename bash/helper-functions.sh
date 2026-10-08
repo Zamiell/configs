@@ -108,7 +108,7 @@ assert-azure-devops-host() (
   fi
   local host="$1"
 
-  if [[ "$host" != "azure-devops-services" ]]; then
+  if [[ "$host" != "azure-devops" ]]; then
     local caller="${FUNCNAME[1]:-${FUNCNAME[0]}}"
     echo "Error: The $caller command cannot be used with host: $host" >&2
     return 1
@@ -254,7 +254,7 @@ get-azure-devops-domain() (
   fi
   local host="$1"
 
-  if [[ "$host" == "azure-devops-services" ]]; then
+  if [[ "$host" == "azure-devops" ]]; then
     echo "dev.azure.com"
   else
     echo "Error: The Azure DevOps host is invalid: $host" >&2
@@ -271,7 +271,7 @@ get-azure-devops-personal-access-token() (
   fi
   local host="$1"
 
-  if [[ "$host" == "azure-devops-services" ]]; then
+  if [[ "$host" == "azure-devops" ]]; then
     if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN:-}" ]]; then
       echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN\" environment variable is not set." >&2
       return 1
@@ -514,7 +514,7 @@ get-git-remote-details() (
   fi
 
   if echo "$remote_url" | grep --quiet "dev.azure.com"; then
-    local host="azure-devops-services"
+    local host="azure-devops"
 
     local organization
     local project

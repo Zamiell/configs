@@ -146,7 +146,7 @@ tib() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local personal_access_token
-  personal_access_token=$(get-azure-devops-personal-access-token "azure-devops-services")
+  personal_access_token=$(get-azure-devops-personal-access-token "azure-devops")
 
   local encoded_credentials
   encoded_credentials=$(printf ":%s" "$personal_access_token" | base64 | tr -d "\n")

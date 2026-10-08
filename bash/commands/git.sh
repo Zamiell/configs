@@ -715,7 +715,7 @@ gcs() (
   if [[ "$host" == "github" ]]; then
     read -r host author repository <<< "$(get-git-remote-details)"
     commit_url="https://github.com/$author/$repository/commit/$commit_sha1"
-  elif [[ "$host" == "azure-devops-services" ]]; then
+  elif [[ "$host" == "azure-devops" ]]; then
     read -r host organization project repository <<< "$(get-git-remote-details)"
     local azdo_repository_url
     azdo_repository_url=$(get-azure-devops-repository-url "$host" "$organization" "$project" "$repository")
@@ -1175,7 +1175,7 @@ gprp() (
   local project="${BASH_REMATCH[2]}"
   local repository="${BASH_REMATCH[3]}"
   local pull_request_id="${BASH_REMATCH[4]}"
-  local host="azure-devops-services"
+  local host="azure-devops"
 
   assert-jq-installed
 
