@@ -108,7 +108,7 @@ assert-azure-devops-host() (
   fi
   local host="$1"
 
-  if [[ "$host" != "azure-devops-server" ]] && [[ "$host" != "azure-devops-services" ]]; then
+  if [[ "$host" != "azure-devops-services" ]]; then
     local caller="${FUNCNAME[1]:-${FUNCNAME[0]}}"
     echo "Error: The $caller command cannot be used with host: $host" >&2
     return 1
@@ -254,9 +254,7 @@ get-azure-devops-domain() (
   fi
   local host="$1"
 
-  if [[ "$host" == "azure-devops-server" ]]; then
-    echo "azuredevops.logixhealth.com"
-  elif [[ "$host" == "azure-devops-services" ]]; then
+  if [[ "$host" == "azure-devops-services" ]]; then
     echo "dev.azure.com"
   else
     echo "Error: The Azure DevOps host is invalid: $host" >&2
@@ -273,14 +271,7 @@ get-azure-devops-personal-access-token() (
   fi
   local host="$1"
 
-  if [[ "$host" == "azure-devops-server" ]]; then
-    if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN_SERVER:-}" ]]; then
-      echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN_SERVER\" environment variable is not set." >&2
-      return 1
-    fi
-
-    echo "$AZDO_PERSONAL_ACCESS_TOKEN_SERVER"
-  elif [[ "$host" == "azure-devops-services" ]]; then
+  if [[ "$host" == "azure-devops-services" ]]; then
     if [[ -z "${AZDO_PERSONAL_ACCESS_TOKEN:-}" ]]; then
       echo "Error: The \"AZDO_PERSONAL_ACCESS_TOKEN\" environment variable is not set." >&2
       return 1
@@ -536,17 +527,6 @@ get-git-remote-details() (
       organization=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
       project=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
     fi
-
-    echo "$host $organization $project $repository"
-    return
-  fi
-
-  if echo "$remote_url" | grep --quiet "azuredevops.logixhealth.com"; then
-    local host="azure-devops-server"
-    local organization
-    organization=$(echo "$remote_url" | awk -F'/' '{print $(NF-3)}')
-    local project
-    project=$(echo "$remote_url" | awk -F'/' '{print $(NF-2)}')
 
     echo "$host $organization $project $repository"
     return

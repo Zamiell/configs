@@ -725,21 +725,15 @@ fi
 
 # Clone work repositories.
 if [[ $PERSONAL == "false" ]]; then
-  if ! ssh-keygen -F azuredevops.logixhealth.com &> /dev/null; then
-    echo "Installing the Azure DevOps Server SSH key."
-    ssh-keyscan azuredevops.logixhealth.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
-  fi
-
-  clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/allscripts-external"
-  clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Analytics%20and%20Innovation/_git/database-services"
-  clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Infrastructure/_git/infrastructure"
-  clone-work-repo "ssh://azuredevops.logixhealth.com:22/LogixHealth/Software%20Engineering/_git/LogixApplications"
-
   if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
     echo "Installing the Azure DevOps Services SSH key."
     ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
   fi
 
+  clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Analytics%20and%20Innovation/database-services"
+  clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Infrastructure/infrastructure"
+  clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Software%20Engineering/allscripts-external"
+  clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Software%20Engineering/LogixApplications"
   clone-work-repo "git@ssh.dev.azure.com:v3/logixhealth/Main/databricks-data"
 fi
 

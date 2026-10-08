@@ -146,13 +146,13 @@ tib() (
   set -euo pipefail # Exit on errors and undefined variables.
 
   local personal_access_token
-  personal_access_token=$(get-azure-devops-personal-access-token "azure-devops-server")
+  personal_access_token=$(get-azure-devops-personal-access-token "azure-devops-services")
 
   local encoded_credentials
   encoded_credentials=$(printf ":%s" "$personal_access_token" | base64 | tr -d "\n")
 
   local git_config_index="${GIT_CONFIG_COUNT:-0}"
-  export "GIT_CONFIG_KEY_${git_config_index}=http.https://azuredevops.logixhealth.com/.extraHeader"
+  export "GIT_CONFIG_KEY_${git_config_index}=http.https://dev.azure.com/.extraHeader"
   export "GIT_CONFIG_VALUE_${git_config_index}=Authorization: Basic $encoded_credentials"
   export GIT_CONFIG_COUNT=$((git_config_index + 1))
   export GIT_TERMINAL_PROMPT=0

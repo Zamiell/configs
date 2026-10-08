@@ -30,7 +30,7 @@ ah() (
   builtin cd "$repo_root"
   main_branch_name=$(get-main-branch-name)
 
-  # e.g. https://azuredevops.logixhealth.com/LogixHealth/Infrastructure/_git/infrastructure?path=/infrastructure.code-workspace&version=GBmaster&_a=history
+  # e.g. https://dev.azure.com/logixhealth/Main/_git/infrastructure?path=/infrastructure.code-workspace&version=GBmaster&_a=history
   o "$azdo_repository_url?path=/$relative_path&version=GB$main_branch_name&_a=history"
 )
 

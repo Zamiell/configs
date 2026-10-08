@@ -715,7 +715,7 @@ gcs() (
   if [[ "$host" == "github" ]]; then
     read -r host author repository <<< "$(get-git-remote-details)"
     commit_url="https://github.com/$author/$repository/commit/$commit_sha1"
-  elif [[ "$host" == "azure-devops-server" ]] || [[ "$host" == "azure-devops-services" ]]; then
+  elif [[ "$host" == "azure-devops-services" ]]; then
     read -r host organization project repository <<< "$(get-git-remote-details)"
     local azdo_repository_url
     azdo_repository_url=$(get-azure-devops-repository-url "$host" "$organization" "$project" "$repository")
@@ -1111,10 +1111,7 @@ gpr-dry() (
   assert-feature-branch
 
   read -r host organization project repository <<< "$(get-git-remote-details)"
-  if [[ "$host" != "azure-devops-server" ]]; then
-    echo "Error: The ${FUNCNAME[0]} command cannot be used with host: $host" >&2
-    return 1
-  fi
+  assert-azure-devops-host "$host"
 
   local branch_name
   branch_name=$(git branch --show-current)
@@ -1168,16 +1165,16 @@ gprp() (
   fi
 
   local pull_request_url="$1"
-  local url_pattern='^https://(azuredevops\.logixhealth\.com|dev\.azure\.com)/([^/?#[:space:]]+)/([^/?#[:space:]]+)/_git/([^/?#[:space:]]+)/pullrequest/([1-9][0-9]*)/?([?#][^[:space:]]*)?$' # TODO: Fix the domain
+  local url_pattern='^https://dev\.azure\.com/([^/?#[:space:]]+)/([^/?#[:space:]]+)/_git/([^/?#[:space:]]+)/pullrequest/([1-9][0-9]*)/?([?#][^[:space:]]*)?$'
   if [[ ! "$pull_request_url" =~ $url_pattern ]]; then
     echo "Error: Unsupported Azure DevOps pull request URL: $pull_request_url" >&2
     return 1
   fi
 
-  local organization="${BASH_REMATCH[2]}"
-  local project="${BASH_REMATCH[3]}"
-  local repository="${BASH_REMATCH[4]}"
-  local pull_request_id="${BASH_REMATCH[5]}"
+  local organization="${BASH_REMATCH[1]}"
+  local project="${BASH_REMATCH[2]}"
+  local repository="${BASH_REMATCH[3]}"
+  local pull_request_id="${BASH_REMATCH[4]}"
   local host="azure-devops-services"
 
   assert-jq-installed
