@@ -62,6 +62,7 @@ if [[ -n "$REPOSITORIES_DIR" ]]; then
   # directory. (But only do this if the shell is interactive and we are starting in the home
   # directory.)
   if [[ $- == *i* ]] && [[ "$PWD" == "$HOME" ]]; then
+    # The directory was confirmed to exist above.
     # shellcheck disable=SC2164
     builtin cd "$REPOSITORIES_DIR"
   fi

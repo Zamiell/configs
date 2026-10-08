@@ -17,6 +17,7 @@ source "$DIR/other-application-settings.sh"
 
 source "$DIR/commands/aks.sh"
 source "$DIR/commands/browsers.sh"
+source "$DIR/commands/change-directory.sh"
 source "$DIR/commands/git.sh"
 source "$DIR/commands/github.sh"
 source "$DIR/commands/kubectl.sh"
