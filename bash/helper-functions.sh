@@ -854,11 +854,15 @@ get-worktree-path-from-number() (
 
 install-repository-dependencies() {
   if [[ -f "package-lock.json" ]]; then
-    npm ci
+    npm ci || return 1
+  fi
+
+  if [[ -f "pnpm-lock.yaml" ]]; then
+    pnpm install --frozen-lockfile || return 1
   fi
 
   if [[ -f "bun.lock" ]]; then
-    bun ci
+    bun ci || return 1
   fi
 }
 
