@@ -57,14 +57,3 @@ else
   install --mode=755 "$TIMING_SCRIPT_PATH_SRC" "$TIMING_SCRIPT_PATH_DST"
   echo "Successfully updated: $TIMING_SCRIPT_PATH_DST"
 fi
-
-SKILL_PATH_SRC="$DIR/skills/pr2/SKILL.md"
-SKILL_PATH_DST="$HOME/.copilot/skills/pr2/SKILL.md"
-
-if [[ -f "$SKILL_PATH_DST" ]] && cmp --silent "$SKILL_PATH_SRC" "$SKILL_PATH_DST"; then
-  echo "The \"$SKILL_PATH_DST\" file is already up to date."
-else
-  mkdir -p "$(dirname "$SKILL_PATH_DST")"
-  cp "$SKILL_PATH_SRC" "$SKILL_PATH_DST"
-  echo "Successfully updated: $SKILL_PATH_DST"
-fi
