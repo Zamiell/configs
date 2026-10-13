@@ -78,6 +78,7 @@
     "gcpc",
     "gcpr",
     "gfxpayload",
+    "gitblame",
     "gitdoc",
     "githubcli",
     "globalprotect",

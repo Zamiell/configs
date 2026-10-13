@@ -42,6 +42,9 @@
 
   // Extension settings
   "claudeCode.preferredLocation": "panel",
+  "gitblame.commitUrl.perHostnameOverride": {
+    "ssh.dev.azure.com": "https://dev.azure.com/${gitorigin.path,1}/${gitorigin.path,2}/_git/${gitorigin.path,3}/commit/${hash}"
+  },
   "gitdoc.enabled": false, // Should only be enabled on the "notes" repository.
   "yamlLintFix.yamllintPath": "C:\\Users\\jnesta\\AppData\\Roaming\\Python\\Python314\\Scripts\\yamllint.exe",
 

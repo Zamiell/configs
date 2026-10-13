@@ -38,7 +38,7 @@ RCtrl & RWin::{
 ; -----------------
 
 ^+!1::{
-  Send("Rebase this branch on master for me and fix any merge conflicts that come up. Do not bother me with routine reconnaissance or linting tasks; only stop if you are absolutely blocked.")
+  Send("Rebase this branch on master for me and fix any merge conflicts.")
   Sleep(500)
   Send("{Enter}")
 }
