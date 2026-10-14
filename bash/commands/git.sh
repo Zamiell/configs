@@ -1314,7 +1314,7 @@ grbm() (
 
   git fetch origin "$main_branch_name" --prune --quiet
   git rebase "origin/$main_branch_name"
-  git push --force-with-lease
+  git push --force-with-lease --set-upstream origin HEAD
 )
 
 # "grm" is short for "git remote -v".
