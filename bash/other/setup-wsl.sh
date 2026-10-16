@@ -536,6 +536,12 @@ if [[ ! -x /usr/bin/gh ]]; then
   /usr/bin/gh config set git_protocol ssh --host github.com
 fi
 
+# Install Claude Code.
+if [[ ! -x "$HOME/.local/bin/claude" ]]; then
+  echo "Installing the Claude Code."
+  curl -fsSL https://claude.ai/install.sh | bash
+fi
+
 # Install the GitHub Copilot CLI.
 # https://github.com/features/copilot/cli/
 if [[ ! -x "$HOME/.local/bin/copilot" ]]; then
