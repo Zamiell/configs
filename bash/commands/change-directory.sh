@@ -46,4 +46,4 @@ if [[ -n "${REPOSITORIES_DIR:-}" ]]; then
 fi
 
 # "cdrh" is short for "change directory repositories host".
-alias cdrh="/mnt/d/Repositories"
+alias cdrh="builtin cd /mnt/d/Repositories"
