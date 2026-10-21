@@ -3,6 +3,10 @@
   "$schema": "https://aka.ms/terminal-profiles-schema",
   "actions": [
     {
+      "command": "closeTab",
+      "id": "User.closeTab"
+    },
+    {
       "command": {
         "action": "copy",
         "singleLine": false
@@ -22,6 +26,10 @@
   "copyOnSelect": false,
   "defaultProfile": "{eb6834f6-2c29-4b84-86b1-794dd8a58c49}",
   "keybindings": [
+    {
+      "id": "User.closeTab",
+      "keys": "ctrl+w"
+    },
     {
       "id": "Terminal.OpenNewTab",
       "keys": "ctrl+t"
