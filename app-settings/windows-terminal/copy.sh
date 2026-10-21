@@ -7,7 +7,7 @@ set -euo pipefail # Exit on errors and undefined variables.
 DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 SETTINGS_PATH_SRC="$DIR/settings.json"
-SETTINGS_PATH_DST=$(realpath "$APPDATA\..\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json")
+SETTINGS_PATH_DST="/mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState/settings.json"
 
 if [[ -f "$SETTINGS_PATH_DST" ]] && cmp --silent "$SETTINGS_PATH_SRC" "$SETTINGS_PATH_DST"; then
   echo "The \"$SETTINGS_PATH_DST\" file is already up to date."
