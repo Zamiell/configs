@@ -44,3 +44,6 @@ if [[ -n "${REPOSITORIES_DIR:-}" ]]; then
   set-cd-alias infrastructure
   set-cd-alias LogixApplications
 fi
+
+# "cdrh" is short for "change directory repositories host".
+alias cdrh="/mnt/d/Repositories"
