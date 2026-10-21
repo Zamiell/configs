@@ -23,8 +23,12 @@
   "defaultProfile": "{eb6834f6-2c29-4b84-86b1-794dd8a58c49}",
   "keybindings": [
     {
-      "id": "User.copy",
-      "keys": "ctrl+c"
+      "id": "Terminal.OpenNewTab",
+      "keys": "ctrl+t"
+    },
+    {
+      "id": null,
+      "keys": "ctrl+shift+t"
     },
     {
       "id": "User.find",
