@@ -185,6 +185,8 @@
     "osascript",
     "Palo",
     "PATHCONV",
+    "pgdn",
+    "pgup",
     "pintohome",
     "pipefail",
     "plasmashell",

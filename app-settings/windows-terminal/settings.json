@@ -18,8 +18,22 @@
       "id": "User.find"
     },
     {
+      "command": {
+        "action": "nextTab",
+        "tabSwitcherMode": "disabled"
+      },
+      "id": "User.nextTab"
+    },
+    {
       "command": "paste",
       "id": "User.paste"
+    },
+    {
+      "command": {
+        "action": "prevTab",
+        "tabSwitcherMode": "disabled"
+      },
+      "id": "User.prevTab"
     }
   ],
   "copyFormatting": "none",
@@ -45,6 +59,14 @@
     {
       "id": "User.paste",
       "keys": "ctrl+v"
+    },
+    {
+      "id": "User.prevTab",
+      "keys": "ctrl+pgup"
+    },
+    {
+      "id": "User.nextTab",
+      "keys": "ctrl+pgdn"
     }
   ],
   "newTabMenu": [
