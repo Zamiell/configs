@@ -275,10 +275,17 @@ if (-not (Test-Path $notepadConfigPath)) {
         throw "Notepad++ did not create the expected config file at: $notepadConfigPath"
     }
 }
-$scriptName = "set-notepad++-settings.ps1"
+$scriptName = "set-notepad++-settings.sh"
 $scriptPath = "$scriptsPath\$scriptName"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/notepad%2B%2B/set-notepad%2B%2B-settings.ps1" -OutFile $scriptPath
-& $scriptPath
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/app-settings/notepad%2B%2B/set-notepad%2B%2B-settings.sh" -OutFile $scriptPath
+$wslScriptPath = wsl --exec wslpath -u $scriptPath
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to convert the Notepad++ settings script path for WSL."
+}
+wsl --exec env "USER=$env:USERNAME" bash $wslScriptPath
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to apply the Notepad++ settings."
+}
 
 # Windows Terminal
 $terminalAppDataPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
