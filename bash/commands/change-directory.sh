@@ -34,7 +34,6 @@ if [[ -n "${REPOSITORIES_DIR:-}" ]]; then
 
   # Make various "cd" hotkeys for switching to specific personal repositories.
   set-cd-alias configs
-  set-cd-alias notes
   set-cd-alias secrets
 
   # Make various "cd" hotkeys for switching to specific work repositories.
@@ -46,4 +45,11 @@ if [[ -n "${REPOSITORIES_DIR:-}" ]]; then
 fi
 
 # "cdr2" is short for "change directory repositories" on the host.
-alias cdr2="builtin cd /mnt/d/Repositories"
+if [[ -d "/mnt/d/Repositories" ]]; then
+  alias cdr2="builtin cd /mnt/d/Repositories"
+fi
+
+# "cdn" is short for "change directory notes".
+if [[ -d "/mnt/d/Repositories/notes" ]]; then
+  alias cdn="builtin cd /mnt/d/Repositories/notes"
+fi
