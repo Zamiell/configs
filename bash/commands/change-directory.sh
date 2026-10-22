@@ -45,5 +45,5 @@ if [[ -n "${REPOSITORIES_DIR:-}" ]]; then
   set-cd-alias LogixApplications
 fi
 
-# "cdrh" is short for "change directory repositories host".
-alias cdrh="builtin cd /mnt/d/Repositories"
+# "cdr2" is short for "change directory repositories" on the host.
+alias cdr2="builtin cd /mnt/d/Repositories"
