@@ -181,11 +181,11 @@ SortNumArray(arr) {
 }
 
 ^+`::{
-  ;if WinExist("ahk_exe notepad++.exe") {
-  ;  WinActivate("ahk_exe notepad++.exe")
-  ;} else {
-  ;  Run("C:\Program Files\Notepad++\notepad++.exe")
-  ;}
+  if WinExist("ahk_exe notepad++.exe") {
+    WinActivate("ahk_exe notepad++.exe")
+  } else {
+    Run("C:\Program Files\Notepad++\notepad++.exe")
+  }
 
   ;if (WinExist("ahk_exe VSCodium.exe")) {
   ;  WinActivate "ahk_exe VSCodium.exe"
@@ -193,11 +193,11 @@ SortNumArray(arr) {
   ;  Run(A_AppData . "\..\Local\Programs\VSCodium\VSCodium.exe")
   ;}
 
-  if (WinExist("ahk_exe Zed.exe")) {
-    WinActivate "ahk_exe Zed.exe"
-  } else {
-    Run(A_AppData . "\..\Local\Programs\Zed\Zed.exe")
-  }
+  ;if (WinExist("ahk_exe Zed.exe")) {
+  ;  WinActivate "ahk_exe Zed.exe"
+  ;} else {
+  ;  Run(A_AppData . "\..\Local\Programs\Zed\Zed.exe")
+  ;}
 }
 
 ^+!`::{
