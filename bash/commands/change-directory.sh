@@ -50,6 +50,8 @@ if [[ -d "/mnt/d/Repositories" ]]; then
 fi
 
 # "cdn" is short for "change directory notes".
-if [[ -d "/mnt/d/Repositories/notes" ]]; then
+if [[ -d "/mnt/c/Repositories/notes" ]]; then
+  alias cdn="builtin cd /mnt/c/Repositories/notes"
+elif [[ -d "/mnt/d/Repositories/notes" ]]; then
   alias cdn="builtin cd /mnt/d/Repositories/notes"
 fi
