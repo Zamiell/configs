@@ -82,7 +82,7 @@ clone-work-repo() {
     (cd "$repository_path" && npm ci)
   fi
   if [[ -s "$repository_path/bun.lock" ]]; then
-    (cd "$repository_path" && bun ci)
+    (cd "$repository_path" && "$HOME/.bun/bin/bun" ci)
   fi
   if [[ -s "$repository_path/pyproject.toml" ]]; then
     (cd "$repository_path" && uv sync --frozen)
@@ -718,7 +718,7 @@ if [[ ! -d "$REPOSITORIES_DIR/configs" ]]; then
   else
     git clone https://github.com/Zamiell/configs.git
   fi
-  (cd "$REPOSITORIES_DIR/configs" && bun ci)
+  (cd "$REPOSITORIES_DIR/configs" && "$HOME/.bun/bin/bun" ci)
 fi
 if is-james; then
   if [[ ! -d "$REPOSITORIES_DIR/notes" ]]; then
