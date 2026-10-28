@@ -419,11 +419,10 @@ fi
 # https://pnpm.io/installation#on-posix-systems
 if [[ ! -x "$HOME/.local/share/pnpm/bin/pnpm" ]]; then
   echo "Installing pnpm."
-  # "ENV" and "SHELL" are necessary to prevent the installer from modifying the ".bashrc" file:
-  # https://github.com/pnpm/pnpm/issues/5771?utm_source=chatgpt.com
-  curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | ENV=/dev/null SHELL=/bin/sh sh
-  export PATH="$HOME/.local/share/pnpm/bin:$PATH"
+  # "PNPM_NO_MODIFY_PATH" prevents the installer from modifying shell profiles.
+  curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | PNPM_NO_MODIFY_PATH=1 sh
 fi
+export PATH="$HOME/.local/share/pnpm/bin:$PATH"
 
 # endregion
 
