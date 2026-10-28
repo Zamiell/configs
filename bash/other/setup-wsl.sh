@@ -275,7 +275,12 @@ if [[ $PERSONAL == "false" ]]; then
   CERT_PATH="/usr/local/share/ca-certificates/BEDROOTCA001.crt"
   if [[ ! -s "$CERT_PATH" ]]; then
     echo "Installing the LogixHealth certificate to: $CERT_PATH"
-    sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH"
+    HOST_CERT_PATH="/mnt/c/Users/$USER/OneDrive - LogixHealth Inc/Documents/Backup/tls/BEDROOTCA001.crt"
+    if [[ -f "$HOST_CERT_PATH" ]]; then
+      sudo cp "$HOST_CERT_PATH" "$CERT_PATH"
+    else
+      sudo curl --silent --fail --show-error --location http://certs.logixhealth.com/BEDROOTCA001.crt --output "$CERT_PATH"
+    fi
     sudo update-ca-certificates
   fi
 fi
@@ -520,7 +525,7 @@ if [[ ! -x /usr/bin/az ]]; then
     {
       echo
       echo "# $CERTIFICATE_NAME"
-      curl --silent --fail --show-error --location "http://certs.logixhealth.com/$CERTIFICATE_NAME.crt"
+      cat "$CERT_PATH"
     } | sudo tee -a "$REQUESTS_CA_BUNDLE" > /dev/null
   fi
 fi
