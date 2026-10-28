@@ -299,7 +299,7 @@ if is-james; then
   SSH_PRIVATE_KEY_PATH_PERSONAL_DST="$GUEST_SSH_DIRECTORY_PATH/$PRIVATE_KEY_FILE_NAME"
 
   if [[ ! -f "$SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" ]]; then
-    echo "Error: Failed to find the private key source: $SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" >&2
+    echo "Error: Failed to find the personal private key source: $SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" >&2
     exit 1
   fi
 
@@ -314,7 +314,7 @@ if is-james; then
   SSH_PUBLIC_KEY_PATH_PERSONAL_DST="$GUEST_SSH_DIRECTORY_PATH/$PUBLIC_KEY_FILE_NAME"
 
   if [[ ! -f "$SSH_PUBLIC_KEY_PATH_PERSONAL_SRC" ]]; then
-    echo "Error: Failed to find the public key source: $SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" >&2
+    echo "Error: Failed to find the personal public key source: $SSH_PUBLIC_KEY_PATH_PERSONAL_SRC" >&2
     exit 1
   fi
 
@@ -335,6 +335,12 @@ if is-james; then
 
     SSH_PRIVATE_KEY_PATH_WORK_SRC="$HOST_SSH_DIRECTORY_PATH_WORK/$PRIVATE_KEY_FILE_NAME_WORK"
     SSH_PRIVATE_KEY_PATH_WORK_DST="$GUEST_SSH_DIRECTORY_PATH_WORK/$PRIVATE_KEY_FILE_NAME_WORK"
+
+    if [[ ! -f "$SSH_PRIVATE_KEY_PATH_WORK_SRC" ]]; then
+      echo "Error: Failed to find the work private key source: $SSH_PRIVATE_KEY_PATH_WORK_SRC" >&2
+      exit 1
+    fi
+
     if [[ ! -f "$SSH_PRIVATE_KEY_PATH_WORK_DST" ]] \
       || [[ $(stat --format="%a" "$SSH_PRIVATE_KEY_PATH_WORK_DST") != "600" ]] \
       || ! cmp --silent "$SSH_PRIVATE_KEY_PATH_WORK_SRC" "$SSH_PRIVATE_KEY_PATH_WORK_DST"; then
@@ -344,6 +350,12 @@ if is-james; then
 
     SSH_PUBLIC_KEY_PATH_WORK_SRC="$HOST_SSH_DIRECTORY_PATH_WORK/$PUBLIC_KEY_FILE_NAME_WORK"
     SSH_PUBLIC_KEY_PATH_WORK_DST="$GUEST_SSH_DIRECTORY_PATH_WORK/$PUBLIC_KEY_FILE_NAME_WORK"
+
+    if [[ ! -f "$SSH_PUBLIC_KEY_PATH_WORK_SRC" ]]; then
+      echo "Error: Failed to find the work public key source: $SSH_PUBLIC_KEY_PATH_WORK_SRC" >&2
+      exit 1
+    fi
+
     if [[ ! -f "$SSH_PUBLIC_KEY_PATH_WORK_DST" ]] \
       || [[ $(stat --format="%a" "$SSH_PUBLIC_KEY_PATH_WORK_DST") != "644" ]] \
       || ! cmp --silent "$SSH_PUBLIC_KEY_PATH_WORK_SRC" "$SSH_PUBLIC_KEY_PATH_WORK_DST"; then
