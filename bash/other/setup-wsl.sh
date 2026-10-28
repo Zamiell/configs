@@ -568,14 +568,6 @@ if [[ ! -x "$HOME/.local/bin/buildkitd" ]]; then
   curl --silent --fail --show-error --location "$DOWNLOAD_URL" | tar -xzf - -C "$HOME/.local/"
 fi
 
-# Install the Codex CLI.
-# https://learn.chatgpt.com/docs/codex/cli#getting-started
-if [[ ! -x "$HOME/.local/bin/codex" ]]; then
-  echo "Installing the Codex CLI."
-  # "CODEX_NON_INTERACTIVE" is necessary to prevent the installer from modifying the ".bashrc" file.
-  curl --silent --fail --show-error --location https://chatgpt.com/codex/install.sh | PATH="$HOME/.local/bin:$PATH" CODEX_NON_INTERACTIVE=1 sh
-fi
-
 # Install the GitHub CLI.
 # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
 if [[ ! -x /usr/bin/gh ]]; then
