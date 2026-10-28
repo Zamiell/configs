@@ -82,7 +82,7 @@ clone-work-repo() {
     (cd "$repository_path" && npm ci)
   fi
   if [[ -s "$repository_path/bun.lock" ]]; then
-    (cd "$repository_path" && "$HOME/.bun/bin/bun" ci)
+    (cd "$repository_path" && bun ci)
   fi
   if [[ -s "$repository_path/pyproject.toml" ]]; then
     (cd "$repository_path" && uv sync --frozen)
@@ -375,17 +375,25 @@ export PATH="$HOME/.local/bin:$PATH"
 # Install programming languages - JavaScript/TypeScript
 # ------------------------------------------------------
 
-# Install fnm and Node.js.
+# Install fnm.
 # https://github.com/Schniz/fnm
 if [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
-  echo "Installing fnm and Node.js."
+  echo "Installing fnm."
   # "--skip-shell" is necessary to prevent the installer from modifying the ".bashrc" file.
   curl --silent --fail --show-error --location https://fnm.vercel.app/install | bash -s -- --skip-shell
+fi
 
-  # Add it to PATH for the current session.
+# Add fnm to PATH.
+if ! command -v fnm > /dev/null 2>&1; then
+  echo "Adding fnm to PATH."
   export PATH="$HOME/.local/share/fnm:$PATH"
   eval "$(fnm env --shell bash)"
+fi
 
+# Install Node.js (using fnm).
+INSTALLED_NODE_VERSIONS=$(fnm list)
+if ! grep --quiet "lts-" <<< "$INSTALLED_NODE_VERSIONS"; then
+  echo "Installing Node.js."
   fnm install --lts
 fi
 
@@ -397,6 +405,10 @@ if [[ ! -x "$HOME/.bun/bin/bun" ]]; then
   echo "Installing bun."
   # "PATH" is necessary to prevent the installer from modifying the ".bashrc" file.
   curl --silent --fail --show-error --location https://bun.com/install | PATH="$HOME/.bun/bin:$PATH" bash
+fi
+
+# Add bun to PATH.
+if ! command -v bun > /dev/null 2>&1; then
   export PATH="$HOME/.bun/bin:$PATH"
 fi
 
