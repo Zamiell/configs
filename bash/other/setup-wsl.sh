@@ -422,7 +422,11 @@ if [[ ! -x "$HOME/.local/share/pnpm/bin/pnpm" ]]; then
   # "PNPM_NO_MODIFY_PATH" prevents the installer from modifying shell profiles.
   curl --silent --fail --show-error --location https://get.pnpm.io/install.sh | PNPM_NO_MODIFY_PATH=1 sh
 fi
-export PATH="$HOME/.local/share/pnpm/bin:$PATH"
+
+# Add pnpm to PATH.
+if ! command -v pnpm > /dev/null 2>&1; then
+  export PATH="$HOME/.local/share/pnpm/bin:$PATH"
+fi
 
 # endregion
 
