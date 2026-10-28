@@ -21,6 +21,9 @@ for arg in "$@"; do
     break
   fi
 done
+if [[ -f "$HOME/.personal" ]]; then
+  PERSONAL=true
+fi
 
 if [[ ! -s "/etc/os-release" ]]; then
   echo "Error: This script is intended to be run inside Ubuntu WSL (Windows Subsystem for Linux)." >&2
