@@ -10,7 +10,7 @@
 # wsl --import-in-place Ubuntu "D:\WSL\Ubuntu\ext4.vhdx"
 
 # Once WSL is installed, run this script with:
-# curl https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/other/setup-wsl.sh | bash
+# curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/other/setup-wsl.sh | bash
 
 set -euo pipefail # Exit on errors and undefined variables.
 
