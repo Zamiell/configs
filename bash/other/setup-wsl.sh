@@ -586,7 +586,7 @@ fi
 
 # Install Claude Code.
 if [[ ! -x "$HOME/.local/bin/claude" ]]; then
-  echo "Installing the Claude Code."
+  echo "Installing Claude Code."
   curl -fsSL https://claude.ai/install.sh | bash
 fi
 
