@@ -292,6 +292,12 @@ if is-james; then
 
   SSH_PRIVATE_KEY_PATH_PERSONAL_SRC="$HOST_SSH_DIRECTORY_PATH/$PRIVATE_KEY_FILE_NAME"
   SSH_PRIVATE_KEY_PATH_PERSONAL_DST="$GUEST_SSH_DIRECTORY_PATH/$PRIVATE_KEY_FILE_NAME"
+
+  if [[ ! -f "$SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" ]]; then
+    echo "Error: Failed to find the private key source: $SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" >&2
+    exit 1
+  fi
+
   if [[ ! -f "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST" ]] \
     || [[ $(stat --format="%a" "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST") != "600" ]] \
     || ! cmp --silent "$SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" "$SSH_PRIVATE_KEY_PATH_PERSONAL_DST"; then
@@ -301,6 +307,12 @@ if is-james; then
 
   SSH_PUBLIC_KEY_PATH_PERSONAL_SRC="$HOST_SSH_DIRECTORY_PATH/$PUBLIC_KEY_FILE_NAME"
   SSH_PUBLIC_KEY_PATH_PERSONAL_DST="$GUEST_SSH_DIRECTORY_PATH/$PUBLIC_KEY_FILE_NAME"
+
+  if [[ ! -f "$SSH_PUBLIC_KEY_PATH_PERSONAL_SRC" ]]; then
+    echo "Error: Failed to find the public key source: $SSH_PRIVATE_KEY_PATH_PERSONAL_SRC" >&2
+    exit 1
+  fi
+
   if [[ ! -f "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST" ]] \
     || [[ $(stat --format="%a" "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST") != "644" ]] \
     || ! cmp --silent "$SSH_PUBLIC_KEY_PATH_PERSONAL_SRC" "$SSH_PUBLIC_KEY_PATH_PERSONAL_DST"; then
