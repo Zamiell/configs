@@ -15,6 +15,12 @@
 set -euo pipefail # Exit on errors and undefined variables.
 
 PERSONAL=$([[ "$USER" == "james" ]] && echo "true" || echo "false")
+for arg in "$@"; do
+  if [[ "$arg" == "--personal" ]]; then
+    PERSONAL=true
+    break
+  fi
+done
 
 if [[ ! -s "/etc/os-release" ]]; then
   echo "Error: This script is intended to be run inside Ubuntu WSL (Windows Subsystem for Linux)." >&2
