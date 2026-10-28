@@ -9,6 +9,9 @@
 # To import an existing WSL installation:
 # wsl --import-in-place Ubuntu "D:\WSL\Ubuntu\ext4.vhdx"
 
+# To delete a WSL distribution:
+# wsl --unregister Ubuntu
+
 # Once WSL is installed, run this script with:
 # curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/bash/other/setup-wsl.sh | bash
 
