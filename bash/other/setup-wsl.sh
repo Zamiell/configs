@@ -772,7 +772,7 @@ fi
 # Clone work repositories.
 if [[ $PERSONAL == "false" ]]; then
   if ! ssh-keygen -F ssh.dev.azure.com &> /dev/null; then
-    echo "Installing the Azure DevOps Services SSH key."
+    echo "Installing the Azure DevOps SSH key."
     ssh-keyscan ssh.dev.azure.com >> "$HOME/.ssh/known_hosts" 2> /dev/null
   fi
 

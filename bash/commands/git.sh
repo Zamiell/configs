@@ -1728,9 +1728,6 @@ alias gu="git push"
 # "guf" is short for "git push --force-with-lease".
 alias guf="git push --force-with-lease"
 
-# "gus" is short for "git push services".
-alias gus="git push services"
-
 # "guo" is short for "git unclean open", which will open all of the unstaged modified and untracked
 # files in this repository inside Visual Studio Code. This command will throw an error if there are 10
 # or more changed files.
