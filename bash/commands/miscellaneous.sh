@@ -437,6 +437,22 @@ llm() (
   get-llm-output "$system_prompt" "$prompt"
 )
 
+minionpass() (
+  set -euo pipefail
+
+  if [[ -z "${LOGIX_MINION_HTTP_PASSWORD:-}" ]]; then
+    echo "Error: LOGIX_MINION_HTTP_PASSWORD is not set or is empty." >&2
+    return 1
+  fi
+
+  if ! command -v clip.exe &> /dev/null; then
+    echo "Error: \"clip.exe\" was not found. This command is intended to be run inside of Git Bash or WSL." >&2
+    return 1
+  fi
+
+  printf "%s" "$LOGIX_MINION_HTTP_PASSWORD" | clip.exe
+)
+
 # "n" is short for "nuke".
 alias n="bunx complete-cli@latest nuke"
 
