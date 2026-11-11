@@ -290,6 +290,10 @@ Set-RegistryValue -Path "HKCU:\Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-e
 # Miscellaneous Windows Settings
 # ------------------------------
 
+# Hide the Windows Spotlight "Learn about this picture" desktop icon without disabling wallpapers.
+# https://www.ninjaone.com/blog/remove-learn-about-this-picture-desktop-icon/
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name "{2cc5ca98-6485-489a-920e-b3e88a6ccce3}" -Type DWord -Value 1
+
 # Right-click desktop --> View --> Check "Auto arrange icons"
 # https://winaero.com/blog/enable-auto-arrange-desktop-windows-10/
 # - Explorer will rewrite the setting when it exits, so we first have to close explorer.
@@ -365,7 +369,7 @@ if ($LASTEXITCODE -ne 0) {
 $terminalAppDataPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
 $terminalSettingsPath = "$terminalAppDataPath\settings.json"
 $terminalSettingsDownloadPath = "$scriptsPath\terminal-settings.json"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/terminal/settings.json" -OutFile $terminalSettingsDownloadPath
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/app-settings/windows-terminal/settings.json" -OutFile $terminalSettingsDownloadPath
 if ((Test-Path $terminalSettingsPath) -and (Get-FileHash $terminalSettingsPath).Hash -eq (Get-FileHash $terminalSettingsDownloadPath).Hash) {
     Remove-Item $terminalSettingsDownloadPath
 } else {
