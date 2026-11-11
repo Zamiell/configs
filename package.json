@@ -1,0 +1,13 @@
+{
+  "name": "configs",
+  "private": true,
+  "scripts": {
+    "lint": "bash lint.sh",
+    "update": "complete-cli update"
+  },
+  "devDependencies": {
+    "complete-cli": "1.5.9",
+    "complete-lint": "5.1.3",
+    "prettier-plugin-sh": "0.18.0"
+  }
+}

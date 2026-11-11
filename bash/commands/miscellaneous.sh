@@ -1,0 +1,666 @@
+# "ah" is short for "Azure DevOps history". Opens the Azure DevOps URL for the "History" tab of the
+# corresponding file.
+ah() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The file path is required. Usage: ${FUNCNAME[0]} <file_path>" >&2
+    return 1
+  fi
+  local file_path="$1"
+
+  local repo_root
+  repo_root=$(git -C "$(dirname "$file_path")" rev-parse --show-toplevel)
+
+  if command -v cygpath &> /dev/null; then
+    file_path=$(cygpath --unix "$file_path")
+    repo_root=$(cygpath --unix "$repo_root")
+  fi
+
+  local relative_path
+  relative_path=$(realpath --relative-to="$repo_root" "$file_path")
+
+  read -r host organization project repository <<< "$(get-git-remote-details "$repo_root")"
+  assert-azure-devops-host "$host"
+
+  local azdo_repository_url
+  azdo_repository_url=$(get-azure-devops-repository-url "$host" "$organization" "$project" "$repository")
+
+  local main_branch_name
+  builtin cd "$repo_root"
+  main_branch_name=$(get-main-branch-name)
+
+  o "$azdo_repository_url?path=/$relative_path&version=GB$main_branch_name&_a=history"
+)
+
+# "azl" is short for "az login". We use a custom browser profile to bypass the account picker.
+azl() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local work_email
+  if ! work_email=$(get-work-email); then
+    echo "Error: Unable to derive your work email. Run \"az login\" to establish an Azure session first." >&2
+    return 1
+  fi
+
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  trap 'rm -rf "$tmp_dir"' EXIT
+
+  local browser_path="$tmp_dir/az-login-browser"
+  cat > "$browser_path" << 'BROWSER'
+#!/usr/bin/env bash
+set -euo pipefail
+
+"/opt/az/bin/python3" - "$1" <<'PY'
+import os
+import subprocess
+import sys
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+url = sys.argv[1]
+user = os.environ["USER"]
+username, domain = os.environ["AZL_WORK_EMAIL"].split("@", 1)
+login_hint = f"{username}az@{domain}"
+parts = urlsplit(url)
+query = [
+    (key, value)
+    for key, value in parse_qsl(parts.query, keep_blank_values=True)
+    if key != "prompt"
+]
+if not any(key == "login_hint" for key, _ in query):
+    query.append(("login_hint", login_hint))
+url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+subprocess.Popen(
+    [
+        "/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+        f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Microsoft\\Edge\\User Data AzLogin",
+        "--profile-directory=Default",
+        "--no-first-run",
+        "--new-window",
+        url,
+    ],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
+PY
+BROWSER
+
+  chmod +x "$browser_path"
+
+  local existing_edge_window_handles
+  # shellcheck disable=SC2016
+  existing_edge_window_handles=$(powershell.exe -NoProfile -NonInteractive -Command '
+    $handles = Get-Process -Name msedge -ErrorAction SilentlyContinue |
+      Where-Object { $_.MainWindowHandle -ne 0 } |
+      ForEach-Object { $_.MainWindowHandle }
+    $handles -join ","
+  ' | tr -d '\r')
+
+  AZL_WORK_EMAIL="$work_email" BROWSER="$browser_path" /usr/bin/az login --subscription LH-DevOps-Dev-001
+
+  # Now that the login was successful, automatically close the new Edge window.
+  export AZL_EXISTING_EDGE_WINDOW_HANDLES="$existing_edge_window_handles"
+  export WSLENV="AZL_EXISTING_EDGE_WINDOW_HANDLES${WSLENV:+:$WSLENV}"
+  # shellcheck disable=SC2016
+  if ! powershell.exe -NoProfile -NonInteractive -Command '
+    $existingHandles = @(
+      $env:AZL_EXISTING_EDGE_WINDOW_HANDLES -split "," |
+        Where-Object { $_ -ne "" } |
+        ForEach-Object { [IntPtr]::new([long]$_) }
+    )
+    $edgeProcess = Get-Process -Name msedge -ErrorAction SilentlyContinue |
+      Where-Object {
+        $_.MainWindowHandle -ne 0 -and
+        -not ($existingHandles -contains $_.MainWindowHandle)
+      } |
+      Select-Object -First 1
+    if ($null -eq $edgeProcess) {
+      throw "The new Edge window was not found."
+    }
+
+    $closed = $edgeProcess.CloseMainWindow()
+    if (-not $closed) {
+      throw "The new Edge window could not be closed."
+    }
+  ' 2> /dev/null; then
+    echo "Warning: Azure login succeeded, but the temporary Edge window could not be closed automatically." >&2
+  fi
+)
+
+alias azwhoami="az account show --query user.name -o tsv"
+
+# "bwl" is short for "bw login --apikey". (This is the BitWarden CLI.)
+alias bwl="bw login --apikey"
+
+canary() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel)
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Error: The repository is not clean. Commit or stash your changes before applying canary text." >&2
+    return 1
+  fi
+
+  local readme_path="$repo_root/README.md"
+  if [[ ! -f "$readme_path" ]]; then
+    echo "Error: The README.md file does not exist at the root of the current git repository." >&2
+    return 1
+  fi
+
+  echo -e "\nCanary." >> "$readme_path"
+  echo "Applied Canary text to: $readme_path"
+
+  git add "$readme_path"
+  git commit --message "chore: canary"
+  git push
+)
+
+# "clip" is a Windows utility that puts input into the clipboard.
+alias clip="clip.exe"
+
+# "co" is short for "copilot". (See below.)
+alias co="copilot"
+
+code() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ $# -gt 0 ]]; then
+    command code "$@"
+    return
+  fi
+
+  local directories=(.)
+  local repo_root
+  if repo_root=$(git rev-parse --show-toplevel 2> /dev/null); then
+    directories+=("$repo_root")
+  fi
+
+  shopt -s nullglob dotglob
+
+  local directory
+  local workspace
+  for directory in "${directories[@]}"; do
+    for workspace in "$directory"/*.code-workspace; do
+      if [[ -f "$workspace" ]]; then
+        command code "$workspace"
+        return
+      fi
+    done
+  done
+
+  command code "${repo_root:-.}"
+)
+
+# "cod" is short for "codex".
+alias cod="codex"
+
+# Turn off Codex CLI prompts.
+alias codex="codex --yolo"
+
+# Reload these Bash configs.
+alias configs='source "$REPOSITORIES_DIR/configs/bash/bashrc.sh"'
+
+# Turn off GitHub Copilot CLI prompts.
+alias copilot="GITHUB_TOKEN=\${GITHUB_TOKEN_WORK:-\$GITHUB_TOKEN} copilot --yolo --no-ask-user"
+
+# "cl" is short for "claude".
+alias cl="claude"
+
+# Turn off Claude Code prompts.
+alias claude="claude --dangerously-skip-permissions"
+
+# "csf" is short for "CSpell fix", which will invoke "cspell-check-unused-words --fix".
+csf() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel)
+
+  builtin cd "$repo_root"
+  exec-package cspell-check-unused-words --fix
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    gc "chore: remove unused words from the CSpell configuration file"
+  fi
+)
+
+decrypt() (
+  if ! command -v age &> /dev/null; then
+    echo "Error: age is required to get/set secrets. If you are on Windows, you can install it with: winget install --exact --id FiloSottile.age" >&2
+    exit 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The destination file path is required. Usage: ${FUNCNAME[0]} <path>" >&2
+    return 1
+  fi
+  local file_path="$1"
+
+  local ssh_private_key_path="$HOME/.ssh/id_ed25519"
+  if [[ ! -s "$ssh_private_key_path" ]]; then
+    echo "Error: The \"$ssh_private_key_path\" file does not exist or is 0 bytes." >&2
+    exit 1
+  fi
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local secrets_path="$REPOSITORIES_DIR/secrets"
+  if [[ ! -d "$secrets_path" ]]; then
+    echo "Error: The \"secrets\" repository does not exist." >&2
+    exit 1
+  fi
+
+  local file_name
+  file_name=$(basename "$file_path")
+  local age_path="$secrets_path/$file_name.age"
+
+  git -C "$secrets_path" pull --rebase --quiet
+
+  umask 077 # Create new files with "600" permissions.
+
+  if [[ -f "$file_path" ]]; then
+    local tmp_file
+    tmp_file=$(mktemp)
+    trap 'rm -f "$tmp_file"' EXIT
+    age --decrypt --identity "$ssh_private_key_path" --output "$tmp_file" "$age_path"
+    if cmp --silent "$file_path" "$tmp_file"; then
+      echo "Error: The content of \"$age_path\" is already decrypted in \"$file_path\". Nothing to do." >&2
+      exit 1
+    fi
+  fi
+
+  age --decrypt --identity "$ssh_private_key_path" --output "$file_path" "$age_path"
+  echo "Successfully decrypted: $age_path --> $file_path"
+)
+
+encrypt() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! command -v age &> /dev/null; then
+    echo "Error: age is required to get/set secrets. If you are on Windows, you can install it with: winget install --exact --id FiloSottile.age" >&2
+    exit 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The source file path is required. Usage: ${FUNCNAME[0]} <path>" >&2
+    return 1
+  fi
+  local file_path="$1"
+
+  if [[ ! -s "$file_path" ]]; then
+    echo "Error: The file path of \"$file_path\" does not exist or is 0 bytes." >&2
+    return 1
+  fi
+
+  local ssh_public_key_path="$HOME/.ssh/id_ed25519.pub"
+  if [[ ! -s "$ssh_public_key_path" ]]; then
+    echo "Error: The \"$ssh_public_key_path\" file does not exist or is 0 bytes." >&2
+    exit 1
+  fi
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local secrets_path="$REPOSITORIES_DIR/secrets"
+  if [[ ! -d "$secrets_path" ]]; then
+    echo "Error: The \"secrets\" repository does not exist." >&2
+    exit 1
+  fi
+
+  local file_name
+  file_name=$(basename "$file_path")
+  local age_path="$secrets_path/$file_name.age"
+
+  git -C "$secrets_path" pull --rebase --quiet
+
+  if [[ -f "$age_path" ]]; then
+    local ssh_private_key_path="$HOME/.ssh/id_ed25519"
+    if [[ ! -s "$ssh_private_key_path" ]]; then
+      echo "Error: The \"$ssh_private_key_path\" file does not exist or is 0 bytes." >&2
+      exit 1
+    fi
+
+    local tmp_file
+    tmp_file=$(mktemp)
+    trap 'rm -f "$tmp_file"' EXIT
+    age --decrypt --identity "$ssh_private_key_path" --output "$tmp_file" "$age_path"
+    if cmp --silent "$file_path" "$tmp_file"; then
+      echo "Error: The content of \"$file_path\" is already encrypted in \"$age_path\". Nothing to do." >&2
+      exit 1
+    fi
+  fi
+
+  age --encrypt --recipients-file "$ssh_public_key_path" --output "$age_path" "$file_path"
+  git -C "$secrets_path" add --all
+  git -C "$secrets_path" commit --message update
+  git -C "$secrets_path" push
+  echo "Successfully encrypted: $file_path --> $age_path"
+)
+
+eslint-open() {
+  npx eslint --format json "$@" \
+    | jq -j '.[] | select(.messages | length > 0) | .filePath, "\u0000"' \
+    | sort -zu \
+    | xargs -0 -r env code --reuse-window
+
+  return "${PIPESTATUS[0]}"
+}
+
+alias full-path="readlink -f"
+
+# We do not use a subshell because the "source" would not work.
+get-env() {
+  decrypt "$HOME/.env" || return 1
+  # shellcheck source=/dev/null
+  source "$HOME/.env"
+  echo "Loaded new environment variables with: source $HOME/.env"
+}
+
+# Turn off Gemini Code Assist prompts.
+alias gemini="gemini --yolo"
+
+get-ssh-keys() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  mkdir -p "$HOME/.ssh"
+  bw sync
+  # The secret is "id_ed25519.key" instead of "id_ed25519" because otherwise, BitWarden will
+  # complain that "More than one result was found".
+  bw get notes id_ed25519.key > "$HOME/.ssh/id_ed25519"
+  chmod 600 "$HOME/.ssh/id_ed25519"
+  bw get notes id_ed25519.pub > "$HOME/.ssh/id_ed25519.pub"
+)
+
+# "kb" is short for "kubernetes build".
+kb() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local kubernetes_path="$REPOSITORIES_DIR/infrastructure/3_Applications/kubernetes"
+  if [[ ! -d "$kubernetes_path" ]]; then
+    echo "Error: The directory does not exist at: $kubernetes_path" >&2
+    exit 1
+  fi
+
+  builtin cd "$kubernetes_path"
+  bun run build
+)
+
+killapp() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if is-mac-os; then
+    echo "Error: This command is only meant to be used on macOS." >&2
+    return 1
+  fi
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: The application name is required. Usage: ${FUNCNAME[0]} <application_name>" >&2
+    return 1
+  fi
+  local application_name="$*"
+
+  osascript -e "quit app \"$application_name\""
+)
+
+# A better "ll" alias that shows human-readable file sizes.
+# (macOS does not support any of the long-form flags, so we use the short ones instead.)
+# - "-a" is short for "--all", which shows hidden files.
+# - "-h" is short for "--human-readable", which converts bytes to kilobytes and so on.
+# - "-F" is short for "--classify", which displays extra characters to signify the file type.
+# - "--color=auto" makes Ubuntu have the same colors that Git Bash for Windows does.
+alias ll="ls -a -h -l -F --color=auto"
+
+# Ask an LLM a question from the terminal.
+llm() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ $# -eq 0 ]]; then
+    echo "Error: The prompt is required. Usage: ${FUNCNAME[0]} <prompt>" >&2
+    return 1
+  fi
+  local prompt="$*"
+
+  local system_prompt="You are being asked a question inside of a terminal. Be fairly brief in your response. For example, if you are being asked what the command is for something, format your response as just the command and a 1-2 sentence description."
+
+  get-llm-output "$system_prompt" "$prompt"
+)
+
+minionpass() (
+  set -euo pipefail
+
+  if [[ -z "${MINION_HTTP_PASSWORD:-}" ]]; then
+    echo "Error: MINION_HTTP_PASSWORD is not set or is empty." >&2
+    return 1
+  fi
+
+  if ! command -v clip.exe &> /dev/null; then
+    echo "Error: \"clip.exe\" was not found. This command is intended to be run inside of Git Bash or WSL." >&2
+    return 1
+  fi
+
+  printf "%s" "$MINION_HTTP_PASSWORD" | clip.exe
+)
+
+# "n" is short for "nuke".
+alias n="bunx complete-cli@latest nuke"
+
+# "o" is short for "open", to open a URL in a browser.
+o() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${1:-}" ]]; then
+    echo "Error: URL is required. Usage: ${FUNCNAME[0]} <url>" >&2
+    return 1
+  fi
+  local url="$1"
+
+  if is-wsl; then
+    wslview "$url" > /dev/null 2>&1
+    return
+  fi
+
+  if [[ "$url" == "https://dev.azure.com/"* ]] && command -v msedge &> /dev/null; then
+    # We remove the output to prevent the "Opening in existing browser session." text from appearing
+    # on Linux. (On Linux, if Edge is not yet open, it will launch normally and the terminal will
+    # not block like it does for Chrome.)
+    msedge "$url" > /dev/null
+    return
+  fi
+
+  if command -v chrome &> /dev/null; then
+    # Starting chrome from the terminal will block, so we have to have special handling.
+    if is-ubuntu; then
+      # - We remove the output to prevent the "Created TensorFlow Lite XNNPACK delegate for CPU."
+      #   output from appearing.
+      # - We cannot use aliases with "nohup" so we revert to using "google-chrome".
+      nohup google-chrome "$url" > /dev/null 2>&1 &
+    else
+      # We remove the output to prevent the "Appending output to nohup.out" message.
+      nohup chrome "$url" > /dev/null 2>&1 &
+    fi
+    return
+  fi
+
+  # macOS and Linux have the "open" command:
+  # https://ss64.com/mac/open.html
+  if command -v open &> /dev/null; then
+    # We remove the output to prevent the "Opening in existing browser session." output from
+    # appearing on Linux.
+    open "$url" > /dev/null
+    return
+  fi
+
+  echo "Git commit URL is at:"
+  echo "$url"
+)
+
+# "oc" is short for "opencode". The "--auto" flag is needed to turn off the prompts.
+alias oc="opencode"
+
+# Turn off OpenCode prompts.
+alias opencode="opencode --auto"
+
+# "pi" is short for "pipeline info".
+pi() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+    echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+    exit 1
+  fi
+
+  local scripts_path="$REPOSITORIES_DIR/infrastructure/0-global-library/typescript-scripts"
+  if [[ ! -d "$scripts_path" ]]; then
+    echo "Error: The directory does not exist at: $scripts_path" >&2
+    exit 1
+  fi
+
+  builtin cd "$scripts_path"
+  bun run get-pipeline-info-from-url "$@" | clip
+)
+
+# No global pip command is included on Windows:
+# https://peps.python.org/pep-0773/#global-pip-command
+if command -v python &> /dev/null && ! command -v pip &> /dev/null; then
+  alias pip="python -m pip"
+fi
+
+set-claude-settings() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  local settings_path="$HOME/.claude/settings.json"
+  local tmp_file
+  tmp_file=$(mktemp)
+  trap 'rm -f "$tmp_file"' EXIT
+
+  curl --silent --fail --show-error --location https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/claude/settings.json > "$tmp_file"
+
+  if [[ -f "$settings_path" ]] && cmp --silent "$settings_path" "$tmp_file"; then
+    echo "Error: The content of \"$settings_path\" is already up to date. Nothing to do." >&2
+    exit 1
+  fi
+
+  mkdir -p "$HOME/.claude"
+  cp "$tmp_file" "$settings_path"
+  echo "Successfully updated: $settings_path"
+
+  # Validate that the sound file is in place.
+  local sound_path="$HOME/turn-blind1.mp3" # This must match what is in "settings.json".
+  if [[ ! -s "$sound_path" ]]; then
+    echo "Error: The sound file does not exist: $sound_path" >&2
+    exit 1
+  fi
+)
+
+alias set-env='encrypt "$HOME/.env"'
+
+# Alias "start" to "open" on macOS and "xdg-open" on Linux. ("start" is a Windows-only command to
+# open explorer at the given path.)
+start() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if is-wsl; then
+    wslview "$@"
+  elif is-git-bash; then
+    # We must use "command" to invoke "start" to prevent an infinite loop.
+    command start "$@"
+  elif is-mac-os; then
+    open "$@"
+  else
+    xdg-open "$@"
+  fi
+)
+
+# "tpr" is short for "test-pr".
+tpr() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  assert-in-git-repository
+
+  read -r _host _organization _project repository_name <<< "$(get-git-remote-details)"
+
+  local pull_request_id
+  pull_request_id=$(get-azure-devops-active-pull-request-id-for-current-branch)
+
+  if [[ "${1:-}" == "$repository_name" && "${2:-}" == "$pull_request_id" ]]; then
+    shift 2
+  fi
+
+  local infrastructure_path
+  local current_repo_root
+  local current_repo_remote_url
+  if current_repo_root=$(git rev-parse --show-toplevel 2> /dev/null) \
+    && current_repo_remote_url=$(git -C "$current_repo_root" remote get-url origin 2> /dev/null) \
+    && [[ "${current_repo_remote_url%.git}" == */infrastructure ]]; then
+    infrastructure_path="$current_repo_root"
+  else
+    if [[ -z "${REPOSITORIES_DIR:-}" ]]; then
+      echo "Error: You can only use this command if your repositories directory is in one of the standard locations." >&2
+      exit 1
+    fi
+
+    infrastructure_path="$REPOSITORIES_DIR/infrastructure"
+  fi
+
+  shopt -s nullglob
+  local ci_cd_tasks_paths=("$infrastructure_path/3_Applications/containers/"*-ci-cd-tasks/)
+  if [[ ${#ci_cd_tasks_paths[@]} -ne 1 ]]; then
+    echo "Error: Expected exactly one directory matching: $infrastructure_path/3_Applications/containers/*-ci-cd-tasks" >&2
+    exit 1
+  fi
+  local ci_cd_tasks_path="${ci_cd_tasks_paths[0]}"
+
+  echo "Using infrastructure Git root: $infrastructure_path"
+
+  builtin cd "$ci_cd_tasks_path"
+  bun run test-pr "$repository_name" "$pull_request_id" "$@"
+)
+
+# We disable the mouse because it prevents highlighting text and pressing enter to copy it to the
+# clipboard.
+alias vim="vim -c 'set mouse='"
+
+# Kills and restarts Palo Alto GlobalProtect.
+vpn() (
+  set -euo pipefail # Exit on errors and undefined variables.
+
+  if ! command -v powershell.exe > /dev/null; then
+    echo "Error: powershell.exe is not available. WSL Windows interop must be enabled." >&2
+    return 1
+  fi
+
+  # shellcheck disable=SC2016
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '
+    $ErrorActionPreference = "Stop"
+
+    $panGpaPath = Join-Path $env:ProgramFiles "Palo Alto Networks\GlobalProtect\PanGPA.exe"
+    if (-not (Test-Path -LiteralPath $panGpaPath)) {
+      throw "PanGPA.exe was not found in the Program Files directory."
+    }
+
+    Get-Process -Name PanGPA -ErrorAction SilentlyContinue | Stop-Process -Force
+    Start-Sleep -Seconds 2
+    Start-Process -FilePath $panGpaPath
+  '
+)
+
+# "vpnr" stands for "vpn routes".
+alias vpnr="sudo /usr/local/sbin/add-routes"

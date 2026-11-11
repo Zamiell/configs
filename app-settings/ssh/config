@@ -1,0 +1,5 @@
+Host ssh.dev.azure.com
+    User git
+    IdentityFile ~/.ssh/work/id_rsa
+    WarnWeakCrypto no-pq-kex
+    ConnectTimeout 15

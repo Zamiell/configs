@@ -1,0 +1,18 @@
+{
+  "version": "0.96.0",
+  "userCodeDir": null,
+  "settings": {
+    "isFirstRun": false
+  },
+  "folders": [],
+  "toggleServiceHotkey": {
+    "enabled": false,
+    "modifiers": ["<shift>", "<super>"],
+    "hotKey": "k"
+  },
+  "configHotkey": {
+    "enabled": false,
+    "modifiers": ["<super>"],
+    "hotKey": "k"
+  }
+}

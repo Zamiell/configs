@@ -1,0 +1,109 @@
+{
+  "$help": "https://aka.ms/terminal-documentation",
+  "$schema": "https://aka.ms/terminal-profiles-schema",
+  "actions": [
+    {
+      "command": "closeTab",
+      "id": "User.closeTab"
+    },
+    {
+      "command": {
+        "action": "copy",
+        "singleLine": false
+      },
+      "id": "User.copy"
+    },
+    {
+      "command": "find",
+      "id": "User.find"
+    },
+    {
+      "command": {
+        "action": "nextTab",
+        "tabSwitcherMode": "disabled"
+      },
+      "id": "User.nextTab"
+    },
+    {
+      "command": "paste",
+      "id": "User.paste"
+    },
+    {
+      "command": {
+        "action": "prevTab",
+        "tabSwitcherMode": "disabled"
+      },
+      "id": "User.prevTab"
+    }
+  ],
+  "copyFormatting": "none",
+  "copyOnSelect": false,
+  "defaultProfile": "{eb6834f6-2c29-4b84-86b1-794dd8a58c49}",
+  "keybindings": [
+    {
+      "id": "User.closeTab",
+      "keys": "ctrl+w"
+    },
+    {
+      "id": "Terminal.OpenNewTab",
+      "keys": "ctrl+t"
+    },
+    {
+      "id": null,
+      "keys": "ctrl+shift+t"
+    },
+    {
+      "id": "User.find",
+      "keys": "ctrl+f"
+    },
+    {
+      "id": "User.paste",
+      "keys": "ctrl+v"
+    },
+    {
+      "id": "User.prevTab",
+      "keys": "ctrl+pgup"
+    },
+    {
+      "id": "User.nextTab",
+      "keys": "ctrl+pgdn"
+    }
+  ],
+  "newTabMenu": [
+    {
+      "type": "remainingProfiles"
+    }
+  ],
+  "profiles": {
+    "defaults": {},
+    "list": [
+      {
+        "commandline": "%SystemRoot%\\System32\\cmd.exe",
+        "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+        "name": "Command Prompt"
+      },
+      {
+        "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+        "name": "Windows PowerShell"
+      },
+      {
+        "closeOnExit": "always",
+        "commandline": "%LOCALAPPDATA%\\Programs\\Git\\bin\\bash.exe -i -l",
+        "guid": "{2534e69d-4823-4626-8295-fa9d1dded4e3}",
+        "icon": "%LOCALAPPDATA%\\Programs\\Git\\ucrt64\\share\\git\\git-for-windows.ico",
+        "name": "Git Bash",
+        "startingDirectory": "%USERPROFILE%"
+      },
+      {
+        "closeOnExit": "always",
+        "commandline": "C:\\Windows\\system32\\wsl.exe --distribution Ubuntu",
+        "guid": "{eb6834f6-2c29-4b84-86b1-794dd8a58c49}",
+        "name": "Ubuntu",
+        "startingDirectory": "~"
+      }
+    ]
+  },
+  "schemes": [],
+  "themes": []
+}

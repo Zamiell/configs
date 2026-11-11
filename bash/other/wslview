@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# This is a shim for the "wslview" program, which was deprecated. Since other tools like "npm login"
+# look for a binary called "wslview", we create a shim to achieve similar functionality.
+
+set -euo pipefail # Exit on errors and undefined variables.
+
+if [[ $# -eq 0 ]]; then
+  echo "Error: URL or path is required. Usage: ${0##*/} <url-or-path>..." >&2
+  exit 1
+fi
+
+for target in "$@"; do
+  if [[ -e "$target" ]]; then
+    target=$(wslpath -w "$target")
+  else
+    if [[ "$target" != *"://"* ]] && [[ "$target" != *":"* ]] && [[ "$target" != /* ]] && [[ "$target" != ./* ]] && [[ "$target" != ../* ]]; then
+      hostname="${target%%/*}"
+      hostname="${hostname%%\?*}"
+      hostname="${hostname%%#*}"
+      if [[ "$hostname" == *.* ]]; then
+        target="https://$target"
+      fi
+    fi
+  fi
+
+  WSLVIEW_TARGET="$target" \
+    WSLENV="WSLVIEW_TARGET${WSLENV:+:$WSLENV}" \
+    powershell.exe -NoProfile -NonInteractive -Command "\$target = \$env:WSLVIEW_TARGET; if ([string]::IsNullOrWhiteSpace(\$target)) { exit 1 }; Start-Process -FilePath \$target" > /dev/null 2>&1
+done

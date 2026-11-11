@@ -1,0 +1,9 @@
+runs:
+  using: composite
+
+  steps:
+    - uses: oven-sh/setup-bun@v2
+
+    - name: Install dependencies
+      run: bun ci
+      shell: bash # Composite jobs must specify the shell.

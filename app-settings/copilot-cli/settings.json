@@ -1,0 +1,14 @@
+{
+  "beep": false,
+  "copyOnSelect": true,
+  "model": "gpt-6-astra",
+  "contextTier": "long_context",
+  "enabledFeatureFlags": {
+    "STATUS_LINE": true
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.copilot/hooks/prompt-timing.sh display",
+    "refreshInterval": 1
+  }
+}

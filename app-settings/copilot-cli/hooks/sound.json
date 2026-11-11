@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "\"${COPILOT_HOME:-$HOME/.copilot}/hooks/sound.sh\"",
+        "timeoutSec": 60
+      }
+    ]
+  }
+}

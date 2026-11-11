@@ -1,0 +1,33 @@
+{
+  "model": "opus",
+  "effortLevel": "medium",
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "enabledPlugins": {
+    "gopls-lsp@claude-plugins-official": true
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ffplay -nodisp -autoexit \"C:/Users/jnesta/turn-blind1.mp3\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ffplay -nodisp -autoexit \"C:/Users/jnesta/turn-blind1.mp3\""
+          }
+        ]
+      }
+    ]
+  }
+}

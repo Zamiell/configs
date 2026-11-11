@@ -1,0 +1,29 @@
+# Compatibility notes:
+# - "ls" does not support long flags on macOS.
+# - "mkdir" does not support "--parents" on macOS, so we use "-p" instead.
+# - "sed" does not support long flags on macOS. We require that macOS users run:
+#   brew install gnu-sed
+
+# Get the directory of this script:
+# https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
+DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+
+source "$DIR/helper-functions.sh"
+source "$DIR/mac-os-fixes.sh"
+source "$DIR/env-path.sh"
+source "$DIR/env-other.sh"
+source "$DIR/terminal-settings.sh"
+source "$DIR/other-application-settings.sh"
+
+source "$DIR/commands/aks.sh"
+source "$DIR/commands/browsers.sh"
+source "$DIR/commands/change-directory.sh"
+source "$DIR/commands/git.sh"
+source "$DIR/commands/github.sh"
+source "$DIR/commands/kubectl.sh"
+source "$DIR/commands/miscellaneous.sh"
+source "$DIR/commands/npm.sh"
+source "$DIR/commands/pulumi.sh"
+source "$DIR/commands/say.sh"
+source "$DIR/commands/ssh.sh"
+source "$DIR/commands/terraform.sh"
