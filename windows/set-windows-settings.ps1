@@ -1,3 +1,6 @@
+# Run this script with:
+# powershell -ExecutionPolicy Bypass -File .\windows\set-windows-settings.ps1
+
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $scriptsPath = Join-Path -Path $env:TEMP -ChildPath "scripts"
