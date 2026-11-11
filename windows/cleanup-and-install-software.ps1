@@ -110,9 +110,8 @@ Install-WingetProgram "Mozilla.Firefox.ESR"
 
 # Programming
 Install-WingetProgram "Git.Git"
-Install-WingetProgram "GitHub.cli"
-Install-WingetProgram "GnuWin32.Tree"
-Install-WingetProgram "koalaman.shellcheck"
+
+# Notes
 Install-WingetProgram "Notepad++.Notepad++"
 
 # Visual Studio Code
@@ -124,18 +123,6 @@ $scriptName = "vscode-context-menu.reg"
 $scriptPath = "$scriptsPath\$scriptName"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Zamiell/configs/refs/heads/main/windows/registry/$scriptName" -OutFile $scriptPath
 reg import $scriptPath
-
-# Node.js
-Install-WingetProgram "Schniz.fnm"
-# Installing with this command is idempotent.
-# cspell:disable-next-line
-& "$HOME\AppData\Local\Microsoft\WinGet\Packages\Schniz.fnm_Microsoft.Winget.Source_8wekyb3d8bbwe\fnm.exe" install --lts
-
-# Bun
-# https://bun.com/
-if (-not (Test-Path "$HOME\.bun")) {
-  Invoke-RestMethod bun.sh/install.ps1 | Invoke-Expression
-}
 
 # Games
 Install-WingetProgram "Discord.Discord"
