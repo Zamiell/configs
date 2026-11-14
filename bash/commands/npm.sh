@@ -80,6 +80,7 @@ run-package-script() (
 )
 
 alias b="run-package-script build"
+alias d="run-package-script dev"
 alias l="run-package-script lint"
 alias la="run-package-script lint-all"
 alias p="run-package-script publish"
