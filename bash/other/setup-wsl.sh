@@ -206,6 +206,7 @@ declare -a packages=(
   "git-delta"
   "gvproxy" # Needed for "podman machine start" to work.
   "jq"
+  "musl-tools" # Crypto library needed for building Rust things.
   "podman"
   "podman-compose"
   "postgresql"
