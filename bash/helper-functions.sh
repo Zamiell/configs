@@ -852,8 +852,8 @@ get-work-email() (
   fi
 
   local work_email
-  if ! work_email=$(az ad signed-in-user show --query userPrincipalName --output tsv); then
-    echo "Error: The Azure CLI failed to get your user principal name." >&2
+  if ! work_email=$(az account show --query user.name --output tsv); then
+    echo "Error: The Azure CLI failed to get your cached account username." >&2
     return 1
   fi
   work_email="${work_email%$'\r'}"
