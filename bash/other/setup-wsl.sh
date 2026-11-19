@@ -203,6 +203,7 @@ declare -a packages=(
   "age"
   "bind9-dnsutils"
   "build-essential"
+  "ffmpeg"
   "git-delta"
   "gvproxy" # Needed for "podman machine start" to work.
   "jq"
