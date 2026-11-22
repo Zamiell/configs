@@ -161,8 +161,12 @@ canary() (
   git push
 )
 
-# "clip" is a Windows utility that puts input into the clipboard.
-alias clip="clip.exe"
+# "clip" is a Windows utility that puts input into the clipboard. "pbcopy" is the macOS equivalent.
+if is-mac-os; then
+  alias clip="pbcopy"
+else
+  alias clip="clip.exe"
+fi
 
 # "co" is short for "copilot". (See below.)
 alias co="copilot"

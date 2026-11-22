@@ -122,4 +122,12 @@ if [[ $- == *i* ]]; then
   # Copy the current directory to the clipboard with "Shift + Alt + C", which mimics the Visual
   # Studio Code hotkey.
   bind -x '"\eC": "pwd | clip"'
+
+  # By default, macOS terminals do not send an escape sequence for "Option + C" and
+  # "Option + Shift + C". Instead, they send the UTF-8 encoded "c with cedilla" and "C with cedilla"
+  # characters, so we forward them to the corresponding "Alt" hotkeys.
+  if is-mac-os; then
+    bind '"\303\247": "\ec"'
+    bind '"\303\207": "\eC"'
+  fi
 fi
