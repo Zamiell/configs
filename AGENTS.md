@@ -6,3 +6,4 @@
 - Never put pointless comments in your code. You should be writing easy to read code, making comments superfluous.
 - Do not commit to the repository unless explicitly asked to.
 - Do not document new features in the "README.md" unless explicitly asked to.
+- Do not use Git worktrees. Make all changes directly in the main checkout so that they are picked up by my shell and are visible with `git diff`. If you find yourself running inside of a worktree, stop and tell me before making any changes.
