@@ -552,6 +552,16 @@ get-git-remote-details() (
   return 1
 )
 
+get-azure-devops-pull-request-url-details() (
+  local url_pattern='^https://dev\.azure\.com/([^/?#[:space:]]+)/([^/?#[:space:]]+)/_git/([^/?#[:space:]]+)/pullrequest/([1-9][0-9]*)/?([?#][^[:space:]]*)?$'
+  if [[ ! "$1" =~ $url_pattern ]]; then
+    echo "Error: Unsupported Azure DevOps pull request URL: $1" >&2
+    return 1
+  fi
+
+  printf '%s %s %s %s\n' "${BASH_REMATCH[@]:1:4}"
+)
+
 get-infrastructure-path() (
   set -euo pipefail # Exit on errors and undefined variables.
 

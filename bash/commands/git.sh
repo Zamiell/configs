@@ -1132,12 +1132,26 @@ gpr-dry() (
 gprf() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert-in-git-repository
+  local details repository
+  case "$#" in
+    0)
+      assert-in-git-repository
+      details=$(get-git-remote-details) || return 1
+      read -r _host _organization _project repository <<< "$details"
+      ;;
+    1)
+      details=$(get-azure-devops-pull-request-url-details "$1") || return 1
+      read -r _organization _project repository _pull_request_id <<< "$details"
+      ;;
+    *)
+      echo "Usage: ${FUNCNAME[0]} [pull-request-url]" >&2
+      return 1
+      ;;
+  esac
 
   local scripts_path
   scripts_path=$(get-infrastructure-typescript-scripts-path)
 
-  read -r _host _organization _project repository <<< "$(get-git-remote-details)"
   builtin cd "$scripts_path"
   bun run set-auto-reviewers-required "$repository"
 )
@@ -1171,16 +1185,9 @@ gprp() (
   fi
 
   local pull_request_url="$1"
-  local url_pattern='^https://dev\.azure\.com/([^/?#[:space:]]+)/([^/?#[:space:]]+)/_git/([^/?#[:space:]]+)/pullrequest/([1-9][0-9]*)/?([?#][^[:space:]]*)?$'
-  if [[ ! "$pull_request_url" =~ $url_pattern ]]; then
-    echo "Error: Unsupported Azure DevOps pull request URL: $pull_request_url" >&2
-    return 1
-  fi
-
-  local organization="${BASH_REMATCH[1]}"
-  local project="${BASH_REMATCH[2]}"
-  local repository="${BASH_REMATCH[3]}"
-  local pull_request_id="${BASH_REMATCH[4]}"
+  local details organization project repository pull_request_id
+  details=$(get-azure-devops-pull-request-url-details "$pull_request_url") || return 1
+  read -r organization project repository pull_request_id <<< "$details"
   local host="azure-devops"
 
   assert-jq-installed
