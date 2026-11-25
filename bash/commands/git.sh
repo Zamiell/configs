@@ -1160,16 +1160,27 @@ gprf() (
 gprh() (
   set -euo pipefail # Exit on errors and undefined variables.
 
-  assert-in-git-repository
-  assert-feature-branch
+  local details repository pull_request_id
+  case "$#" in
+    0)
+      assert-in-git-repository
+      assert-feature-branch
+      details=$(get-git-remote-details) || return 1
+      read -r _host _organization _project repository <<< "$details"
+      pull_request_id=$(get-azure-devops-active-pull-request-id-for-current-branch) || return 1
+      ;;
+    1)
+      details=$(get-azure-devops-pull-request-url-details "$1") || return 1
+      read -r _organization _project repository pull_request_id <<< "$details"
+      ;;
+    *)
+      echo "Usage: ${FUNCNAME[0]} [pull-request-url]" >&2
+      return 1
+      ;;
+  esac
 
   local scripts_path
   scripts_path=$(get-infrastructure-typescript-scripts-path)
-
-  read -r _host _organization _project repository <<< "$(get-git-remote-details)"
-
-  local pull_request_id
-  pull_request_id=$(get-azure-devops-active-pull-request-id-for-current-branch)
 
   builtin cd "$scripts_path"
   bun run remove-all-reviewers-from-pull-request "$repository" "$pull_request_id"
